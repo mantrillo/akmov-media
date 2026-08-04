@@ -503,13 +503,13 @@ tabButtons.forEach(btn => {
     // Dynamically set iframe src to local relative paths (same domain as web server)
     if (targetTab === 'overlays') {
       const overlaysIframe = document.getElementById('overlaysIframe');
-      if (overlaysIframe && !overlaysIframe.src) {
+      if (overlaysIframe && !overlaysIframe.src.includes('streamers.html')) {
         overlaysIframe.src = './streamers.html?auth=true';
       }
       sessionStorage.setItem('akmov_panel_session', '1');
     } else if (targetTab === 'pauta') {
       const pautaIframe = document.getElementById('pautaIframe');
-      if (pautaIframe && !pautaIframe.src) {
+      if (pautaIframe && !pautaIframe.src.includes('pauta_studio.html')) {
         pautaIframe.src = './pauta_studio.html';
       }
     }
