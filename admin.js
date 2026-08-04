@@ -278,15 +278,16 @@ btnBypass.addEventListener('click', async () => {
 
   btnBypass.disabled = true;
   try {
-    const res = await apiCall('/owncast/restart', 'POST');
-    if (res && res.success) {
+    const response = await fetch(CONFIG.API_BASE + '/owncast/restart', { method: 'POST' });
+    const data = await response.json().catch(() => ({}));
+    if (response.ok && data.success) {
       toast('Señal liberada. Ya puedes iniciar una nueva transmisión.', 'success');
     } else {
-      toast('Error al liberar señal: ' + (res.error || 'Desconocido'), 'error');
+      toast('Error al liberar señal: ' + (data.error || 'Código HTTP ' + response.status), 'error');
     }
     await fetchOwncastStatus();
   } catch (err) {
-    toast('Error al liberar señal: verifica los permisos de sudo en el servidor.', 'error');
+    toast('Error de conexión al liberar señal: ' + err.message, 'error');
   }
   btnBypass.disabled = false;
 });
