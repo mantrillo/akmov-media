@@ -10,13 +10,25 @@
 
 // ─── CONFIGURACIÓN ──────────────────────────────────────────
 const CONFIG = {
-  ADMIN_PASSWORD: 'akmov2026',   // Contraseña de acceso al panel
-  STREAM_KEY:     'abc123',       // Clave de stream de Owncast — CAMBIAR si la modificaste en Owncast
-  // URL base de la API del servidor. El servidor Node.js (admin-api.js)
-  // debe estar corriendo en el puerto 3001 del servidor Ubuntu.
+  ADMIN_EMAIL:    'akmovmedia@gmail.com',
+  ADMIN_PASSWORD: 'Akmovmedia.,2026!', // Contraseña por defecto solicitada
+  STREAM_KEY:     'abc123',       // Clave de stream de Owncast
   API_BASE: AKMOV_API_BASE,
   POLL_INTERVAL: 8000,           // ms entre cada chequeo de estado del AutoDJ
 };
+
+// ─── SUPABASE INITIALIZATION ────────────────────────────────
+const SUPABASE_URL = 'https://xoypavldfccdyjnfogci.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_uHznpwGU_ZSUPdEVzyVGmA_K152mmHI';
+let supabase = null;
+
+try {
+  if (typeof window.supabase !== 'undefined') {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+} catch (e) {
+  console.warn("Supabase library not loaded yet or invalid key:", e);
+}
 
 // ─── ESTADO LOCAL DE PROGRAMACIÓN ────────────────────────────
 // Se guarda en localStorage para persistir entre sesiones
@@ -127,10 +139,11 @@ if (sessionStorage.getItem('akmov_admin') === 'true') {
   showPanel();
 }
 
-loginForm.addEventListener('submit', (e) => {
+loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
 
   const enteredCaptcha = parseInt(captchaIn.value, 10);
+  const enteredEmail   = document.getElementById('adminEmail').value.trim();
   const enteredPass    = adminPassEl.value.trim();
 
   if (enteredCaptcha !== captchaAnswer) {
@@ -139,18 +152,58 @@ loginForm.addEventListener('submit', (e) => {
     return;
   }
 
-  if (enteredPass !== CONFIG.ADMIN_PASSWORD) {
-    showError('Contraseña incorrecta.');
-    adminPassEl.value = '';
-    adminPassEl.focus();
-    generateCaptcha();
-    return;
+  const loginBtn = document.getElementById('loginBtn');
+  if (loginBtn) {
+    loginBtn.disabled = true;
+    const btnSpan = loginBtn.querySelector('span');
+    if (btnSpan) btnSpan.textContent = 'VERIFICANDO...';
   }
 
-  loginError.classList.add('hidden');
-  sessionStorage.setItem('akmov_admin', 'true');
-  adminPassEl.value = '';
-  showPanel();
+  let authenticated = false;
+  let errorMsg = 'Verifica tus credenciales';
+
+  if (supabase) {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: enteredEmail,
+        password: enteredPass
+      });
+      if (!error && data.user) {
+        authenticated = true;
+        console.log("Autenticado con Supabase Auth");
+      } else if (error) {
+        console.warn("Fallo de Supabase Auth, intentando fallback local:", error.message);
+        errorMsg = error.message;
+      }
+    } catch (err) {
+      console.warn("Error en Supabase auth client:", err);
+    }
+  }
+
+  // Fallback Local
+  if (!authenticated) {
+    if (enteredEmail === CONFIG.ADMIN_EMAIL && enteredPass === CONFIG.ADMIN_PASSWORD) {
+      authenticated = true;
+      console.log("Autenticado con fallback local");
+    }
+  }
+
+  if (loginBtn) {
+    loginBtn.disabled = false;
+    const btnSpan = loginBtn.querySelector('span');
+    if (btnSpan) btnSpan.textContent = 'ACCEDER AL PANEL';
+  }
+
+  if (authenticated) {
+    loginError.classList.add('hidden');
+    sessionStorage.setItem('akmov_admin', 'true');
+    sessionStorage.setItem('akmov_panel_session', '1'); // Para bypass del iframe de overlays
+    adminPassEl.value = '';
+    showPanel();
+  } else {
+    showError(errorMsg);
+    generateCaptcha();
+  }
 });
 
 function showError(msg) {
@@ -467,10 +520,134 @@ function toast(msg, type = 'info') {
   setTimeout(() => el.remove(), 4000);
 }
 
+// ─── TABS NAVIGATION ──────────────────────────────────────────
+const tabButtons = document.querySelectorAll('.tab-btn');
+const tabContents = document.querySelectorAll('.tab-content');
+
+tabButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const targetTab = btn.getAttribute('data-tab');
+    
+    // Switch active buttons
+    tabButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    // Switch active content
+    tabContents.forEach(content => {
+      content.classList.remove('active');
+      if (content.id === `tab-${targetTab}`) {
+        content.classList.add('active');
+      }
+    });
+
+    // Dynamically set iframe src to CONFIG.API_BASE (e.g. api.akmovmedia.com)
+    if (targetTab === 'overlays') {
+      const overlaysIframe = document.getElementById('overlaysIframe');
+      if (overlaysIframe && !overlaysIframe.src) {
+        overlaysIframe.src = CONFIG.API_BASE + '/streamers.html?auth=true';
+      }
+      sessionStorage.setItem('akmov_panel_session', '1');
+    } else if (targetTab === 'pauta') {
+      const pautaIframe = document.getElementById('pautaIframe');
+      if (pautaIframe && !pautaIframe.src) {
+        pautaIframe.src = CONFIG.API_BASE + '/pauta_studio.html';
+      }
+    }
+  });
+});
+
+// ─── YOUTUBE CHANNELS MANAGEMENT ──────────────────────────────
+let youtubeChannels = [];
+
+async function loadYoutubeChannels() {
+  const container = document.getElementById('youtubeChannelsList');
+  if (!container) return;
+
+  try {
+    const res = await fetch(CONFIG.API_BASE + '/api/youtube/channels');
+    if (res.ok) {
+      youtubeChannels = await res.json();
+      renderYoutubeChannels();
+    }
+  } catch (err) {
+    console.error('Error fetching youtube channels:', err);
+  }
+}
+
+function renderYoutubeChannels() {
+  const container = document.getElementById('youtubeChannelsList');
+  if (!container) return;
+
+  if (youtubeChannels.length === 0) {
+    container.innerHTML = '<span class="log-placeholder" style="color: var(--text-muted);">// No hay canales configurados.</span>';
+    return;
+  }
+
+  container.innerHTML = youtubeChannels.map((channel, index) => `
+    <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-card); border: 1px solid var(--gray-border); padding: 10px 15px; margin-bottom: 5px;">
+      <span style="font-family: var(--font-mono); color: var(--neon); font-size: 0.95rem;">${channel}</span>
+      <button class="action-btn btn-stop" onclick="deleteYoutubeChannel(${index})" style="background: var(--red); color: white; border: none; padding: 5px 10px; cursor: pointer; font-family: var(--font-mono); font-size: 0.7rem; font-weight: bold;">ELIMINAR</button>
+    </div>
+  `).join('');
+}
+
+window.deleteYoutubeChannel = function(index) {
+  youtubeChannels.splice(index, 1);
+  renderYoutubeChannels();
+};
+
+document.getElementById('btnAddYoutubeChannel')?.addEventListener('click', () => {
+  const input = document.getElementById('newYoutubeChannel');
+  let handle = input.value.trim();
+  if (!handle) return;
+  if (!handle.startsWith('@')) {
+    handle = '@' + handle;
+  }
+  if (youtubeChannels.includes(handle)) {
+    alert('Este canal ya está en la lista.');
+    return;
+  }
+  youtubeChannels.push(handle);
+  input.value = '';
+  renderYoutubeChannels();
+});
+
+document.getElementById('btnSaveYoutubeChannels')?.addEventListener('click', async () => {
+  const hint = document.getElementById('youtubeSaveHint');
+  if (hint) {
+    hint.textContent = 'Guardando...';
+    hint.className = 'save-hint active';
+  }
+  try {
+    const res = await fetch(CONFIG.API_BASE + '/api/youtube/channels', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ channels: youtubeChannels })
+    });
+    const data = await res.json();
+    if (data.success) {
+      if (hint) {
+        hint.textContent = '✓ Guardado con éxito';
+        setTimeout(() => { hint.textContent = ''; }, 3000);
+      }
+      toast('Canales de YouTube guardados con éxito.', 'success');
+    } else {
+      if (hint) {
+        hint.textContent = 'Error al guardar';
+      }
+    }
+  } catch (err) {
+    if (hint) {
+      hint.textContent = 'Error de conexión';
+    }
+  }
+});
+
 // ─── INIT PANEL ──────────────────────────────────────────────
 async function initPanel() {
   await loadSchedule();
   renderSchedule();
+  await loadYoutubeChannels();
   startPolling();
 }
 

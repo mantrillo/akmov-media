@@ -25,9 +25,21 @@
       </div>
       <p class="gate-subtitle">// PANEL DE CONTROL INTERNO</p>
 
-      <form id="loginForm" class="gate-form" autocomplete="off">
+      <form id="loginForm" class="gate-form" autocomplete="on">
+        <!-- Email -->
+        <div class="field-group">
+          <label class="field-label">CORREO ELECTRÓNICO</label>
+          <input type="email" id="adminEmail" class="field-input" placeholder="akmovmedia@gmail.com" value="akmovmedia@gmail.com" required autocomplete="username">
+        </div>
+
+        <!-- Password -->
+        <div class="field-group" style="margin-top: 15px;">
+          <label class="field-label">CONTRASEÑA DE ACCESO</label>
+          <input type="password" id="adminPass" class="field-input" placeholder="••••••••••" required autocomplete="current-password">
+        </div>
+
         <!-- Math Captcha -->
-        <div class="captcha-block">
+        <div class="captcha-block" style="margin-top: 20px;">
           <span class="captcha-label">VERIFICACIÓN DE SEGURIDAD</span>
           <div class="captcha-equation">
             <span id="captchaA" class="captcha-num">?</span>
@@ -41,13 +53,7 @@
           </button>
         </div>
 
-        <!-- Password -->
-        <div class="field-group">
-          <label class="field-label">CONTRASEÑA DE ACCESO</label>
-          <input type="password" id="adminPass" class="field-input" placeholder="••••••••••" required autocomplete="new-password">
-        </div>
-
-        <button type="submit" class="gate-btn" id="loginBtn">
+        <button type="submit" class="gate-btn" id="loginBtn" style="margin-top: 25px;">
           <span>ACCEDER AL PANEL</span>
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 17l5-5-5-5v10z"/></svg>
         </button>
@@ -83,8 +89,18 @@
       </div>
     </header>
 
-    <!-- MAIN GRID -->
-    <main class="admin-main">
+    <!-- NAVIGATION TABS -->
+    <div class="admin-tabs">
+      <button class="tab-btn active" data-tab="stream-control">CONTROL DE EMISIÓN</button>
+      <button class="tab-btn" data-tab="overlays">WIDGETS & OVERLAYS</button>
+      <button class="tab-btn" data-tab="pauta">PAUTA & ESTUDIO</button>
+      <button class="tab-btn" data-tab="vod-config">YOUTUBE VOD</button>
+    </div>
+
+    <!-- TAB: STREAM CONTROL -->
+    <div class="tab-content active" id="tab-stream-control">
+      <!-- MAIN GRID -->
+      <main class="admin-main">
 
       <!-- LEFT COLUMN -->
       <div class="admin-col">
@@ -281,6 +297,51 @@
     <!-- TOAST -->
     <div class="toast-wrap" id="toastWrap"></div>
 
+    </div> <!-- Close TAB: STREAM CONTROL -->
+
+    <!-- TAB: OVERLAYS -->
+    <div class="tab-content" id="tab-overlays">
+      <iframe src="" class="admin-iframe" id="overlaysIframe" style="width: 100%; height: calc(100vh - 140px); border: none; background: #000;"></iframe>
+    </div>
+
+    <!-- TAB: PAUTA -->
+    <div class="tab-content" id="tab-pauta">
+      <iframe src="" class="admin-iframe" id="pautaIframe" style="width: 100%; height: calc(100vh - 140px); border: none; background: #000;"></iframe>
+    </div>
+
+    <!-- TAB: YOUTUBE VOD -->
+    <div class="tab-content" id="tab-vod-config">
+      <main class="admin-main">
+        <div class="admin-col" style="grid-column: 1 / -1; max-width: 800px; margin: 0 auto; width: 100%;">
+          <div class="admin-card">
+            <div class="card-header">
+              <div class="card-title-group">
+                <svg class="card-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                <h2 class="card-title">CANALES DE YOUTUBE (VOD ON DEMAND)</h2>
+              </div>
+            </div>
+            <p class="obs-note" style="margin: 15px 0;">
+              Ingresa los handles de los canales de YouTube (ej: <code>@lafukinrecords</code>). Se obtendrán dinámicamente los últimos videos de estos canales.
+            </p>
+            <div id="youtubeChannelsList" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+              <!-- Se cargan dinámicamente con JS -->
+            </div>
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+              <input type="text" id="newYoutubeChannel" class="field-input" placeholder="Ej: @nombrecanal" style="flex: 1;">
+              <button class="add-btn" id="btnAddYoutubeChannel" style="padding: 10px 20px; font-size: 0.8rem; font-weight: bold; background: var(--neon); color: var(--bg-dark); border: none; cursor: pointer;">AÑADIR</button>
+            </div>
+            <div class="schedule-footer" style="padding-top: 15px; border-top: 1px solid var(--gray-border);">
+              <button class="save-btn" id="btnSaveYoutubeChannels" style="width: 100%;">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+                GUARDAR CONFIGURACIÓN Y ACTUALIZAR
+              </button>
+              <span class="save-hint" id="youtubeSaveHint"></span>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
   </div>
 
   <!-- ADD SLOT MODAL -->
@@ -327,6 +388,7 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
   <script src="admin.js"></script>
 </body>
