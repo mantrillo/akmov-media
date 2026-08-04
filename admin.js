@@ -20,11 +20,11 @@ const CONFIG = {
 // ─── SUPABASE INITIALIZATION ────────────────────────────────
 const SUPABASE_URL = 'https://xoypavldfccdyjnfogci.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_uHznpwGU_ZSUPdEVzyVGmA_K152mmHI';
-let supabase = null;
+let supabaseClient = null;
 
 try {
   if (typeof window.supabase !== 'undefined') {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
 } catch (e) {
   console.warn("Supabase library not loaded yet or invalid key:", e);
@@ -123,9 +123,9 @@ loginForm.addEventListener('submit', async (e) => {
   let authenticated = false;
   let errorMsg = 'Verifica tus credenciales';
 
-  if (supabase) {
+  if (supabaseClient) {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
         email: enteredEmail,
         password: enteredPass
       });
