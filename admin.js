@@ -47,20 +47,12 @@ const DEFAULT_SCHEDULE = [
 let pollTimer   = null;
 let keyRevealed = false;
 
-// ─── CAPTCHA STATE ────────────────────────────────────────────
-let captchaAnswer = 0;
-
 // ─── DOM REFS ─────────────────────────────────────────────────
 const loginGate   = document.getElementById('loginGate');
 const adminPanel  = document.getElementById('adminPanel');
 const loginForm   = document.getElementById('loginForm');
 const loginError  = document.getElementById('loginError');
 const adminPassEl = document.getElementById('adminPass');
-
-const captchaAEl  = document.getElementById('captchaA');
-const captchaBEl  = document.getElementById('captchaB');
-const captchaOpEl = document.getElementById('captchaOp');
-const captchaIn   = document.getElementById('captchaInput');
 
 const pingDot     = document.getElementById('pingDot');
 const pingLabel   = document.getElementById('pingLabel');
@@ -96,30 +88,7 @@ const confirmSlot     = document.getElementById('confirmSlot');
 const toastWrap       = document.getElementById('toastWrap');
 const logoutBtn       = document.getElementById('logoutBtn');
 
-// ─── CAPTCHA ──────────────────────────────────────────────────
-function generateCaptcha() {
-  const a = Math.floor(Math.random() * 15) + 2;
-  const b = Math.floor(Math.random() * 15) + 2;
-  const ops = ['+', '-', 'x'];
-  const op = ops[Math.floor(Math.random() * ops.length)];
 
-  captchaAEl.textContent = a;
-  captchaBEl.textContent = b;
-  captchaOpEl.textContent = op;
-  captchaIn.value = '';
-
-  if (op === '+')      captchaAnswer = a + b;
-  else if (op === '-') captchaAnswer = a - b;
-  else                 captchaAnswer = a * b;
-}
-
-document.getElementById('refreshCaptcha').addEventListener('click', () => {
-  generateCaptcha();
-  captchaIn.focus();
-});
-
-// Init captcha
-generateCaptcha();
 
 // ─── LOGIN ────────────────────────────────────────────────────
 function showPanel() {
@@ -131,7 +100,6 @@ function showPanel() {
 function showGate() {
   adminPanel.classList.add('hidden');
   loginGate.classList.remove('hidden');
-  generateCaptcha();
 }
 
 // Check if already logged in
@@ -142,15 +110,8 @@ if (sessionStorage.getItem('akmov_admin') === 'true') {
 loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const enteredCaptcha = parseInt(captchaIn.value, 10);
   const enteredEmail   = document.getElementById('adminEmail').value.trim();
   const enteredPass    = adminPassEl.value.trim();
-
-  if (enteredCaptcha !== captchaAnswer) {
-    showError('Respuesta del captcha incorrecta.');
-    generateCaptcha();
-    return;
-  }
 
   const loginBtn = document.getElementById('loginBtn');
   if (loginBtn) {
@@ -202,7 +163,6 @@ loginForm.addEventListener('submit', async (e) => {
     showPanel();
   } else {
     showError(errorMsg);
-    generateCaptcha();
   }
 });
 
