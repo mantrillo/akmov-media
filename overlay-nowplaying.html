@@ -424,8 +424,7 @@
     let currentTrackHash = '';
     const API_URL = '/now-playing';
 
-    // Determinar origen dinámicamente si estamos en test local
-    const baseApi = window.location.origin;
+    const baseApi = 'https://api.akmovmedia.com';
 
     // Función para calcular y aplicar el scroll horizontal si el texto no cabe
     function adjustMarquee(element, cssVar) {

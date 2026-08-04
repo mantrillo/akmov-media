@@ -376,7 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function fetchNowPlaying() {
     try {
-      const response = await fetch('/now-playing');
+      const response = await fetch(AKMOV_API_BASE + '/now-playing');
       if (response.ok) {
         nowPlayingData = await response.json();
         updatePlayerUI();
