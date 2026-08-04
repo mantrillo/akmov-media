@@ -278,20 +278,25 @@ btnBypass.addEventListener('click', async () => {
 
   btnBypass.disabled = true;
   try {
-    await apiCall('/owncast/restart', 'POST');
-    toast('Señal liberada. Ya puedes iniciar una nueva transmisión.', 'success');
+    const res = await apiCall('/owncast/restart', 'POST');
+    if (res && res.success) {
+      toast('Señal liberada. Ya puedes iniciar una nueva transmisión.', 'success');
+    } else {
+      toast('Error al liberar señal: ' + (res.error || 'Desconocido'), 'error');
+    }
     await fetchOwncastStatus();
-  } catch {
-    toast('Error al reiniciar el servicio de Owncast.', 'error');
+  } catch (err) {
+    toast('Error al liberar señal: verifica los permisos de sudo en el servidor.', 'error');
   }
   btnBypass.disabled = false;
 });
 
 btnOpenChat.addEventListener('click', () => {
   const domain = CONFIG.API_BASE.replace('api.', 'stream.').replace(':3001', ':8080');
-  const chatUrl = `${domain}/embed/chat`;
-  window.open(chatUrl, 'OwncastChat', 'width=420,height=650,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes');
-  toast('Abriendo chat flotante...', 'info');
+  // Abrimos el dominio completo de stream para que se cargue la interfaz interactiva con caja de texto (chat activo)
+  const chatUrl = domain;
+  window.open(chatUrl, 'OwncastChat', 'width=1000,height=750,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes');
+  toast('Abriendo reproductor y chat interactivo...', 'info');
 });
 
 // ─── POLLING ─────────────────────────────────────────────────
