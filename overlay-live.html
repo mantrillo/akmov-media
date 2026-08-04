@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AKMOV MEDIA — Live Overlay</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Oswald:wght@500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-black: #000000;
+      --color-white: #ffffff;
+      --color-neon: #00ff00;
+      --color-neon-dim: rgba(0, 255, 0, 0.15);
+      --color-neon-glow: rgba(0, 255, 0, 0.4);
+      --color-gray-dark: rgba(18, 18, 18, 0.85);
+      --color-gray-border: #2a2a2a;
+      
+      --font-display: 'Oswald', sans-serif;
+      --font-sans: 'Montserrat', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: transparent; /* Transparent background for gameplay capture in OBS */
+      color: var(--color-white);
+      font-family: var(--font-sans);
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* NEON BORDER OF THE SCREEN */
+    .screen-border {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1920px;
+      height: 1080px;
+      border: 3px solid var(--color-neon);
+      box-shadow: inset 0 0 15px var(--color-neon-dim), 0 0 15px var(--color-neon-dim);
+      pointer-events: none;
+      z-index: 99;
+    }
+
+    /* TOP LIVE BAR & HEADER */
+    .top-header {
+      position: absolute;
+      top: 15px;
+      left: 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      z-index: 10;
+    }
+
+    .live-badge {
+      background-color: #ff0055;
+      color: var(--color-white);
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      letter-spacing: 2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--color-white);
+      box-shadow: 0 0 10px rgba(255, 0, 85, 0.4);
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--color-white);
+      border-radius: 50%;
+      animation: pulse-dot 1.2s infinite ease-in-out;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 0.3; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+
+    .stream-title-card {
+      background-color: var(--color-gray-dark);
+      border: 1px solid var(--color-neon);
+      padding: 4px 15px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--color-neon);
+      letter-spacing: 1px;
+    }
+
+    /* WIDGET SIDEBAR (CHAT & ALERTS) */
+    .sidebar-widget {
+      position: absolute;
+      top: 70px;
+      bottom: 25px;
+      right: 25px;
+      width: 360px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      z-index: 10;
+    }
+
+    /* ALERTS CONTAINER */
+    .alert-container {
+      height: 100px;
+      flex-shrink: 0;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .alert-box {
+      width: 100%;
+      background-color: var(--color-gray-dark);
+      border: 2px solid var(--color-neon);
+      box-shadow: 0 0 15px var(--color-neon-dim);
+      padding: 15px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      transform: translateX(450px);
+      transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+    }
+
+    .alert-box.active {
+      transform: translateX(0);
+    }
+
+    .alert-box::before {
+      content: '// ALERTA';
+      position: absolute;
+      top: -10px;
+      left: 15px;
+      background-color: #000;
+      padding: 0 5px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--color-neon);
+      letter-spacing: 1px;
+    }
+
+    .alert-icon {
+      width: 45px;
+      height: 45px;
+      color: var(--color-neon);
+      animation: pulse-star 2s infinite ease-in-out;
+    }
+
+    .alert-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .alert-user {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-white);
+      text-transform: uppercase;
+    }
+
+    .alert-text {
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      color: var(--color-neon);
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    /* CHAT BOX */
+    .chat-box {
+      flex: 1;
+      min-height: 0;
+      background-color: var(--color-gray-dark);
+      border: 1px solid var(--color-gray-border);
+      display: flex;
+      flex-direction: column;
+      padding: 15px;
+      padding-top: 22px;
+      position: relative;
+      overflow: visible;
+    }
+
+    .chat-box::before {
+      content: '// CHAT EN VIVO';
+      position: absolute;
+      top: -9px;
+      left: 15px;
+      background-color: #000;
+      padding: 0 5px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--color-white);
+      letter-spacing: 1.5px;
+    }
+
+    .chat-messages {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 12px;
+      overflow: hidden;
+      font-family: var(--font-sans);
+    }
+
+    .chat-message {
+      animation: message-in 0.3s ease-out forwards;
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    @keyframes message-in {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .chat-user {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--color-neon);
+      letter-spacing: 1px;
+      margin-bottom: 2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chat-user::before {
+      content: '✦';
+      font-size: 0.75rem;
+    }
+
+    .chat-text {
+      font-size: 0.85rem;
+      color: #dfdfdf;
+      line-height: 1.4;
+      background-color: rgba(255,255,255,0.03);
+      padding: 6px 10px;
+      border-left: 2px solid var(--color-neon-dim);
+    }
+
+    /* CORNER WATERMARK */
+    .watermark {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      opacity: 0.8;
+    }
+
+    .wm-logo {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--color-white);
+      letter-spacing: -0.5px;
+      text-shadow: -1px 1px 0 var(--color-black), -2px 2px 0 var(--color-neon);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BORDER FRAME -->
+  <div class="screen-border"></div>
+
+  <!-- TOP HEADER -->
+  <div class="top-header">
+    <div class="live-badge">
+      <div class="live-dot"></div>
+      LIVE
+    </div>
+    <div class="stream-title-card" id="program-title">PROGRAMA DE TRANSMISIÓN</div>
+  </div>
+
+  <!-- WATERMARK -->
+  <div class="watermark">
+    <span class="wm-logo">AKMOV MEDIA</span>
+  </div>
+
+  <!-- WIDGET SIDEBAR -->
+  <div class="sidebar-widget">
+    <!-- ALERT BOX -->
+    <div class="alert-container">
+      <div class="alert-box" id="alert-box">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9Z"/>
+        </svg>
+        <div class="alert-info">
+          <div class="alert-user" id="alert-user">USER_123</div>
+          <div class="alert-text" id="alert-text">NUEVO SEGUIDOR</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAT BOX -->
+    <div class="chat-box">
+      <div class="chat-messages" id="chat-messages">
+        <!-- Messages populate here dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Simulator Script to show live activity for testing
+    const programTitle = document.getElementById('program-title');
+    const alertBox = document.getElementById('alert-box');
+    const alertUser = document.getElementById('alert-user');
+    const alertText = document.getElementById('alert-text');
+    const chatMessages = document.getElementById('chat-messages');
+
+    // Sample data
+    const userNames = ['Matias_H', 'Vallenar_Gamer', 'Koke_Radio', 'AtacamaStreamer', 'Fran_V', 'HuascoMax', 'GamerRetro', 'CyberBrutal'];
+    const chatMessagesPool = [
+      '¡Excelente transmisión cabros! 🔥',
+      '¿De qué parte del Huasco transmiten?',
+      'Se escucha filete la señal HD 🔊',
+      '¡Aguante AKMOV MEDIA!',
+      'Mandame un saludo en la próxima pausa please',
+      '¿Qué tal la latencia en OBS?',
+      'Tremendo diseño retro, se pasó 🎮✨',
+      '¡Buenísima música la de hoy!'
+    ];
+    const alertTypes = [
+      { text: 'NUEVO SEGUIDOR', suffix: 'se unió al canal!' },
+      { text: 'NUEVO SUSCRIPTOR', suffix: 'se suscribió con nivel 1!' },
+      { text: 'DONACIÓN 500 BITS', suffix: 'envió bits de apoyo!' }
+    ];
+
+    // Read program title from URL ?title=...
+    const urlParams = new URLSearchParams(window.location.search);
+    const titleParam = urlParams.get('title');
+    if (titleParam) {
+      programTitle.textContent = titleParam.toUpperCase();
+    } else {
+      programTitle.textContent = 'TRANSMISIÓN EN VIVO';
+    }
+
+    // ─── WIDGETS DISPLAY CONFIGURATION ───
+    const widgetParam = urlParams.get('widget');
+    const sidebarWidget = document.querySelector('.sidebar-widget');
+    const alertContainer = document.querySelector('.alert-container');
+    const chatBox = document.querySelector('.chat-box');
+
+    if (widgetParam === 'none') {
+      sidebarWidget.style.display = 'none';
+    } else if (widgetParam === 'chat') {
+      alertContainer.style.display = 'none';
+    } else if (widgetParam === 'alerts') {
+      chatBox.style.display = 'none';
+    }
+
+    // ─── OWNCAST CHAT INTEGRATION ───
+    const apiBase = urlParams.get('api') || 'https://api.akmovmedia.com';
+    const streamUrl = urlParams.get('stream') || 'https://stream.akmovmedia.com';
+    let isOwncastConnected = false;
+    let autoSim = urlParams.get('test') === 'true'; // Run simulator only if ?test=true is passed
+
+    function addChatMessage(user, text) {
+      if (widgetParam === 'alerts' || widgetParam === 'none') return;
+      const messageEl = document.createElement('div');
+      messageEl.className = 'chat-message';
+      messageEl.innerHTML = `
+        <div class="chat-user">${user}</div>
+        <div class="chat-text">${text}</div>
+      `;
+      chatMessages.appendChild(messageEl);
+
+      // Keep only last 30 messages to fill the chat box height
+      while (chatMessages.children.length > 30) {
+        chatMessages.removeChild(chatMessages.firstChild);
+      }
+    }
+
+    async function connectOwncastChat() {
+      try {
+        const tokenRes = await fetch(`${apiBase}/owncast/chat-token`);
+        if (!tokenRes.ok) throw new Error('Failed to get chat token from admin-api');
+        const tokenData = await tokenRes.json();
+        if (!tokenData.success) throw new Error(tokenData.error);
+        
+        const wsUrl = streamUrl.replace(/^http/, 'ws') + `/entry?accessToken=${tokenData.accessToken}`;
+        const socket = new WebSocket(wsUrl);
+
+        socket.onopen = () => {
+          console.log('✅ Conectado al chat de Owncast:', wsUrl);
+          isOwncastConnected = true;
+          autoSim = false; // Disable simulator
+        };
+
+        socket.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+          if (data.type === 'CHAT') {
+            addChatMessage(data.user.displayName, data.body);
+          }
+        };
+
+        socket.onclose = () => {
+          console.warn('❌ Conexión de chat de Owncast cerrada. Reintentando...');
+          isOwncastConnected = false;
+          setTimeout(connectOwncastChat, 5000);
+        };
+      } catch (err) {
+        console.warn('⚠ No se pudo conectar al chat de Owncast. Usando simulador:', err.message);
+        isOwncastConnected = false;
+      }
+    }
+
+    // ─── REAL-TIME ALERTS SSE CONNECTION ───
+    function connectAlertsSSE() {
+      if (widgetParam === 'none') return;
+      try {
+        const eventSource = new EventSource(`${apiBase}/alerts/stream`);
+        
+        eventSource.onmessage = (event) => {
+          const alertData = JSON.parse(event.data);
+          console.log('🔔 Evento recibido desde SSE:', alertData);
+          if (alertData.dataType === 'CHAT') {
+            addChatMessage(alertData.user, alertData.text);
+          } else {
+            triggerAlert(alertData.type, alertData.user);
+          }
+        };
+
+        eventSource.onerror = (err) => {
+          console.warn('⚠ Error en conexión SSE de alertas. Reintentando...');
+          eventSource.close();
+          setTimeout(connectAlertsSSE, 5000);
+        };
+      } catch (e) {
+        console.warn('⚠ No se pudo conectar al servidor local de alertas (admin-api).');
+      }
+    }
+
+    // Simulator triggers
+    function simulateChat() {
+      if (isOwncastConnected || widgetParam === 'alerts' || widgetParam === 'none') return;
+      const userName = userNames[Math.floor(Math.random() * userNames.length)];
+      const text = chatMessagesPool[Math.floor(Math.random() * chatMessagesPool.length)];
+      addChatMessage(userName, text);
+    }
+
+    let alertTimeout;
+    function triggerAlert(title, user) {
+      if (widgetParam === 'chat' || widgetParam === 'none') return;
+      clearTimeout(alertTimeout);
+      alertBox.classList.remove('active');
+      
+      setTimeout(() => {
+        alertUser.textContent = user.toUpperCase();
+        alertText.textContent = title;
+        alertBox.classList.add('active');
+
+        alertTimeout = setTimeout(() => {
+          alertBox.classList.remove('active');
+        }, 5000);
+      }, 100);
+    }
+
+    function simulateAlert() {
+      if (widgetParam === 'chat' || widgetParam === 'none') return;
+      const userName = userNames[Math.floor(Math.random() * userNames.length)];
+      const alertType = alertTypes[Math.floor(Math.random() * alertTypes.length)];
+      triggerAlert(alertType.text, userName);
+    }
+
+    // Initialize Connections
+    if (widgetParam !== 'none') {
+      connectAlertsSSE();
+    }
+
+    // Automatic background simulators for demoing
+    setInterval(() => {
+      if (autoSim) simulateChat();
+    }, 4000);
+    
+    setInterval(() => {
+      if (autoSim) simulateAlert();
+    }, 14000);
+
+    // Initial load
+    setTimeout(() => { if (autoSim) simulateChat(); }, 1000);
+    setTimeout(() => { if (autoSim) simulateChat(); }, 2000);
+  </script>
+</body>
+</html>
+
+

@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AKMOV MEDIA — Transmisiones en Vivo Overlay</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Oswald:wght@500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-black: #000000;
+      --color-white: #ffffff;
+      --color-neon: #00ff00;
+      --color-neon-dim: rgba(0, 255, 0, 0.15);
+      --color-neon-glow: rgba(0, 255, 0, 0.4);
+      --color-yellow: #ffff00;
+      
+      --font-display: 'Oswald', sans-serif;
+      --font-sans: 'Montserrat', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--color-black);
+      color: var(--color-white);
+      font-family: var(--font-sans);
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* GRID & SCANLINE BACKGROUND FROM OVERLAY-STARTING */
+    .bg-grid {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        linear-gradient(to right, var(--color-neon-dim) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--color-neon-dim) 1px, transparent 1px);
+      background-size: 50px 50px;
+      background-position: center;
+      transform: perspective(500px) rotateX(25deg) translateY(-100px) translateZ(0);
+      transform-origin: top center;
+      animation: grid-scroll 20s infinite linear;
+      opacity: 0.45;
+      z-index: 1;
+    }
+
+    @keyframes grid-scroll {
+      0% {
+        background-position: 0 0;
+      }
+      100% {
+        background-position: 0 1000px;
+      }
+    }
+
+    .bg-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, transparent 30%, var(--color-black) 90%);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .scanlines {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.4) 50%);
+      background-size: 100% 4px;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    /* NEON BORDER OF THE SCREEN */
+    .screen-border {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1920px;
+      height: 1080px;
+      border: 4px solid var(--color-neon);
+      box-shadow: inset 0 0 20px var(--color-neon-dim), 0 0 20px var(--color-neon-dim);
+      pointer-events: none;
+      z-index: 99;
+    }
+
+    /* MIDDLE BOX BROADCAST WINDOW */
+    .broadcast-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 1292px;
+      height: 780px;
+      background-color: transparent; /* Transparent frame box for window capture */
+      border: 6px solid var(--color-black);
+      outline: 4px solid var(--color-neon);
+      box-shadow: 15px 15px 0 rgba(0, 0, 0, 0.9);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 5;
+    }
+
+    /* Broadcast Window Header */
+    .broadcast-header {
+      height: 45px;
+      background-color: var(--color-black);
+      border-bottom: 3px solid var(--color-neon);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--color-neon);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      z-index: 10;
+    }
+
+    .broadcast-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .live-dot {
+      width: 10px;
+      height: 10px;
+      background-color: #ff0055;
+      border-radius: 50%;
+      animation: pulse-dot 1s infinite ease-in-out;
+      box-shadow: 0 0 8px #ff0055;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 0.4; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+
+    .broadcast-header-right {
+      color: var(--color-white);
+      font-weight: 700;
+    }
+
+    /* Transparent Frame Cutout for OBS Window Capture */
+    .broadcast-frame {
+      flex: 1;
+      width: 100%;
+      position: relative;
+      background-color: transparent;
+    }
+
+    .fb-iframe-player {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: none;
+    }
+
+    /* Scanline effect over frame */
+    .scanline {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      background-color: var(--color-neon-dim);
+      opacity: 0.5;
+      animation: scanline-move 8s linear infinite;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    @keyframes scanline-move {
+      0% { top: 0; }
+      100% { top: 100%; }
+    }
+
+    /* CONTROL PANEL (Top right, hidden if URL has ?obs=true) */
+    .control-bar {
+      position: absolute;
+      top: 25px;
+      right: 30px;
+      background-color: rgba(18, 18, 18, 0.95);
+      border: 2px solid var(--color-neon);
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      box-shadow: 6px 6px 0 var(--color-black);
+      z-index: 100;
+    }
+
+    .control-bar.hidden {
+      display: none;
+    }
+
+    .control-label {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--color-neon);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .control-input {
+      background-color: var(--color-black);
+      border: 1px solid var(--color-neon);
+      color: var(--color-white);
+      padding: 6px 12px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      width: 450px;
+    }
+
+    .control-input:focus {
+      outline: none;
+      border-color: var(--color-white);
+      box-shadow: 0 0 5px var(--color-neon-glow);
+    }
+
+    .control-btn {
+      background-color: var(--color-neon);
+      color: var(--color-black);
+      border: none;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 6px 15px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.2s ease;
+    }
+
+    .control-btn:hover {
+      background-color: var(--color-white);
+      box-shadow: 0 0 10px var(--color-neon-glow);
+    }
+
+    /* Bottom Decorative Ticker */
+    .ticker-container {
+      position: absolute;
+      bottom: 25px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1280px;
+      background-color: var(--color-black);
+      border: 3px solid var(--color-neon);
+      padding: 8px 20px;
+      overflow: hidden;
+      white-space: nowrap;
+      box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.85);
+      z-index: 4;
+    }
+
+    .ticker-text {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--color-neon);
+      animation: ticker-scroll 45s linear infinite;
+    }
+
+    @keyframes ticker-scroll {
+      0% { transform: translate3d(100%, 0, 0); }
+      100% { transform: translate3d(-100%, 0, 0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background grid & scanlines from overlay-starting -->
+  <div class="bg-grid"></div>
+  <div class="bg-overlay"></div>
+  <div class="scanlines"></div>
+
+  <!-- Screen border overlay -->
+  <div class="screen-border"></div>
+
+  <!-- URL Control Bar -->
+  <div id="controlBar" class="control-bar">
+    <span class="control-label">URL DE TRANSMISIÓN (OPCIONAL):</span>
+    <input type="text" id="streamInput" class="control-input" placeholder="Pegue URL de video si no usa Captura de Ventana (ej: https://www.facebook.com/...)">
+    <button id="updateBtn" class="control-btn">ACTUALIZAR</button>
+  </div>
+
+  <!-- Broadcast Monitor -->
+  <main class="broadcast-container">
+    <header class="broadcast-header">
+      <div class="broadcast-header-left">
+        <span class="live-dot"></span>
+        <span id="broadcastTitle">SEÑAL EN VIVO // TRANSMISIÓN EN DIRECTO</span>
+      </div>
+      <div class="broadcast-header-right" id="statusTime">ONLINE</div>
+    </header>
+
+    <div class="broadcast-frame">
+      <div class="scanline"></div>
+      
+      <!-- Optional Iframe Player (if video_url provided) -->
+      <iframe 
+        id="fbPlayer"
+        class="fb-iframe-player"
+        scrolling="no" 
+        frameborder="0" 
+        allowTransparency="true" 
+        allow="encrypted-media; autoplay" 
+        allowFullScreen="true">
+      </iframe>
+    </div>
+  </main>
+
+  <!-- Bottom decorative ticker -->
+  <div class="ticker-container">
+    <div id="tickerText" class="ticker-text">
+      ✦ EN VIVO: TRANSMISIÓN EN DIRECTO ✦ COBERTURA ESPECIAL AKMOV MEDIA ✦ TRANSMISIÓN AUTOMÁTICA EN VIVO ✦
+    </div>
+  </div>
+
+  <script>
+    const fbPlayer = document.getElementById('fbPlayer');
+    const streamInput = document.getElementById('streamInput');
+    const controlBar = document.getElementById('controlBar');
+    const broadcastTitle = document.getElementById('broadcastTitle');
+    const tickerText = document.getElementById('tickerText');
+
+    function updateLiveStream(url) {
+      if (!url) {
+        fbPlayer.style.display = 'none';
+        fbPlayer.src = '';
+        return;
+      }
+
+      const encodedUrl = encodeURIComponent(url);
+      const playerSrc = `https://www.facebook.com/plugins/video.php?href=${encodedUrl}&show_text=0&width=1280&autoplay=true`;
+
+      fbPlayer.src = playerSrc;
+      fbPlayer.style.display = 'block';
+    }
+
+    document.getElementById('updateBtn').addEventListener('click', () => {
+      const url = streamInput.value.trim();
+      updateLiveStream(url);
+      
+      const newUrl = new URL(window.location);
+      if (url) {
+        newUrl.searchParams.set('video_url', url);
+      } else {
+        newUrl.searchParams.delete('video_url');
+      }
+      window.history.pushState({}, '', newUrl);
+    });
+
+    streamInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        document.getElementById('updateBtn').click();
+      }
+    });
+
+    function init() {
+      const params = new URLSearchParams(window.location.search);
+      
+      if (params.get('obs') === 'true') {
+        controlBar.classList.add('hidden');
+      }
+
+      const customTitle = params.get('title');
+      if (customTitle) {
+        broadcastTitle.innerText = customTitle;
+      }
+
+      const customTicker = params.get('ticker');
+      if (customTicker) {
+        tickerText.innerText = customTicker;
+      }
+
+      const speed = params.get('speed') || params.get('ticker_speed');
+      if (speed) {
+        tickerText.style.animationDuration = `${speed}s`;
+      }
+
+      const videoUrl = params.get('video_url');
+      if (videoUrl) {
+        streamInput.value = videoUrl;
+        updateLiveStream(videoUrl);
+      }
+
+      setInterval(() => {
+        const d = new Date();
+        document.getElementById('statusTime').innerText = d.toLocaleTimeString('es-CL');
+      }, 1000);
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>

@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AKMOV MEDIA — Farewell Overlay</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Oswald:wght@500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-black: #000000;
+      --color-white: #ffffff;
+      --color-neon: #00ff00;
+      --color-neon-dim: rgba(0, 255, 0, 0.12);
+      --color-neon-glow: rgba(0, 255, 0, 0.4);
+      --color-gray-dark: rgba(14, 14, 14, 0.92);
+      --color-gray-border: #2a2a2a;
+      --font-display: 'Oswald', sans-serif;
+      --font-sans: 'Montserrat', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--color-black);
+      color: var(--color-white);
+      font-family: var(--font-sans);
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ANIMATED GRID BACKGROUND */
+    .bg-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,255,0,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,0,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      animation: grid-scroll 20s linear infinite;
+    }
+
+    @keyframes grid-scroll {
+      0% { background-position: 0 0; }
+      100% { background-position: 0 60px; }
+    }
+
+    .bg-vignette {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.85) 100%);
+    }
+
+    .scanlines {
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(0,0,0,0.08) 3px,
+        rgba(0,0,0,0.08) 4px
+      );
+      pointer-events: none;
+    }
+
+    /* NEON BORDER */
+    .screen-border {
+      position: absolute;
+      inset: 0;
+      border: 3px solid var(--color-neon);
+      box-shadow: inset 0 0 20px var(--color-neon-dim), 0 0 20px var(--color-neon-dim);
+      pointer-events: none;
+      z-index: 99;
+    }
+
+    /* TOP BAR */
+    .top-bar {
+      position: absolute;
+      top: 25px;
+      left: 40px;
+      right: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 10;
+    }
+
+    .farewell-badge {
+      background: var(--color-gray-dark);
+      border: 2px solid var(--color-neon);
+      box-shadow: 0 0 12px var(--color-neon-dim);
+      padding: 6px 20px;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      color: var(--color-neon);
+      letter-spacing: 4px;
+      text-transform: uppercase;
+    }
+
+    .brand-watermark {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: rgba(255,255,255,0.7);
+      text-shadow: -1px 1px 0 var(--color-black), -2px 2px 0 rgba(0,255,0,0.3);
+    }
+
+    /* CENTER CONTENT AREA */
+    .center-area {
+      position: absolute;
+      top: 90px;
+      left: 40px;
+      right: 40px;
+      bottom: 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+    }
+
+    /* PROGRAM LOGO */
+    .program-logo-wrap {
+      display: none;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .program-logo {
+      max-width: 380px;
+      max-height: 180px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 20px rgba(0,255,0,0.5));
+      animation: logo-float 4s ease-in-out infinite;
+    }
+
+    @keyframes logo-float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+
+    /* FAREWELL MESSAGE */
+    .farewell-title {
+      font-family: var(--font-display);
+      font-size: 4rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 8px;
+      text-align: center;
+      color: var(--color-white);
+      text-shadow:
+        -2px 2px 0 var(--color-black),
+        -4px 4px 0 rgba(0,255,0,0.25);
+      animation: title-glow 3s ease-in-out infinite alternate;
+      flex-shrink: 0;
+    }
+
+    @keyframes title-glow {
+      from { text-shadow: -2px 2px 0 #000, -4px 4px 0 rgba(0,255,0,0.2); }
+      to { text-shadow: -2px 2px 0 #000, -4px 4px 0 rgba(0,255,0,0.6), 0 0 30px rgba(0,255,0,0.15); }
+    }
+
+    .farewell-subtitle {
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      color: rgba(255,255,255,0.6);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-align: center;
+      flex-shrink: 0;
+      margin-top: -20px;
+    }
+
+    /* MAIN BODY: CHAT PODIUM + ADS */
+    .main-body {
+      display: flex;
+      gap: 40px;
+      width: 100%;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* TOP CHATTERS PODIUM */
+    .podium-panel {
+      flex: 1;
+      min-width: 0;
+      background: var(--color-gray-dark);
+      border: 1.5px solid var(--color-gray-border);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+    }
+
+    .podium-panel::before {
+      content: '// TOP CHATTERS';
+      position: absolute;
+      top: -10px;
+      left: 20px;
+      background: var(--color-black);
+      padding: 0 8px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--color-neon);
+      letter-spacing: 2px;
+    }
+
+    .podium-title {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--color-white);
+      margin-bottom: 6px;
+    }
+
+    .podium-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .podium-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 14px;
+      background: rgba(0,0,0,0.4);
+      border-left: 3px solid var(--color-gray-border);
+      animation: slide-in 0.5s ease-out forwards;
+      opacity: 0;
+    }
+
+    .podium-item:nth-child(1) {
+      border-left-color: #ffd700;
+      animation-delay: 0.2s;
+    }
+    .podium-item:nth-child(2) {
+      border-left-color: #c0c0c0;
+      animation-delay: 0.4s;
+    }
+    .podium-item:nth-child(3) {
+      border-left-color: #cd7f32;
+      animation-delay: 0.6s;
+    }
+    .podium-item:nth-child(n+4) {
+      border-left-color: var(--color-neon-dim);
+      animation-delay: 0.8s;
+    }
+
+    @keyframes slide-in {
+      from { opacity: 0; transform: translateX(-20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .podium-rank {
+      font-family: var(--font-mono);
+      font-size: 1.4rem;
+      font-weight: 700;
+      min-width: 36px;
+      text-align: center;
+    }
+
+    .podium-item:nth-child(1) .podium-rank { color: #ffd700; }
+    .podium-item:nth-child(2) .podium-rank { color: #c0c0c0; }
+    .podium-item:nth-child(3) .podium-rank { color: #cd7f32; }
+    .podium-item:nth-child(n+4) .podium-rank { color: var(--color-gray-border); }
+
+    .podium-user {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      flex: 1;
+    }
+
+    .podium-badge {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      padding: 3px 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .podium-item:nth-child(1) .podium-badge {
+      background: rgba(255,215,0,0.15);
+      border: 1px solid #ffd700;
+      color: #ffd700;
+    }
+    .podium-item:nth-child(2) .podium-badge {
+      background: rgba(192,192,192,0.1);
+      border: 1px solid #c0c0c0;
+      color: #c0c0c0;
+    }
+    .podium-item:nth-child(3) .podium-badge {
+      background: rgba(205,127,50,0.1);
+      border: 1px solid #cd7f32;
+      color: #cd7f32;
+    }
+    .podium-item:nth-child(n+4) .podium-badge {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid #333;
+      color: #888;
+    }
+
+    /* ADS COLUMN */
+    .ads-column {
+      width: 440px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .ad-slot {
+      flex: 1;
+      background: var(--color-gray-dark);
+      border: 1.5px solid var(--color-gray-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ad-slot::before {
+      content: attr(data-label);
+      position: absolute;
+      top: -10px;
+      left: 16px;
+      background: var(--color-black);
+      padding: 0 8px;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--color-gray-border);
+      letter-spacing: 2px;
+    }
+
+    .ad-placeholder {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .ad-placeholder-icon {
+      font-size: 2.5rem;
+      opacity: 0.2;
+      margin-bottom: 10px;
+    }
+
+    .ad-placeholder-text {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.2);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .ad-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: none;
+    }
+
+    /* BOTTOM TICKER */
+    .bottom-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 50px;
+      background: var(--color-neon);
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .ticker-track {
+      display: flex;
+      gap: 0;
+      animation: ticker-scroll 25s linear infinite;
+      white-space: nowrap;
+    }
+
+    @keyframes ticker-scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    .ticker-segment {
+      display: flex;
+      align-items: center;
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--color-black);
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      padding: 0 40px;
+    }
+
+    .ticker-segment::after {
+      content: '✦';
+      margin-left: 40px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-grid"></div>
+  <div class="bg-vignette"></div>
+  <div class="scanlines"></div>
+  <div class="screen-border"></div>
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="farewell-badge">// FIN DE TRANSMISIÓN</div>
+    <div class="brand-watermark">AKMOV MEDIA</div>
+  </div>
+
+  <!-- CENTER AREA -->
+  <div class="center-area">
+
+    <!-- PROGRAM LOGO (PNG with transparency) -->
+    <div class="program-logo-wrap" id="logo-wrap">
+      <img class="program-logo" id="program-logo" src="" alt="Logo del programa">
+    </div>
+
+    <!-- FAREWELL TITLE -->
+    <div class="farewell-title" id="farewell-title">¡HASTA PRONTO!</div>
+    <div class="farewell-subtitle" id="farewell-subtitle">GRACIAS POR ACOMPAÑARNOS · AKMOV MEDIA</div>
+
+    <!-- MAIN BODY -->
+    <div class="main-body">
+
+      <!-- TOP CHATTERS PODIUM -->
+      <div class="podium-panel">
+        <div class="podium-title">Gracias a los mejores del chat</div>
+        <div class="podium-list" id="podium-list">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- ADS COLUMN -->
+      <div class="ads-column">
+        <div class="ad-slot" data-label="// PUBLICIDAD 1" id="ad-slot-1">
+          <img class="ad-img" id="ad-img-1" src="" alt="Publicidad 1">
+          <div class="ad-placeholder" id="ad-placeholder-1">
+            <div class="ad-placeholder-icon">📢</div>
+            <div class="ad-placeholder-text">Espacio publicitario<br>Configura con ?banner1=URL</div>
+          </div>
+        </div>
+        <div class="ad-slot" data-label="// PUBLICIDAD 2" id="ad-slot-2">
+          <img class="ad-img" id="ad-img-2" src="" alt="Publicidad 2">
+          <div class="ad-placeholder" id="ad-placeholder-2">
+            <div class="ad-placeholder-icon">📢</div>
+            <div class="ad-placeholder-text">Espacio publicitario<br>Configura con ?banner2=URL</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /main-body -->
+  </div><!-- /center-area -->
+
+  <!-- BOTTOM TICKER -->
+  <div class="bottom-bar">
+    <div class="ticker-track" id="ticker-track">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // --- PROGRAM LOGO ---
+    const logoUrl = urlParams.get('logo');
+    if (logoUrl) {
+      document.getElementById('program-logo').src = logoUrl;
+      document.getElementById('logo-wrap').style.display = 'block';
+    }
+
+    // --- FAREWELL TITLE ---
+    const customTitle = urlParams.get('title');
+    if (customTitle) document.getElementById('farewell-title').textContent = customTitle.toUpperCase();
+
+    const customSub = urlParams.get('sub');
+    if (customSub) document.getElementById('farewell-subtitle').textContent = customSub.toUpperCase();
+
+    // --- TOP CHATTERS PODIUM ---
+    // URL params: u1, u2, u3, u4, u5 (up to 5 users)
+    const MEDAL_LABELS = ['🥇 MVP', '🥈 CRACK', '🥉 TOP 3', '✦ TOP 4', '✦ TOP 5'];
+    const defaultUsers = ['USUARIO_1', 'USUARIO_2', 'USUARIO_3', 'USUARIO_4', 'USUARIO_5'];
+    const podiumList = document.getElementById('podium-list');
+
+    for (let i = 1; i <= 5; i++) {
+      const user = urlParams.get(`u${i}`) || defaultUsers[i - 1];
+      const item = document.createElement('div');
+      item.className = 'podium-item';
+      item.innerHTML = `
+        <div class="podium-rank">#${i}</div>
+        <div class="podium-user">${user.toUpperCase()}</div>
+        <div class="podium-badge">${MEDAL_LABELS[i - 1]}</div>
+      `;
+      podiumList.appendChild(item);
+    }
+
+    // --- AD BANNERS ---
+    function loadBanner(imgId, placeholderId, paramName) {
+      const url = urlParams.get(paramName);
+      if (url) {
+        document.getElementById(imgId).src = url;
+        document.getElementById(imgId).style.display = 'block';
+        document.getElementById(placeholderId).style.display = 'none';
+      }
+    }
+
+    loadBanner('ad-img-1', 'ad-placeholder-1', 'banner1');
+    loadBanner('ad-img-2', 'ad-placeholder-2', 'banner2');
+
+    // --- BOTTOM TICKER ---
+    const tickerText = urlParams.get('ticker') || 'GRACIAS POR VER AKMOV MEDIA · SÍGUENOS EN @AKMOVMEDIA · HASTA LA PRÓXIMA TRANSMISIÓN · RADIO & TV ONLINE 24/7';
+    const segments = tickerText.split('·').map(s => s.trim());
+
+    const track = document.getElementById('ticker-track');
+    // Duplicate for seamless loop
+    for (let pass = 0; pass < 2; pass++) {
+      segments.forEach(seg => {
+        const el = document.createElement('div');
+        el.className = 'ticker-segment';
+        el.textContent = seg;
+        track.appendChild(el);
+      });
+    }
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AKMOV MEDIA — Dual Cam Overlay</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Oswald:wght@500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-black: #000000;
+      --color-white: #ffffff;
+      --color-neon: #00ff00;
+      --color-neon-dim: rgba(0, 255, 0, 0.15);
+      --color-neon-glow: rgba(0, 255, 0, 0.4);
+      --color-gray-dark: rgba(18, 18, 18, 0.85);
+      --color-gray-border: #2a2a2a;
+      
+      --font-display: 'Oswald', sans-serif;
+      --font-sans: 'Montserrat', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: transparent;
+      color: var(--color-white);
+      font-family: var(--font-sans);
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* GENERAL BORDER */
+    .screen-border {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1920px;
+      height: 1080px;
+      border: 3px solid var(--color-neon);
+      box-shadow: inset 0 0 15px var(--color-neon-dim);
+      pointer-events: none;
+      z-index: 99;
+    }
+
+    /* TOP HEADER */
+    .header-bar {
+      position: absolute;
+      top: 30px;
+      left: 40px;
+      display: flex;
+      justify-content: space-between;
+      width: 1840px;
+      z-index: 10;
+    }
+
+    .header-title-group {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .header-badge {
+      background-color: var(--color-neon);
+      color: var(--color-black);
+      font-family: var(--font-mono);
+      font-weight: 700;
+      padding: 4px 12px;
+      font-size: 0.85rem;
+      letter-spacing: 2px;
+    }
+
+    .header-title {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: var(--color-white);
+      text-transform: uppercase;
+      text-shadow: 2px 2px 0 var(--color-black), 3px 3px 0 var(--color-neon);
+    }
+
+    .logo-watermark {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--color-white);
+      letter-spacing: 1px;
+    }
+
+    .logo-watermark span {
+      color: var(--color-neon);
+    }
+
+    /* DUAL CAM LAYOUT */
+    .cams-container {
+      position: absolute;
+      top: 180px;
+      left: 40px;
+      width: 1540px;
+      display: flex;
+      gap: 40px;
+      z-index: 5;
+    }
+
+    .cam-wrapper {
+      width: 750px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* 16:9 Camera placeholder (OBS will key this out or place cams over it) */
+    .cam-box {
+      width: 750px;
+      height: 422px; /* 16:9 aspect ratio */
+      border: 3px solid var(--color-neon);
+      background-color: rgba(0, 0, 0, 0.6);
+      box-shadow: 0 0 25px var(--color-neon-dim);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cam-box::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(0, 255, 0, 0.03), rgba(0, 0, 0, 0), rgba(0, 255, 0, 0.03));
+      background-size: 100% 4px, 6px 100%;
+      pointer-events: none;
+    }
+
+    .cam-placeholder-label {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: rgba(0, 255, 0, 0.4);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      border: 1px dashed rgba(0, 255, 0, 0.3);
+      padding: 10px 20px;
+    }
+
+    /* LOWER THIRD NAMES */
+    .lower-third {
+      background-color: var(--color-gray-dark);
+      border-left: 5px solid var(--color-neon);
+      border-top: 1px solid var(--color-gray-border);
+      border-right: 1px solid var(--color-gray-border);
+      border-bottom: 1px solid var(--color-gray-border);
+      padding: 12px 20px;
+      position: relative;
+      box-shadow: 5px 5px 0 rgba(0,0,0,0.5);
+    }
+
+    .lower-third::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 0 0 15px 15px;
+      border-color: transparent transparent var(--color-neon) transparent;
+    }
+
+    .lower-third-name {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--color-white);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .lower-third-sub {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--color-neon);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    /* SIDE CHAT WIDGET */
+    .chat-container {
+      position: absolute;
+      top: 180px;
+      right: 40px;
+      width: 260px;
+      height: 564px; /* Matches height of cams + lower thirds */
+      background-color: var(--color-gray-dark);
+      border: 1px solid var(--color-gray-border);
+      border-top: 3px solid var(--color-neon);
+      display: flex;
+      flex-direction: column;
+      padding: 15px;
+      z-index: 5;
+    }
+
+    .chat-container::before {
+      content: '// COMPARTIENDO CHAT';
+      position: absolute;
+      top: -24px;
+      left: 0;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--color-neon);
+      letter-spacing: 1px;
+    }
+
+    .chat-messages {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 12px;
+      overflow: hidden;
+    }
+
+    .chat-message {
+      animation: message-in 0.3s ease-out forwards;
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    .chat-user {
+      font-family: var(--font-display);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--color-neon);
+      letter-spacing: 1.5px;
+      margin-bottom: 2px;
+    }
+
+    .chat-text {
+      font-family: var(--font-sans);
+      font-size: 0.8rem;
+      color: #dfdfdf;
+      line-height: 1.3;
+      background-color: rgba(255,255,255,0.02);
+      padding: 5px 8px;
+    }
+
+    @keyframes message-in {
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BORDER FRAME -->
+  <div class="screen-border"></div>
+
+  <!-- HEADER -->
+  <div class="header-bar">
+    <div class="header-title-group">
+      <div class="header-badge">LIVE</div>
+      <h1 class="header-title" id="overlay-title">ENTREVISTA // DUOCAM</h1>
+    </div>
+    <div class="logo-watermark">AKMOV<span>MEDIA</span></div>
+  </div>
+
+  <!-- CAMS -->
+  <div class="cams-container">
+    <!-- CAM 1 -->
+    <div class="cam-wrapper">
+      <div class="cam-box">
+        <span class="cam-placeholder-label">Captura Cámara 1 (OBS)</span>
+      </div>
+      <div class="lower-third">
+        <div class="lower-third-name" id="p1-name">PARTICIPANTE 1</div>
+        <div class="lower-third-sub" id="p1-sub">INVITADO Especial</div>
+      </div>
+    </div>
+
+    <!-- CAM 2 -->
+    <div class="cam-wrapper">
+      <div class="cam-box">
+        <span class="cam-placeholder-label">Captura Cámara 2 (OBS)</span>
+      </div>
+      <div class="lower-third">
+        <div class="lower-third-name" id="p2-name">PARTICIPANTE 2</div>
+        <div class="lower-third-sub" id="p2-sub">CO-ANFITRIÓN</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAT WIDGET -->
+  <div class="chat-container">
+    <div class="chat-messages" id="chat-messages">
+      <!-- Simulated Chat Messages -->
+    </div>
+  </div>
+
+  <script>
+    // Read names and roles from URL query parameters (e.g. ?p1=Matias&p1sub=Host&p2=Fran&p2sub=Invitado)
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    const p1Name = urlParams.get('p1') || 'ANFITRIÓN';
+    const p1Sub = urlParams.get('p1sub') || 'CONDUCTOR AKMOV';
+    const p2Name = urlParams.get('p2') || 'INVITADO';
+    const p2Sub = urlParams.get('p2sub') || 'LLAMADA DE DISCORD';
+    const titleVal = urlParams.get('title') || 'ENTREVISTA // DUOCAM';
+
+    document.getElementById('p1-name').textContent = p1Name.toUpperCase();
+    document.getElementById('p1-sub').textContent = p1Sub.toUpperCase();
+    document.getElementById('p2-name').textContent = p2Name.toUpperCase();
+    document.getElementById('p2-sub').textContent = p2Sub.toUpperCase();
+    document.getElementById('overlay-title').textContent = titleVal.toUpperCase();
+
+    // ─── OWNCAST CHAT INTEGRATION ───
+    const chatMessages = document.getElementById('chat-messages');
+    const userNames = ['Matias_H', 'Vallenar_Gamer', 'Koke_Radio', 'AtacamaStreamer', 'Fran_V', 'HuascoMax', 'GamerRetro', 'CyberBrutal'];
+    const chatMessagesPool = [
+      'Buenísima la conversación 🎙️',
+      '¡Saludos desde Freirina!',
+      '¿Cuándo sortean el premio?',
+      'Excelente señal de audio y video.',
+      'Pregúntale sobre el nuevo proyecto de radio',
+      'Se ve impecable el overlay neón 👍',
+      '¡Apoyando el streaming regional!'
+    ];
+
+    const apiBase = urlParams.get('api') || 'https://api.akmovmedia.com';
+    const streamUrl = urlParams.get('stream') || 'https://stream.akmovmedia.com';
+    let isOwncastConnected = false;
+    let autoSim = urlParams.get('test') === 'true'; // Run simulator only if ?test=true is passed
+
+    function addChatMessage(user, text) {
+      const messageEl = document.createElement('div');
+      messageEl.className = 'chat-message';
+      messageEl.innerHTML = `
+        <div class="chat-user">${user}</div>
+        <div class="chat-text">${text}</div>
+      `;
+      chatMessages.appendChild(messageEl);
+
+      // Keep only last 12 messages to fit the container height
+      while (chatMessages.children.length > 12) {
+        chatMessages.removeChild(chatMessages.firstChild);
+      }
+    }
+
+    async function connectOwncastChat() {
+      try {
+        const tokenRes = await fetch(`${apiBase}/owncast/chat-token`);
+        if (!tokenRes.ok) throw new Error('Failed to get chat token from admin-api');
+        const tokenData = await tokenRes.json();
+        if (!tokenData.success) throw new Error(tokenData.error);
+        
+        const wsUrl = streamUrl.replace(/^http/, 'ws') + `/entry?accessToken=${tokenData.accessToken}`;
+        const socket = new WebSocket(wsUrl);
+
+        socket.onopen = () => {
+          console.log('✅ Conectado al chat de Owncast:', wsUrl);
+          isOwncastConnected = true;
+          autoSim = false; // Disable simulator
+        };
+
+        socket.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+          if (data.type === 'CHAT') {
+            addChatMessage(data.user.displayName, data.body);
+          }
+        };
+
+        socket.onclose = () => {
+          console.warn('❌ Conexión de chat de Owncast cerrada. Reintentando...');
+          isOwncastConnected = false;
+          setTimeout(connectOwncastChat, 5000);
+        };
+      } catch (err) {
+        console.warn('⚠ No se pudo conectar al chat de Owncast. Usando simulador:', err.message);
+        isOwncastConnected = false;
+      }
+    }
+
+    // Simulator triggers
+    function simulateChat() {
+      if (isOwncastConnected) return;
+      const userName = userNames[Math.floor(Math.random() * userNames.length)];
+      const text = chatMessagesPool[Math.floor(Math.random() * chatMessagesPool.length)];
+      addChatMessage(userName, text);
+    }
+
+    // ─── REAL-TIME ALERTS SSE CONNECTION ───
+    function connectAlertsSSE() {
+      try {
+        const eventSource = new EventSource(`${apiBase}/alerts/stream`);
+        
+        eventSource.onmessage = (event) => {
+          const alertData = JSON.parse(event.data);
+          console.log('🔔 Evento recibido desde SSE:', alertData);
+          if (alertData.dataType === 'CHAT') {
+            addChatMessage(alertData.user, alertData.text);
+          }
+        };
+
+        eventSource.onerror = (err) => {
+          console.warn('⚠ Error en conexión SSE de alertas. Reintentando...');
+          eventSource.close();
+          setTimeout(connectAlertsSSE, 5000);
+        };
+      } catch (e) {
+        console.warn('⚠ No se pudo conectar al servidor local de alertas (admin-api).');
+      }
+    }
+
+    // Initialize Connections
+    connectAlertsSSE();
+
+    // Automatic background simulators for demoing
+    setInterval(() => {
+      if (autoSim) simulateChat();
+    }, 4500);
+
+    // Initial load
+    setTimeout(() => { if (autoSim) simulateChat(); }, 1000);
+    setTimeout(() => { if (autoSim) simulateChat(); }, 2000);
+  </script>
+</body>
+</html>
+
+
