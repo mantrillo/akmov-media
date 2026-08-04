@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AKMOV MEDIA — Panel de Control de Overlays</title>
+  <meta name="description" content="Panel privado de configuración y generación de URLs para los overlays de OBS de AKMOV MEDIA.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Oswald:wght@500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --black: #000000;
+      --white: #ffffff;
+      --neon: #00ff00;
+      --neon-dim: rgba(0, 255, 0, 0.12);
+      --neon-glow: 0 0 12px rgba(0,255,0,0.5);
+      --gray-panel: #111111;
+      --gray-border: #2a2a2a;
+      --gray-text: #888888;
+      --font-display: 'Oswald', sans-serif;
+      --font-sans: 'Montserrat', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --transition: 0.2s ease;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--black); color: var(--white); font-family: var(--font-sans); min-height: 100vh; overflow-x: hidden; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--black); }
+    ::-webkit-scrollbar-thumb { background: var(--gray-border); }
+    ::-webkit-scrollbar-thumb:hover { background: var(--neon); }
+
+    /* ── LOGIN ── */
+    #login-screen { position: fixed; inset: 0; background: var(--black); display: flex; align-items: center; justify-content: center; z-index: 999; }
+    .login-bg-grid { position: fixed; inset: 0; background-image: linear-gradient(rgba(0,255,0,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,0,0.04) 1px, transparent 1px); background-size: 60px 60px; pointer-events: none; z-index: 0; }
+    .login-card { position: relative; z-index: 1; width: min(480px, 90vw); background: var(--gray-panel); border: 2px solid var(--gray-border); padding: 48px 40px; }
+    .login-logo { font-family: var(--font-display); font-size: 2rem; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; text-align: center; margin-bottom: 6px; }
+    .login-logo span { color: var(--neon); text-shadow: var(--neon-glow); }
+    .login-sub { font-family: var(--font-mono); font-size: 0.65rem; color: var(--gray-text); text-align: center; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 40px; }
+    .login-label { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 2px; color: var(--neon); text-transform: uppercase; display: block; margin-bottom: 8px; }
+    .login-input { width: 100%; background: var(--black); border: 1.5px solid var(--gray-border); color: var(--white); font-family: var(--font-mono); font-size: 1rem; padding: 12px 16px; outline: none; transition: border-color var(--transition); margin-bottom: 28px; }
+    .login-input:focus { border-color: var(--neon); }
+    .login-btn { width: 100%; background: var(--neon); color: var(--black); border: none; font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; padding: 14px; cursor: pointer; transition: opacity var(--transition), box-shadow var(--transition); }
+    .login-btn:hover { opacity: 0.9; box-shadow: var(--neon-glow); }
+    .login-error { font-family: var(--font-mono); font-size: 0.72rem; color: #ff4444; text-align: center; margin-top: 14px; opacity: 0; transition: opacity 0.3s; }
+    .login-error.visible { opacity: 1; }
+
+    /* ── APP ── */
+    #app { display: none; min-height: 100vh; }
+    .topbar { position: sticky; top: 0; width: 100%; height: 64px; background: var(--black); border-bottom: 2px solid var(--gray-border); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; z-index: 100; }
+    .topbar-logo { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; }
+    .topbar-logo span { color: var(--neon); }
+    .topbar-badge { font-family: var(--font-mono); font-size: 0.65rem; background: var(--neon-dim); border: 1px solid var(--neon); color: var(--neon); padding: 4px 10px; letter-spacing: 2px; text-transform: uppercase; }
+    .topbar-logout { font-family: var(--font-mono); font-size: 0.65rem; background: none; border: 1px solid var(--gray-border); color: var(--gray-text); padding: 6px 14px; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; transition: all var(--transition); }
+    .topbar-logout:hover { border-color: var(--neon); color: var(--neon); }
+
+    /* ── LAYOUT ── */
+    .container { max-width: 1200px; margin: 0 auto; padding: 40px 32px 80px; display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+    .col-full { grid-column: 1 / -1; }
+
+    /* ── PANEL ── */
+    .panel { background: var(--gray-panel); border: 1.5px solid var(--gray-border); padding: 28px 24px; transition: border-color var(--transition); }
+    .panel:hover { border-color: #3a3a3a; }
+    .section-header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+    .section-icon { width: 36px; height: 36px; background: var(--neon-dim); border: 1.5px solid var(--neon); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+    .section-title { font-family: var(--font-display); font-size: 1.25rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; }
+    .section-sub { font-family: var(--font-mono); font-size: 0.6rem; color: var(--gray-text); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 2px; }
+    .divider { border: none; border-top: 1.5px solid var(--gray-border); margin: 10px 0 24px; }
+
+    /* ── FORM ── */
+    .field { margin-bottom: 18px; }
+    .field-label { font-family: var(--font-mono); font-size: 0.65rem; color: var(--neon); letter-spacing: 2px; text-transform: uppercase; display: block; margin-bottom: 7px; }
+    .field-hint { font-family: var(--font-mono); font-size: 0.58rem; color: var(--gray-text); margin-bottom: 7px; display: block; }
+    .field input, .field select { width: 100%; background: var(--black); border: 1.5px solid var(--gray-border); color: var(--white); font-family: var(--font-sans); font-size: 0.88rem; padding: 10px 14px; outline: none; transition: border-color var(--transition); }
+    .field input:focus, .field select:focus { border-color: var(--neon); }
+    .field input:disabled { opacity: 0.4; cursor: not-allowed; }
+    .field select option { background: var(--gray-panel); }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .slider-row { display: flex; align-items: center; gap: 12px; }
+    .slider-row input[type="range"] { flex: 1; accent-color: var(--neon); padding: 0; cursor: pointer; }
+    .slider-value { font-family: var(--font-mono); font-size: 0.8rem; color: var(--neon); min-width: 48px; text-align: right; }
+
+    /* ── URL BOX ── */
+    .url-box { margin-top: 20px; background: var(--black); border: 1.5px solid var(--gray-border); padding: 14px 16px; }
+    .url-label { font-family: var(--font-mono); font-size: 0.6rem; color: var(--gray-text); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+    .url-value { font-family: var(--font-mono); font-size: 0.72rem; color: var(--neon); word-break: break-all; line-height: 1.6; }
+
+    /* ── BUTTONS ── */
+    .btn-primary { background: var(--neon); color: var(--black); border: none; font-family: var(--font-display); font-size: 0.85rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; padding: 11px 22px; cursor: pointer; transition: opacity var(--transition), box-shadow var(--transition); }
+    .btn-primary:hover { opacity: 0.88; box-shadow: var(--neon-glow); }
+    .btn-ghost { background: transparent; color: var(--neon); border: 1.5px solid var(--neon); font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; padding: 9px 18px; cursor: pointer; transition: all var(--transition); }
+    .btn-ghost:hover { background: var(--neon-dim); }
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; align-items: center; }
+    .copy-feedback { font-family: var(--font-mono); font-size: 0.6rem; color: var(--neon); opacity: 0; margin-left: auto; transition: opacity 0.3s; }
+    .copy-feedback.visible { opacity: 1; }
+
+    /* ── STATUS ── */
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--neon); box-shadow: 0 0 6px var(--neon); animation: pulse 2s infinite; margin-right: 6px; }
+    .api-status-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--black); border: 1px solid var(--gray-border); margin-bottom: 10px; }
+    .api-status-name { font-family: var(--font-mono); font-size: 0.7rem; color: var(--white); flex: 1; }
+    .api-status-indicator { font-family: var(--font-mono); font-size: 0.62rem; color: var(--gray-text); }
+    .api-status-indicator.ok { color: var(--neon); }
+    .api-status-indicator.err { color: #ff4444; }
+
+    /* ── OVERLAY CARDS ── */
+    .overlay-card { background: var(--gray-panel); border: 1.5px solid var(--gray-border); padding: 0; overflow: hidden; cursor: pointer; transition: border-color var(--transition), transform var(--transition); text-decoration: none; color: inherit; display: block; }
+    .overlay-card:hover { border-color: var(--neon); transform: translateY(-2px); }
+    .overlay-thumb { width: 100%; aspect-ratio: 16/9; background: var(--black); display: flex; align-items: center; justify-content: center; border-bottom: 1.5px solid var(--gray-border); position: relative; overflow: hidden; }
+    .overlay-thumb::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(rgba(0,255,0,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,0,0.04) 1px, transparent 1px); background-size: 30px 30px; }
+    .overlay-thumb-label { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; letter-spacing: 3px; color: rgba(0,255,0,0.35); text-transform: uppercase; z-index: 1; }
+    .overlay-card-body { padding: 16px 18px; display: flex; justify-content: space-between; align-items: center; }
+    .overlay-card-name { font-family: var(--font-display); font-size: 0.95rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+    .overlay-card-path { font-family: var(--font-mono); font-size: 0.6rem; color: var(--gray-text); margin-top: 3px; }
+    .overlay-card-arrow { color: var(--neon); font-size: 1.2rem; }
+
+    /* ── CODE BLOCK ── */
+    .code-block { background: var(--black); border: 1.5px solid var(--gray-border); border-left: 3px solid var(--neon); padding: 14px 16px; font-family: var(--font-mono); font-size: 0.68rem; color: #aaffaa; line-height: 1.8; overflow-x: auto; white-space: pre; }
+
+    @media (max-width: 900px) { .container { grid-template-columns: 1fr; } .col-full { grid-column: 1; } }
+    @media (max-width: 600px) { .container { padding: 20px 16px 60px; } .topbar { padding: 0 16px; } .login-card { padding: 32px 20px; } .field-row { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-bg-grid"></div>
+  <div class="login-card">
+    <div class="login-logo">AKMOV<span>MEDIA</span></div>
+    <div class="login-sub">Panel de Control de Overlays</div>
+    <label class="login-label" for="login-pass">Contraseña de acceso</label>
+    <input class="login-input" type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password">
+    <button class="login-btn" id="login-btn">ENTRAR →</button>
+    <div class="login-error" id="login-error">⚠ Contraseña incorrecta. Intenta nuevamente.</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-logo">AKMOV<span>MEDIA</span></div>
+    <div class="topbar-badge"><span class="status-dot"></span>Panel Activo</div>
+    <button class="topbar-logout" id="logout-btn">Cerrar sesión</button>
+  </div>
+
+  <div class="container">
+
+    <!-- OVERLAYS DISPONIBLES -->
+    <div class="col-full">
+      <div class="section-header">
+        <div class="section-icon">📺</div>
+        <div>
+          <div class="section-title">Overlays Disponibles</div>
+          <div class="section-sub">Configura abajo y copia la URL directamente en OBS Browser Source</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;">
+        <a class="overlay-card" id="link-starting" href="#" target="_blank">
+          <div class="overlay-thumb"><div class="overlay-thumb-label">Starting Soon</div></div>
+          <div class="overlay-card-body"><div><div class="overlay-card-name">Inicio / Espera</div><div class="overlay-card-path">overlay-starting.html</div></div><div class="overlay-card-arrow">↗</div></div>
+        </a>
+        <a class="overlay-card" id="link-live" href="#" target="_blank">
+          <div class="overlay-thumb"><div class="overlay-thumb-label">Live Stream</div></div>
+          <div class="overlay-card-body"><div><div class="overlay-card-name">En Vivo</div><div class="overlay-card-path">overlay-live.html</div></div><div class="overlay-card-arrow">↗</div></div>
+        </a>
+        <a class="overlay-card" id="link-transmisiones" href="#" target="_blank">
+          <div class="overlay-thumb"><div class="overlay-thumb-label">Transmisiones</div></div>
+          <div class="overlay-card-body"><div><div class="overlay-card-name">Transmisiones en Vivo</div><div class="overlay-card-path">overlay-transmisiones.html</div></div><div class="overlay-card-arrow">↗</div></div>
+        </a>
+        <a class="overlay-card" id="link-dual" href="#" target="_blank">
+          <div class="overlay-thumb"><div class="overlay-thumb-label">Dual Cam</div></div>
+          <div class="overlay-card-body"><div><div class="overlay-card-name">Doble Cámara</div><div class="overlay-card-path">overlay-dual.html</div></div><div class="overlay-card-arrow">↗</div></div>
+        </a>
+        <a class="overlay-card" id="link-tres-camaras" href="#" target="_blank">
+          <div class="overlay-thumb"><div class="overlay-thumb-label">3 Cams</div></div>
+          <div class="overlay-card-body"><div><div class="overlay-card-name">3 Cámaras</div><div class="overlay-card-path">overlay-tres-camaras.html</div></div><div class="overlay-card-arrow">↗</div></div>
+        </a>
+        <a class="overlay-card" id="link-widgets" href="#" target="_blank">
+          <div class="overlay-thumb"><div class="overlay-thumb-label">Widgets</div></div>
+          <div class="overlay-card-body"><div><div class="overlay-card-name">Widgets</div><div class="overlay-card-path">overlay-widgets.html</div></div><div class="overlay-card-arrow">↗</div></div>
+        </a>
+        <a class="overlay-card" id="link-video" href="#" target="_blank">
+          <div class="overlay-thumb"><div class="overlay-thumb-label">Video Overlay</div></div>
+          <div class="overlay-card-body"><div><div class="overlay-card-name">Overlay de Video</div><div class="overlay-card-path">overlay-video.html</div></div><div class="overlay-card-arrow">↗</div></div>
+        </a>
+        <a class="overlay-card" id="link-farewell" href="#" target="_blank">
+          <div class="overlay-thumb" style="background:linear-gradient(135deg,#000 60%,rgba(0,255,0,0.06))"><div class="overlay-thumb-label">Despedida</div></div>
+          <div class="overlay-card-body"><div><div class="overlay-card-name">Fin de Stream</div><div class="overlay-card-path">overlay-farewell.html</div></div><div class="overlay-card-arrow">↗</div></div>
+        </a>
+      </div>
+    </div>
+
+    <!-- CONFIG: INICIO/ESPERA -->
+    <div class="panel">
+      <div class="section-header"><div class="section-icon">⏱</div><div><div class="section-title">Inicio / Espera</div><div class="section-sub">overlay-starting.html</div></div></div>
+      <hr class="divider">
+      <div class="field">
+        <label class="field-label" for="s-time">Duración del Contador Regresivo</label>
+        <span class="field-hint">Desliza para ajustar (min 1 minuto, máx 30 minutos)</span>
+        <div class="slider-row">
+          <input type="range" id="s-time" min="60" max="1800" step="30" value="300">
+          <span class="slider-value" id="s-time-val">5:00</span>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label" for="s-logo">Logo del Programa (PNG con transparencia)</label>
+        <span class="field-hint">URL pública de la imagen PNG. Se mostrará centrado reemplazando el logo de texto.</span>
+        <input type="url" id="s-logo" placeholder="https://api.akmovmedia.com/logo.png">
+      </div>
+      <div class="field">
+        <label class="field-label" for="s-widget">Widget visible</label>
+        <select id="s-widget">
+          <option value="">Chat + Alertas (por defecto)</option>
+          <option value="chat">Solo Chat</option>
+          <option value="alerts">Solo Alertas</option>
+          <option value="none">Sin Widget</option>
+        </select>
+      </div>
+      <div class="url-box"><div class="url-label">▶ URL para OBS Browser Source</div><div class="url-value" id="starting-url-val">—</div></div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="generateStartingURL()">Generar URL</button>
+        <button class="btn-ghost" onclick="copyURL('starting-url-val','copy-starting')">Copiar</button>
+        <span class="copy-feedback" id="copy-starting">✓ Copiado</span>
+      </div>
+    </div>
+
+    <!-- CONFIG: EN VIVO -->
+    <div class="panel">
+      <div class="section-header"><div class="section-icon">🔴</div><div><div class="section-title">En Vivo</div><div class="section-sub">overlay-live.html</div></div></div>
+      <hr class="divider">
+      <div class="field"><label class="field-label" for="l-title">Título del Programa</label><input type="text" id="l-title" placeholder="TRANSMISIÓN EN VIVO"></div>
+      <div class="field">
+        <label class="field-label" for="l-widget">Widget visible</label>
+        <select id="l-widget">
+          <option value="">Chat + Alertas (por defecto)</option>
+          <option value="chat">Solo Chat</option>
+          <option value="alerts">Solo Alertas</option>
+          <option value="none">Sin Widget</option>
+        </select>
+      </div>
+      <div class="url-box"><div class="url-label">▶ URL para OBS Browser Source</div><div class="url-value" id="live-url-val">—</div></div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="generateLiveURL()">Generar URL</button>
+        <button class="btn-ghost" onclick="copyURL('live-url-val','copy-live')">Copiar</button>
+        <span class="copy-feedback" id="copy-live">✓ Copiado</span>
+      </div>
+    </div>
+
+    <!-- CONFIG: TRANSMISIONES EN VIVO -->
+    <div class="panel">
+      <div class="section-header"><div class="section-icon">📡</div><div><div class="section-title">Transmisiones en Vivo</div><div class="section-sub">overlay-transmisiones.html</div></div></div>
+      <hr class="divider">
+      <div class="field"><label class="field-label" for="tr-title">Título del Marco</label><input type="text" id="tr-title" placeholder="SEÑAL EN VIVO // TRANSMISIÓN EN DIRECTO"></div>
+      <div class="field"><label class="field-label" for="tr-ticker">Texto del Scroll Inferior</label><input type="text" id="tr-ticker" placeholder="✦ EN VIVO: TRANSMISIÓN EN DIRECTO ✦ COBERTURA ESPECIAL AKMOV MEDIA ✦"></div>
+      <div class="field">
+        <label class="field-label" for="tr-speed">Velocidad del Scroll (Segundos por vuelta)</label>
+        <span class="field-hint">Mayor tiempo = desplazamiento más lento y fácil de leer.</span>
+        <div class="slider-row">
+          <input type="range" id="tr-speed" min="15" max="90" step="5" value="45">
+          <span class="slider-value" id="tr-speed-val">45s</span>
+        </div>
+      </div>
+      <div class="field"><label class="field-label" for="tr-url">URL de Video (Opcional - dejar vacío para Captura de Ventana)</label><input type="url" id="tr-url" placeholder="https://www.facebook.com/watch/?v=..."></div>
+      <div class="url-box"><div class="url-label">▶ URL para OBS Browser Source</div><div class="url-value" id="transmisiones-url-val">—</div></div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="generateTransmisionesURL()">Generar URL</button>
+        <button class="btn-ghost" onclick="copyURL('transmisiones-url-val','copy-transmisiones')">Copiar</button>
+        <span class="copy-feedback" id="copy-transmisiones">✓ Copiado</span>
+      </div>
+    </div>
+
+    <!-- CONFIG: DUAL CAM -->
+    <div class="panel">
+      <div class="section-header"><div class="section-icon">🎥</div><div><div class="section-title">Doble Cámara</div><div class="section-sub">overlay-dual.html</div></div></div>
+      <hr class="divider">
+      <div class="field"><label class="field-label" for="d-title">Título de la Escena</label><input type="text" id="d-title" placeholder="ENTREVISTA // DUOCAM"></div>
+      <div class="field-row">
+        <div class="field"><label class="field-label" for="d-p1">Participante 1</label><input type="text" id="d-p1" placeholder="Anfitrión"></div>
+        <div class="field"><label class="field-label" for="d-p1sub">Rol</label><input type="text" id="d-p1sub" placeholder="Conductor AKMOV"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label class="field-label" for="d-p2">Participante 2</label><input type="text" id="d-p2" placeholder="Invitado"></div>
+        <div class="field"><label class="field-label" for="d-p2sub">Rol</label><input type="text" id="d-p2sub" placeholder="Llamada de Discord"></div>
+      </div>
+      <div class="url-box"><div class="url-label">▶ URL para OBS Browser Source</div><div class="url-value" id="dual-url-val">—</div></div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="generateDualURL()">Generar URL</button>
+        <button class="btn-ghost" onclick="copyURL('dual-url-val','copy-dual')">Copiar</button>
+        <span class="copy-feedback" id="copy-dual">✓ Copiado</span>
+      </div>
+    </div>
+
+    <!-- CONFIG: TRES CAMARAS -->
+    <div class="panel">
+      <div class="section-header"><div class="section-icon">🎥</div><div><div class="section-title">Tres Cámaras</div><div class="section-sub">overlay-tres-camaras.html</div></div></div>
+      <hr class="divider">
+      <div class="field-row">
+        <div class="field"><label class="field-label" for="t-p1">Participante 1</label><input type="text" id="t-p1" placeholder="Sergio Rojas"></div>
+        <div class="field"><label class="field-label" for="t-r1">Rol 1</label><input type="text" id="t-r1" placeholder="Conductor"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label class="field-label" for="t-p2">Participante 2</label><input type="text" id="t-p2" placeholder="Anto Ríos"></div>
+        <div class="field"><label class="field-label" for="t-r2">Rol 2</label><input type="text" id="t-r2" placeholder="Invitada"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label class="field-label" for="t-p3">Participante 3</label><input type="text" id="t-p3" placeholder="Danilo"></div>
+        <div class="field"><label class="field-label" for="t-r3">Rol 3</label><input type="text" id="t-r3" placeholder="Co-Conductor"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label class="field-label" for="t-logo">Logo</label><input type="text" id="t-logo" placeholder="LA TETERA"></div>
+        <div class="field"><label class="field-label" for="t-logo-sub">Subtítulo Logo</label><input type="text" id="t-logo-sub" placeholder="RADIO STREAMING"></div>
+      </div>
+      <div class="field"><label class="field-label" for="t-top-text">Texto Superior</label><input type="text" id="t-top-text" placeholder="EN YOUTUBE @LANUESTRACL Y CANAL 193 DE ZAPPING"></div>
+      <div class="field-row">
+        <div class="field" style="grid-column: span 2;"><label class="field-label" for="t-ticker">Texto Ticker</label><input type="text" id="t-ticker" placeholder="LA TETERA: SERGIO ROJAS HABLA SOBRE LA DEMANDA DE ANTONELLA RÍOS • SIGUE LA TRANSMISIÓN EN VIVO"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label class="field-label" for="t-ticker-badge">Etiqueta Ticker</label><input type="text" id="t-ticker-badge" placeholder="EXCLUSIVO"></div>
+        <div class="field"><label class="field-label" for="t-phone-label">Etiqueta Teléfono</label><input type="text" id="t-phone-label" placeholder="EN LÍNEA"></div>
+      </div>
+      <div class="field"><label class="field-label" for="t-phone-img">URL Imagen Teléfono</label><input type="text" id="t-phone-img" placeholder="phone_guest_portrait.png"></div>
+      <div class="url-box"><div class="url-label">▶ URL para OBS Browser Source</div><div class="url-value" id="tres-url-val">—</div></div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="generateTresCamsURL()">Generar URL</button>
+        <button class="btn-ghost" onclick="copyURL('tres-url-val','copy-tres')">Copiar</button>
+        <span class="copy-feedback" id="copy-tres">✓ Copiado</span>
+      </div>
+    </div>
+
+    <!-- CONFIG: WIDGETS -->
+    <div class="panel">
+      <div class="section-header"><div class="section-icon">💬</div><div><div class="section-title">Widgets</div><div class="section-sub">overlay-widgets.html</div></div></div>
+      <hr class="divider">
+      <div class="field">
+        <label class="field-label" for="w-mode">Modo de visualización</label>
+        <select id="w-mode">
+          <option value="">Chat + Alertas (completo)</option>
+          <option value="chat">Solo Chat</option>
+          <option value="alerts">Solo Alertas</option>
+        </select>
+      </div>
+      <div class="url-box"><div class="url-label">▶ URL para OBS Browser Source</div><div class="url-value" id="widgets-url-val">—</div></div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="generateWidgetsURL()">Generar URL</button>
+        <button class="btn-ghost" onclick="copyURL('widgets-url-val','copy-widgets')">Copiar</button>
+        <span class="copy-feedback" id="copy-widgets">✓ Copiado</span>
+      </div>
+    </div>
+
+    <!-- CONFIG: VIDEO OVERLAY & BANNERS -->
+    <div class="panel col-full">
+      <div class="section-header"><div class="section-icon">📺</div><div><div class="section-title">Banners de Video</div><div class="section-sub">overlay-video.html &bull; Gestor de Publicidad</div></div></div>
+      <hr class="divider">
+      
+      <div class="field">
+        <label class="field-label">Subir nuevo banner (Formato Horizontal recomendado)</label>
+        <span class="field-hint">Selecciona una imagen PNG/JPG/WebP para cargarla al servidor.</span>
+        <div class="btn-row">
+          <input type="file" id="banner-file" accept="image/*" style="display:none;" onchange="uploadBanner()">
+          <button class="btn-primary" onclick="document.getElementById('banner-file').click()">Seleccionar y Subir Archivo</button>
+          <button class="btn-ghost" onclick="triggerNowPlayingEvent()">Simular Cambio de Video (Girar Banner)</button>
+          <span class="copy-feedback" id="banner-upload-feedback">✓ Subido con éxito</span>
+        </div>
+      </div>
+
+      <label class="field-label" style="margin-top: 25px; display: block;">Banners Guardados en el Servidor</label>
+      <div id="banners-list-container" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-top: 10px; margin-bottom: 20px;">
+        <p style="font-family:var(--font-mono); font-size:0.75rem; color:var(--gray-text);">Cargando banners...</p>
+      </div>
+
+      <div class="url-box"><div class="url-label">▶ URL para OBS Browser Source</div><div class="url-value" id="video-url-val">—</div></div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="generateVideoURL()">Generar URL</button>
+        <button class="btn-ghost" onclick="copyURL('video-url-val','copy-video-feedback')">Copiar URL</button>
+        <span class="copy-feedback" id="copy-video-feedback">✓ Copiado</span>
+      </div>
+    </div>
+
+    <!-- CONFIG: DESPEDIDA / FIN DE STREAM -->
+    <div class="panel col-full">
+      <div class="section-header"><div class="section-icon">👋</div><div><div class="section-title">Fin de Stream / Despedida</div><div class="section-sub">overlay-farewell.html</div></div></div>
+      <hr class="divider">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+        <div class="field"><label class="field-label" for="fw-title">Título Principal</label><input type="text" id="fw-title" placeholder="¡HASTA PRONTO!"></div>
+        <div class="field"><label class="field-label" for="fw-sub">Subtítulo</label><input type="text" id="fw-sub" placeholder="GRACIAS POR ACOMPAÑARNOS"></div>
+        <div class="field"><label class="field-label" for="fw-logo">Logo PNG (URL pública)</label><input type="url" id="fw-logo" placeholder="https://api.akmovmedia.com/logo.png"></div>
+      </div>
+      <p style="font-family:var(--font-mono);font-size:0.65rem;color:var(--neon);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;margin-top:6px;">Top Chatters (introduce los nombres separados)</p>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px;">
+        <div class="field"><label class="field-label" for="fw-u1">🥇 #1</label><input type="text" id="fw-u1" placeholder="Usuario1"></div>
+        <div class="field"><label class="field-label" for="fw-u2">🥈 #2</label><input type="text" id="fw-u2" placeholder="Usuario2"></div>
+        <div class="field"><label class="field-label" for="fw-u3">🥉 #3</label><input type="text" id="fw-u3" placeholder="Usuario3"></div>
+        <div class="field"><label class="field-label" for="fw-u4">#4</label><input type="text" id="fw-u4" placeholder="Usuario4"></div>
+        <div class="field"><label class="field-label" for="fw-u5">#5</label><input type="text" id="fw-u5" placeholder="Usuario5"></div>
+      </div>
+      <p style="font-family:var(--font-mono);font-size:0.65rem;color:var(--neon);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;">Banners Publicitarios (URL de imagen PNG/JPG)</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:6px;">
+        <div class="field"><label class="field-label" for="fw-b1">Banner 1</label><input type="url" id="fw-b1" placeholder="https://...publicidad1.png"></div>
+        <div class="field"><label class="field-label" for="fw-b2">Banner 2</label><input type="url" id="fw-b2" placeholder="https://...publicidad2.png"></div>
+      </div>
+      <div class="url-box"><div class="url-label">▶ URL para OBS Browser Source</div><div class="url-value" id="farewell-url-val">—</div></div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="generateFarewellURL()">Generar URL</button>
+        <button class="btn-ghost" onclick="copyURL('farewell-url-val','copy-farewell')">Copiar</button>
+        <span class="copy-feedback" id="copy-farewell">✓ Copiado</span>
+      </div>
+    </div>
+
+    <!-- DISPARADOR DE ALERTAS MANUALES -->
+    <div class="panel">
+      <div class="section-header"><div class="section-icon">🔔</div><div><div class="section-title">Disparar Alertas</div><div class="section-sub">Activa alertas en tiempo real en tus overlays</div></div></div>
+      <hr class="divider">
+      <div class="field"><label class="field-label" for="alert-user">Nombre del usuario</label><input type="text" id="alert-user" placeholder="MatiasH" maxlength="40"></div>
+      <div class="field">
+        <label class="field-label" for="alert-type">Tipo de alerta</label>
+        <select id="alert-type">
+          <option value="NUEVO SEGUIDOR">🫂 Nuevo Seguidor</option>
+          <option value="NUEVO SUSCRIPTOR">⭐ Nuevo Suscriptor</option>
+          <option value="DONACION">💚 Donación / Bits</option>
+          <option value="NUEVO SEGUIDOR EN INSTAGRAM">📸 Seguidor en Instagram</option>
+        </select>
+      </div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="triggerAlert()">Disparar Alerta</button>
+        <span class="copy-feedback" id="alert-feedback">✓ Alerta enviada</span>
+      </div>
+    </div>
+
+    <!-- ESTADO DEL BACKEND -->
+    <div class="panel">
+      <div class="section-header"><div class="section-icon">🖥</div><div><div class="section-title">Estado del Sistema</div><div class="section-sub">Conectividad con API, Owncast y OBS</div></div></div>
+      <hr class="divider">
+      <div class="api-status-row">
+        <div class="status-dot" id="dot-api" style="background:#555;box-shadow:none;animation:none;"></div>
+        <div class="api-status-name">Admin API (api.akmovmedia.com)</div>
+        <div class="api-status-indicator" id="status-api">Verificando...</div>
+      </div>
+      <div class="api-status-row">
+        <div class="status-dot" id="dot-owncast" style="background:#555;box-shadow:none;animation:none;"></div>
+        <div class="api-status-name">Owncast (stream.akmovmedia.com)</div>
+        <div class="api-status-indicator" id="status-owncast">Verificando...</div>
+      </div>
+      <div class="api-status-row">
+        <div class="status-dot" id="dot-obs" style="background:#555;box-shadow:none;animation:none;"></div>
+        <div class="api-status-name">OBS / Notebook de transmisión</div>
+        <div class="api-status-indicator" id="status-obs">Verificando...</div>
+      </div>
+      <div class="btn-row" style="margin-top:20px;">
+        <button class="btn-ghost" onclick="checkStatus()">↻ Refrescar estado</button>
+      </div>
+    </div>
+
+    <!-- INSTRUCCIONES WEBHOOK -->
+    <div class="panel col-full">
+      <div class="section-header"><div class="section-icon">⚙</div><div><div class="section-title">Configurar Webhook de Chat (Owncast)</div><div class="section-sub">Requerido para que el chat aparezca en los overlays de OBS</div></div></div>
+      <hr class="divider">
+      <p style="font-size:0.85rem;color:var(--gray-text);margin-bottom:18px;line-height:1.7;">Para que los mensajes del chat aparezcan en tus overlays en tiempo real, debes registrar un webhook en Owncast. Esto le indica a Owncast que avise a tu servidor backend cada vez que alguien escribe en el chat.</p>
+      <p style="font-family:var(--font-mono);font-size:0.68rem;color:var(--neon);margin-bottom:12px;letter-spacing:1px;text-transform:uppercase;">Paso 1 — Entra al admin de Owncast</p>
+      <div class="code-block">http://192.168.1.15:8080/admin  →  Integrations  →  Webhooks  →  Add Webhook</div>
+      <p style="font-family:var(--font-mono);font-size:0.68rem;color:var(--neon);margin:18px 0 12px;letter-spacing:1px;text-transform:uppercase;">Paso 2 — Configura estos valores</p>
+      <div class="code-block">URL:     http://localhost:3001/owncast-webhook
+Eventos: ✅ Chat Message Sent (CHAT)</div>
+      <p style="font-family:var(--font-mono);font-size:0.68rem;color:var(--neon);margin:18px 0 12px;letter-spacing:1px;text-transform:uppercase;">Paso 3 — Guarda y prueba</p>
+      <p style="font-size:0.82rem;color:var(--gray-text);line-height:1.7;">Escribe un mensaje en el chat de tu web. En 1-2 segundos aparecerá en tus overlays de OBS. Asegúrate de que el overlay esté conectado al SSE (<code style="color:var(--neon);font-family:var(--font-mono);">/alerts/stream</code>).</p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // ── CONFIG ──────────────────────────────────────────────────────────
+  const API_BASE = window.location.origin;
+
+  const PASS_HASH = '0096260de00d9c5aaad7b69bec82d027e771607b5e19f567b04a6d33903632c4'; // SHA-256 de "akmov2025"
+
+  // ── LOGIN ────────────────────────────────────────────────────────────
+  const SESSION_KEY = 'akmov_panel_session';
+
+  async function hashPass(pw) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+    return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2,'0')).join('');
+  }
+
+  document.getElementById('login-btn').addEventListener('click', doLogin);
+  document.getElementById('login-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+  async function doLogin() {
+    const pw = document.getElementById('login-pass').value;
+    const hash = await hashPass(pw);
+    if (hash === PASS_HASH) {
+      sessionStorage.setItem(SESSION_KEY, '1');
+      showApp();
+    } else {
+      const err = document.getElementById('login-error');
+      err.classList.add('visible');
+      document.getElementById('login-pass').value = '';
+      setTimeout(() => err.classList.remove('visible'), 3000);
+    }
+  }
+
+  function showApp() {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    initApp();
+  }
+
+  document.getElementById('logout-btn').addEventListener('click', () => {
+    sessionStorage.removeItem(SESSION_KEY);
+    location.reload();
+  });
+
+  if (sessionStorage.getItem(SESSION_KEY) === '1' || new URLSearchParams(window.location.search).get('auth') === 'true') showApp();
+
+  // ── INIT ─────────────────────────────────────────────────────────────
+  function initApp() {
+    const slider = document.getElementById('s-time');
+    function updateSlider() {
+      const sec = parseInt(slider.value);
+      document.getElementById('s-time-val').textContent =
+        `${Math.floor(sec/60)}:${(sec%60).toString().padStart(2,'0')}`;
+    }
+    slider.addEventListener('input', () => { updateSlider(); generateStartingURL(); });
+    updateSlider();
+
+    const trSpeedSlider = document.getElementById('tr-speed');
+    function updateTrSpeedSlider() {
+      const sec = parseInt(trSpeedSlider.value);
+      document.getElementById('tr-speed-val').textContent = `${sec}s`;
+    }
+    trSpeedSlider.addEventListener('input', () => { updateTrSpeedSlider(); generateTransmisionesURL(); });
+    updateTrSpeedSlider();
+
+    // Live URL updates
+    ['l-title','l-widget'].forEach(id => document.getElementById(id).addEventListener('input', generateLiveURL));
+    ['l-widget'].forEach(id => document.getElementById(id).addEventListener('change', generateLiveURL));
+    ['tr-title','tr-ticker','tr-url'].forEach(id => document.getElementById(id).addEventListener('input', generateTransmisionesURL));
+    ['d-title','d-p1','d-p1sub','d-p2','d-p2sub'].forEach(id => document.getElementById(id).addEventListener('input', generateDualURL));
+    ['t-p1','t-p2','t-p3','t-r1','t-r2','t-r3','t-logo','t-logo-sub','t-top-text','t-ticker','t-ticker-badge','t-phone-img','t-phone-label'].forEach(id => document.getElementById(id).addEventListener('input', generateTresCamsURL));
+    ['s-logo','s-widget'].forEach(id => document.getElementById(id).addEventListener('input', generateStartingURL));
+    ['s-widget'].forEach(id => document.getElementById(id).addEventListener('change', generateStartingURL));
+    document.getElementById('w-mode').addEventListener('change', generateWidgetsURL);
+    ['fw-title','fw-sub','fw-logo','fw-u1','fw-u2','fw-u3','fw-u4','fw-u5','fw-b1','fw-b2']
+      .forEach(id => document.getElementById(id).addEventListener('input', generateFarewellURL));
+
+    // Generate initial URLs
+    generateStartingURL();
+    generateLiveURL();
+    generateTransmisionesURL();
+    generateDualURL();
+    generateTresCamsURL();
+    generateWidgetsURL();
+    generateFarewellURL();
+    generateVideoURL();
+
+    loadBannersList();
+    checkStatus();
+  }
+
+  // ── URL GENERATORS ───────────────────────────────────────────────────
+  function buildURL(page, params) {
+    const url = new URL(`${API_BASE}/${page}`);
+    for (const [k, v] of Object.entries(params)) {
+      if (v !== '' && v !== null && v !== undefined) url.searchParams.set(k, v);
+    }
+    return url.toString();
+  }
+
+  function generateStartingURL() {
+    const time = document.getElementById('s-time').value;
+    const logo = document.getElementById('s-logo').value.trim();
+    const widget = document.getElementById('s-widget').value;
+    const url = buildURL('overlay-starting.html', { time, logo, widget });
+    document.getElementById('starting-url-val').textContent = url;
+    document.getElementById('link-starting').href = url;
+  }
+
+  function generateLiveURL() {
+    const title = document.getElementById('l-title').value.trim();
+    const widget = document.getElementById('l-widget').value;
+    const url = buildURL('overlay-live.html', { title, widget });
+    document.getElementById('live-url-val').textContent = url;
+    document.getElementById('link-live').href = url;
+  }
+
+  function generateTransmisionesURL() {
+    const title = document.getElementById('tr-title').value.trim();
+    const ticker = document.getElementById('tr-ticker').value.trim();
+    const speed = document.getElementById('tr-speed').value;
+    const video_url = document.getElementById('tr-url').value.trim();
+    const url = buildURL('overlay-transmisiones.html', { title, ticker, speed, video_url, obs: 'true' });
+    document.getElementById('transmisiones-url-val').textContent = url;
+    document.getElementById('link-transmisiones').href = url;
+  }
+
+  function generateDualURL() {
+    const params = {
+      title: document.getElementById('d-title').value.trim(),
+      p1: document.getElementById('d-p1').value.trim(),
+      p1sub: document.getElementById('d-p1sub').value.trim(),
+      p2: document.getElementById('d-p2').value.trim(),
+      p2sub: document.getElementById('d-p2sub').value.trim()
+    };
+    const url = buildURL('overlay-dual.html', params);
+    document.getElementById('dual-url-val').textContent = url;
+    document.getElementById('link-dual').href = url;
+  }
+
+  function generateTresCamsURL() {
+    const params = {
+      p1: document.getElementById('t-p1').value.trim(),
+      r1: document.getElementById('t-r1').value.trim(),
+      p2: document.getElementById('t-p2').value.trim(),
+      r2: document.getElementById('t-r2').value.trim(),
+      p3: document.getElementById('t-p3').value.trim(),
+      r3: document.getElementById('t-r3').value.trim(),
+      logo: document.getElementById('t-logo').value.trim(),
+      logo_sub: document.getElementById('t-logo-sub').value.trim(),
+      top_text: document.getElementById('t-top-text').value.trim(),
+      ticker: document.getElementById('t-ticker').value.trim(),
+      ticker_badge: document.getElementById('t-ticker-badge').value.trim(),
+      phone_img: document.getElementById('t-phone-img').value.trim(),
+      phone_label: document.getElementById('t-phone-label').value.trim(),
+      test: 'true'
+    };
+    const url = buildURL('overlay-tres-camaras.html', params);
+    document.getElementById('tres-url-val').textContent = url;
+    document.getElementById('link-tres-camaras').href = url;
+  }
+
+  function generateWidgetsURL() {
+    const widget = document.getElementById('w-mode').value;
+    const url = buildURL('overlay-widgets.html', { widget });
+    document.getElementById('widgets-url-val').textContent = url;
+    document.getElementById('link-widgets').href = url;
+  }
+
+  function generateFarewellURL() {
+    const params = {
+      title: document.getElementById('fw-title').value.trim(),
+      sub: document.getElementById('fw-sub').value.trim(),
+      logo: document.getElementById('fw-logo').value.trim(),
+      u1: document.getElementById('fw-u1').value.trim(),
+      u2: document.getElementById('fw-u2').value.trim(),
+      u3: document.getElementById('fw-u3').value.trim(),
+      u4: document.getElementById('fw-u4').value.trim(),
+      u5: document.getElementById('fw-u5').value.trim(),
+      banner1: document.getElementById('fw-b1').value.trim(),
+      banner2: document.getElementById('fw-b2').value.trim()
+    };
+    const url = buildURL('overlay-farewell.html', params);
+    document.getElementById('farewell-url-val').textContent = url;
+    document.getElementById('link-farewell').href = url;
+  }
+
+  // ── COPY UTIL ────────────────────────────────────────────────────────
+  function copyURL(valId, feedbackId) {
+    const text = document.getElementById(valId).textContent;
+    if (!text || text === '—') return;
+    navigator.clipboard.writeText(text).then(() => {
+      const el = document.getElementById(feedbackId);
+      el.classList.add('visible');
+      setTimeout(() => el.classList.remove('visible'), 2000);
+    });
+  }
+
+  // ── TRIGGER ALERT ────────────────────────────────────────────────────
+  async function triggerAlert() {
+    const user = document.getElementById('alert-user').value.trim() || 'Alguien';
+    const type = document.getElementById('alert-type').value;
+    try {
+      const res = await fetch(`${API_BASE}/alert`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user, type })
+      });
+      if (res.ok) {
+        const el = document.getElementById('alert-feedback');
+        el.classList.add('visible');
+        setTimeout(() => el.classList.remove('visible'), 2500);
+      }
+    } catch(e) { console.warn('Error disparando alerta:', e.message); }
+  }
+
+  // ── STATUS CHECK ─────────────────────────────────────────────────────
+  async function checkStatus() {
+    try {
+      const res = await fetch(`${API_BASE}/status`);
+      const data = await res.json();
+      setStatus('api', true, 'Online');
+      const owncastOnline = data.live?.online;
+      setStatus('owncast', !!owncastOnline, owncastOnline ? `Online · ${data.live.viewerCount} espectadores` : 'Sin señal activa');
+      const obsOnline = data.obs?.online;
+      setStatus('obs', !!obsOnline, obsOnline ? `Online · Escena: ${data.obs.scene}` : 'Desconectado');
+    } catch(e) {
+      setStatus('api', false, 'Sin respuesta');
+      setStatus('owncast', false, 'Desconocido');
+      setStatus('obs', false, 'Desconocido');
+    }
+  }
+
+  function setStatus(key, ok, text) {
+    const dot = document.getElementById(`dot-${key}`);
+    const label = document.getElementById(`status-${key}`);
+    dot.style.background = ok ? 'var(--neon)' : '#ff4444';
+    dot.style.boxShadow = ok ? '0 0 6px var(--neon)' : '0 0 6px #ff4444';
+    dot.style.animation = ok ? 'pulse 2s infinite' : 'none';
+    label.textContent = text;
+    label.className = `api-status-indicator ${ok ? 'ok' : 'err'}`;
+  }
+
+  // ── VIDEO OVERLAY & BANNERS FUNCTIONS ──────────────────────────────────
+  function generateVideoURL() {
+    const url = buildURL('overlay-video.html', {});
+    document.getElementById('video-url-val').textContent = url;
+    document.getElementById('link-video').href = url;
+  }
+
+  async function loadBannersList() {
+    const container = document.getElementById('banners-list-container');
+    try {
+      const res = await fetch(`${API_BASE}/api/banners`);
+      const data = await res.json();
+      
+      if (Array.isArray(data) && data.length > 0) {
+        container.innerHTML = data.map(name => `
+          <div style="background:var(--black); border:1.5px solid var(--gray-border); padding:8px; display:flex; flex-direction:column; gap:8px; position:relative;">
+            <img src="/banners/${name}" style="width:100%; aspect-ratio:3/1; object-fit:cover; border:1px solid #333;" alt="Banner">
+            <div style="font-family:var(--font-mono); font-size:0.6rem; color:var(--gray-text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${name}">${name}</div>
+            <button onclick="deleteBanner('${name}')" style="background:#ff4444; color:var(--white); border:none; font-family:var(--font-mono); font-size:0.6rem; padding:6px; cursor:pointer; text-transform:uppercase; font-weight:700;">Eliminar</button>
+          </div>
+        `).join('');
+      } else {
+        container.innerHTML = `<p style="font-family:var(--font-mono); font-size:0.75rem; color:var(--gray-text); grid-column:1/-1;">No hay banners personalizados cargados en el servidor. El overlay usará imágenes de fallback por defecto.</p>`;
+      }
+    } catch(err) {
+      container.innerHTML = `<p style="font-family:var(--font-mono); font-size:0.75rem; color:#ff4444; grid-column:1/-1;">Error al cargar banners: ${err.message}</p>`;
+    }
+  }
+
+  async function uploadBanner() {
+    const fileInput = document.getElementById('banner-file');
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async function() {
+      try {
+        const res = await fetch(`${API_BASE}/api/banners/upload`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            filename: file.name,
+            data: reader.result
+          })
+        });
+         const data = await res.json();
+         if (data.success) {
+           const fb = document.getElementById('banner-upload-feedback');
+           fb.classList.add('visible');
+           setTimeout(() => fb.classList.remove('visible'), 2000);
+           loadBannersList();
+         }
+      } catch(err) {
+        alert('Error al subir banner: ' + err.message);
+      }
+    };
+    reader.readAsDataURL(file);
+    fileInput.value = ''; // Reset
+  }
+
+  async function deleteBanner(name) {
+    if (!confirm(`¿Seguro que deseas eliminar el banner "${name}"?`)) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/banners/${encodeURIComponent(name)}`, {
+        method: 'DELETE'
+      });
+      const data = await res.json();
+      if (data.success) {
+        loadBannersList();
+      }
+    } catch(err) {
+      alert('Error al eliminar: ' + err.message);
+    }
+  }
+
+  async function triggerNowPlayingEvent() {
+    try {
+      await fetch(`${API_BASE}/now-playing`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          artist: 'AKMOV',
+          title: 'Promo Video Ticker ' + Math.floor(Math.random() * 100)
+        })
+      });
+    } catch(err) {
+      console.warn('Error al disparar evento:', err.message);
+    }
+  }
+</script>
+</body>
+</html>

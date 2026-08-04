@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AKMOV MEDIA — Pauta de Transmisión & Estudio</title>
+  <meta name="description" content="Plataforma de gestión de pautas de transmisión y teleprompter en tiempo real para estudio.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Oswald:wght@500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --black: #050505;
+      --gray-dark: #0f0f0f;
+      --gray-panel: #141414;
+      --gray-border: #262626;
+      --gray-text: #8e8e8e;
+      --white: #ffffff;
+      --neon: #00ff66;
+      --neon-dim: rgba(0, 255, 102, 0.08);
+      --neon-glow: 0 0 15px rgba(0, 255, 102, 0.4);
+      --accent-red: #ff3b30;
+      --accent-red-dim: rgba(255, 59, 48, 0.1);
+      --font-display: 'Oswald', sans-serif;
+      --font-sans: 'Montserrat', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: var(--black); }
+    ::-webkit-scrollbar-thumb { background: var(--gray-border); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--neon); }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      width: 100%;
+      height: 70px;
+      background: rgba(5, 5, 5, 0.85);
+      backdrop-filter: blur(10px);
+      border-bottom: 2px solid var(--gray-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      z-index: 100;
+    }
+    .topbar-logo {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .topbar-logo span { color: var(--neon); text-shadow: var(--neon-glow); }
+    .topbar-actions { display: flex; gap: 14px; align-items: center; }
+    
+    .badge {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      background: var(--neon-dim);
+      border: 1px solid var(--neon);
+      color: var(--neon);
+      padding: 5px 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* ── VIEW SWITCHER / TABS ── */
+    .mode-tab {
+      background: transparent;
+      border: 1px solid var(--gray-border);
+      color: var(--gray-text);
+      padding: 8px 16px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      transition: all var(--transition);
+    }
+    .mode-tab.active {
+      border-color: var(--neon);
+      color: var(--neon);
+      background: var(--neon-dim);
+      box-shadow: var(--neon-glow);
+    }
+    .mode-tab:hover:not(.active) {
+      border-color: var(--white);
+      color: var(--white);
+    }
+
+    /* ── MAIN LAYOUT ── */
+    .view-container {
+      display: none;
+      padding: 32px;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+    .view-container.active {
+      display: block;
+    }
+
+    /* ── PANEL LOCUTOR LAYOUT ── */
+    .locutor-grid {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 32px;
+    }
+    @media (max-width: 1024px) {
+      .locutor-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── PANELS ── */
+    .panel {
+      background: var(--gray-panel);
+      border: 1.5px solid var(--gray-border);
+      border-radius: 4px;
+      padding: 24px;
+      position: relative;
+    }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--gray-border);
+      padding-bottom: 12px;
+    }
+    .panel-title {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    /* ── FORM FIELDS ── */
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--neon);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 8px;
+    }
+    .form-input {
+      width: 100%;
+      background: var(--black);
+      border: 1.5px solid var(--gray-border);
+      color: var(--white);
+      padding: 10px 14px;
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color var(--transition);
+    }
+    .form-input:focus {
+      border-color: var(--neon);
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    /* ── BLOCKS BUILDER ── */
+    .blocks-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .block-card {
+      background: var(--black);
+      border: 1.5px solid var(--gray-border);
+      padding: 18px;
+      position: relative;
+      transition: border-color var(--transition);
+    }
+    .block-card:hover {
+      border-color: #444;
+    }
+    .block-card.active-live {
+      border-color: var(--neon);
+      box-shadow: inset 0 0 10px rgba(0, 255, 102, 0.05);
+    }
+    .block-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .block-number {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--gray-text);
+    }
+    .block-remove {
+      background: transparent;
+      border: none;
+      color: var(--accent-red);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .block-remove:hover {
+      text-decoration: underline;
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      font-family: var(--font-display);
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 12px 24px;
+      cursor: pointer;
+      border: none;
+      transition: all var(--transition);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-neon {
+      background: var(--neon);
+      color: var(--black);
+    }
+    .btn-neon:hover {
+      box-shadow: var(--neon-glow);
+      opacity: 0.9;
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid var(--neon);
+      color: var(--neon);
+    }
+    .btn-outline:hover {
+      background: var(--neon-dim);
+    }
+    .btn-danger-outline {
+      background: transparent;
+      border: 1.5px solid var(--accent-red);
+      color: var(--accent-red);
+    }
+    .btn-danger-outline:hover {
+      background: var(--accent-red-dim);
+    }
+    .btn-block {
+      width: 100%;
+    }
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 0.75rem;
+    }
+
+    /* ── ESTUDIO VIEW ── */
+    .estudio-layout {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      min-height: calc(100vh - 140px);
+    }
+    
+    /* Metadata grid at top of Teleprompter */
+    .estudio-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      background: var(--gray-panel);
+      padding: 20px;
+      border: 1.5px solid var(--gray-border);
+      border-radius: 4px;
+    }
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .meta-label {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--gray-text);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+    .meta-value {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--white);
+    }
+
+    /* Teleprompter panels */
+    .teleprompter-grid {
+      display: grid;
+      grid-template-columns: 1.8fr 1.2fr;
+      gap: 32px;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .teleprompter-grid { grid-template-columns: 1fr; }
+    }
+
+    .active-block-panel {
+      background: var(--gray-panel);
+      border: 2px solid var(--neon);
+      box-shadow: 0 0 30px rgba(0, 255, 102, 0.1);
+      padding: 40px;
+      border-radius: 8px;
+    }
+    .active-block-title {
+      font-family: var(--font-display);
+      font-size: 3rem;
+      color: var(--neon);
+      text-shadow: var(--neon-glow);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      line-height: 1.1;
+    }
+    .active-block-content {
+      font-size: 1.6rem;
+      line-height: 1.6;
+      color: #f0f0f0;
+      white-space: pre-line;
+      margin-bottom: 30px;
+    }
+    .active-block-tech {
+      background: rgba(0,0,0,0.4);
+      border-left: 4px solid var(--neon);
+      padding: 16px;
+      font-family: var(--font-mono);
+      font-size: 1.1rem;
+      color: #0ff;
+    }
+
+    /* Next Block preview */
+    .next-block-panel {
+      background: var(--gray-panel);
+      border: 1.5px solid var(--gray-border);
+      padding: 24px;
+      border-radius: 4px;
+      opacity: 0.85;
+    }
+    .next-block-label {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--gray-text);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+    }
+    .next-block-title {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      color: #ccc;
+    }
+    .next-block-time {
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      color: var(--neon);
+      margin-bottom: 10px;
+    }
+    .next-block-content {
+      font-size: 1.1rem;
+      color: var(--gray-text);
+      line-height: 1.5;
+    }
+
+    /* ── BIG CHRONOMETER ── */
+    .timer-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      background: var(--gray-panel);
+      padding: 30px;
+      border: 1.5px solid var(--gray-border);
+      text-align: center;
+    }
+    .timer-display {
+      font-family: var(--font-mono);
+      font-size: 6rem;
+      font-weight: 700;
+      color: var(--white);
+      text-shadow: 0 0 20px rgba(255,255,255,0.1);
+      line-height: 1;
+    }
+    .timer-display.warning {
+      color: var(--accent-red);
+      text-shadow: 0 0 20px rgba(255, 59, 48, 0.4);
+      animation: pulse-red 1s infinite;
+    }
+    @keyframes pulse-red {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    /* Locutor live controller */
+    .live-controller-card {
+      background: var(--gray-panel);
+      border: 1.5px solid var(--gray-border);
+      padding: 20px;
+      border-radius: 4px;
+      margin-bottom: 24px;
+    }
+    .live-control-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 350px;
+      overflow-y: auto;
+      margin-top: 15px;
+    }
+    .live-control-item {
+      background: var(--black);
+      border: 1.5px solid var(--gray-border);
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .live-control-item.active {
+      border-color: var(--neon);
+      background: var(--neon-dim);
+    }
+    .live-control-name {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .live-control-time {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--gray-text);
+    }
+
+    .sync-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--neon);
+    }
+    .sync-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--neon);
+      box-shadow: var(--neon-glow);
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(0.8); }
+    }
+
+    .text-glow {
+      text-shadow: var(--neon-glow);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-logo">
+      <span>AKMOV</span> PAUTA STUDIO
+    </div>
+    <div class="topbar-actions">
+      <div class="sync-status">
+        <span class="sync-dot"></span>
+        <span>Sincronizado</span>
+      </div>
+      <button class="mode-tab active" id="tab-locutor" onclick="switchView('locutor')">Vista Locutor</button>
+      <button class="mode-tab" id="tab-estudio" onclick="switchView('estudio')">Vista Estudio</button>
+      <button class="btn btn-outline btn-sm" onclick="openStudioWindow()">Abrir Ventana Estudio</button>
+    </div>
+  </header>
+
+  <!-- VIEW A: PANEL LOCUTOR -->
+  <main id="view-locutor" class="view-container active">
+    <div class="locutor-grid">
+      
+      <!-- COL 1: CONTROL GENERAL Y ESTADO DE SHOW -->
+      <div style="display: flex; flex-direction: column; gap: 24px;">
+        
+        <!-- Datos de Pauta -->
+        <section class="panel">
+          <div class="panel-header">
+            <h2 class="panel-title">Datos Generales</h2>
+          </div>
+          <div class="form-group">
+            <label for="pauta-title">Título del Programa</label>
+            <input type="text" id="pauta-title" class="form-input" value="Ascoypera">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="pauta-duration">Duración (Min)</label>
+              <input type="number" id="pauta-duration" class="form-input" value="45">
+            </div>
+            <div class="form-group">
+              <label for="pauta-format">Formato</label>
+              <input type="text" id="pauta-format" class="form-input" value="Stream en vivo">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="pauta-host">Conductor(a)</label>
+            <input type="text" id="pauta-host" class="form-input" value="Monserrat Cortés">
+          </div>
+          <div class="form-group">
+            <label for="pauta-style">Estilo</label>
+            <input type="text" id="pauta-style" class="form-input" value="Dinámico, magazine cultural, geek y místico">
+          </div>
+          <button class="btn btn-neon btn-block" onclick="saveAndBroadcastPauta()">Guardar y Actualizar Pauta</button>
+        </section>
+
+        <!-- Live Controller (Avanzar bloques en vivo) -->
+        <section class="live-controller-card">
+          <div class="panel-header" style="margin-bottom: 10px;">
+            <h2 class="panel-title" style="font-size: 1.1rem; color: var(--neon);">Control de Transmisión</h2>
+          </div>
+          <p style="font-size: 0.75rem; color: var(--gray-text); line-height: 1.4;">
+            Controla qué bloque está en pantalla en el estudio y maneja el cronómetro.
+          </p>
+          
+          <div class="btn-row" style="display: flex; gap: 8px; margin-top: 15px;">
+            <button class="btn btn-neon btn-sm" style="flex: 1;" onclick="startTimer()">Iniciar</button>
+            <button class="btn btn-outline btn-sm" style="flex: 1;" onclick="pauseTimer()">Pausar</button>
+            <button class="btn btn-danger-outline btn-sm" style="flex: 1;" onclick="resetTimer()">Reset</button>
+          </div>
+
+          <div class="live-control-list" id="live-control-list">
+            <!-- Dynamic elements loaded from JS -->
+          </div>
+        </section>
+
+      </div>
+
+      <!-- COL 2: EDITOR DE BLOQUES -->
+      <section class="panel">
+        <div class="panel-header" style="display: flex; justify-content: space-between;">
+          <h2 class="panel-title">Bloques de Tiempo</h2>
+          <button class="btn btn-outline btn-sm" onclick="addNewBlockField()">+ Añadir Bloque</button>
+        </div>
+        
+        <div class="blocks-container" id="blocks-builder-container">
+          <!-- Dynamic blocks loaded from JS -->
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 12px;">
+          <button class="btn btn-outline" onclick="restoreDefaultExample()">Restaurar Ejemplo Ascoypera</button>
+          <button class="btn btn-neon" onclick="saveAndBroadcastPauta()">Guardar y Sincronizar</button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- VIEW B: ESTUDIO / TELEPROMPTER -->
+  <main id="view-estudio" class="view-container">
+    <div class="estudio-layout">
+      
+      <!-- Metadata Bar -->
+      <div class="estudio-meta">
+        <div class="meta-item">
+          <span class="meta-label">Programa</span>
+          <span class="meta-value" id="st-pauta-title">-</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Conducción</span>
+          <span class="meta-value" id="st-pauta-host">-</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Formato</span>
+          <span class="meta-value" id="st-pauta-format">-</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Estilo</span>
+          <span class="meta-value" style="font-size: 0.9rem;" id="st-pauta-style">-</span>
+        </div>
+      </div>
+
+      <!-- Teleprompter / Active screen -->
+      <div class="teleprompter-grid">
+        
+        <!-- Active Block Info -->
+        <div class="active-block-panel">
+          <div class="meta-label" style="color: var(--neon); margin-bottom: 10px;">Bloque Actual en el Aire</div>
+          <h1 class="active-block-title" id="st-active-title">Intro y Bienvenida</h1>
+          <p class="active-block-content" id="st-active-content">
+            Cargando contenido...
+          </p>
+          <div class="active-block-tech" id="st-active-tech">
+            Nota Técnica: -
+          </div>
+        </div>
+
+        <!-- Right Side: Timer & Next Block Preview -->
+        <div style="display: flex; flex-direction: column; gap: 32px;">
+          
+          <!-- Countdown Timer -->
+          <div class="timer-section">
+            <span class="meta-label" style="letter-spacing: 3px;">Tiempo Restante del Bloque</span>
+            <div class="timer-display" id="st-timer">03:00</div>
+            <div style="font-family: var(--font-mono); font-size: 0.9rem; color: var(--gray-text);" id="st-timer-duration">
+              Duración total del bloque: 3:00 min
+            </div>
+          </div>
+
+          <!-- Next Block -->
+          <div class="next-block-panel">
+            <div class="next-block-label">Siguiente Bloque</div>
+            <h3 class="next-block-title" id="st-next-title">Sin Bloque Siguiente</h3>
+            <div class="next-block-time" id="st-next-time">[03:00 - 15:00]</div>
+            <p class="next-block-content" id="st-next-content">
+              Fin de la transmisión programada.
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // BroadcastChannel initialized for real-time synchronization between windows/tabs
+    const syncChannel = new BroadcastChannel('akmov_pauta_sync');
+
+    // Default structure (based on Ascoypera real example)
+    const defaultPauta = {
+      title: "Ascoypera",
+      durationTotal: 45,
+      format: "Stream en vivo",
+      host: "Monserrat Cortés",
+      style: "Dinámico, magazine cultural, geek y místico",
+      activeBlockIndex: 0,
+      timerState: {
+        isRunning: false,
+        timeRemaining: 180, // 3 minutes in seconds
+        lastUpdated: Date.now()
+      },
+      blocks: [
+        {
+          timeStart: "00:00",
+          timeEnd: "03:00",
+          name: "Intro y Bienvenida",
+          duration: 3,
+          content: "• Presentación inicial de Monserrat Cortés.\n• Dar la bienvenida a la audiencia del stream.\n• Mencionar de manera rápida el menú de temas del día.",
+          techNotes: "Apoyo visual mediante overlays: Intro loop y logo de la marca"
+        },
+        {
+          timeStart: "03:00",
+          timeEnd: "15:00",
+          name: "Bloque Geek & Místico",
+          duration: 12,
+          content: "• Comentarios sobre Mercurio retrógrado y la tecnología que falla.\n• Tips para limpiar las energías de tus dispositivos electrónicos.\n• Interacción rápida con el chat.",
+          techNotes: "Overlay con preguntas del chat en pantalla"
+        },
+        {
+          timeStart: "15:00",
+          timeEnd: "35:00",
+          name: "Tema de Fondo: Magazine Cultural",
+          duration: 20,
+          content: "• Entrevista/monólogo sobre tendencias culturales emergentes.\n• Análisis de cómo las nuevas generaciones consumen arte y misticismo.",
+          techNotes: "Poner música de fondo suave (Lo-Fi sin copyright)"
+        },
+        {
+          timeStart: "35:00",
+          timeEnd: "45:00",
+          name: "Despedida y Cierre",
+          duration: 10,
+          content: "• Lectura final de superchats / donaciones.\n• Agradecimientos al equipo y anuncios de próximas transmisiones.\n• Cierre formal del stream.",
+          techNotes: "Pantalla de Créditos de cierre + Fade-out de audio"
+        }
+      ]
+    };
+
+    // State management
+    let currentPauta = JSON.parse(localStorage.getItem('akmov_current_pauta')) || defaultPauta;
+    let timerInterval = null;
+
+    // Load elements
+    document.addEventListener("DOMContentLoaded", () => {
+      renderLocutorForm();
+      renderLiveController();
+      updateEstudioView();
+      setupTimerSync();
+      
+      // Listen to broadcast channel messages
+      syncChannel.onmessage = (event) => {
+        const { type, data } = event.data;
+        if (type === 'pauta_update') {
+          currentPauta = data;
+          localStorage.setItem('akmov_current_pauta', JSON.stringify(currentPauta));
+          renderLocutorForm();
+          renderLiveController();
+          updateEstudioView();
+        } else if (type === 'timer_update') {
+          currentPauta.timerState = data;
+          updateTimerDisplayOnly();
+        }
+      };
+    });
+
+    // View Switching Logic
+    function switchView(viewName) {
+      document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
+      document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+      
+      document.getElementById(`view-${viewName}`).classList.add('active');
+      document.getElementById(`tab-${viewName}`).classList.add('active');
+    }
+
+    function openStudioWindow() {
+      const studioWindow = window.open(window.location.href, '_blank', 'width=1200,height=800');
+      
+      setTimeout(() => {
+        if (studioWindow) {
+          studioWindow.postMessage({ action: 'set_studio_view' }, '*');
+        }
+      }, 500);
+    }
+
+    // Listen to iframe/popup messages
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.action === 'set_studio_view') {
+        switchView('estudio');
+      }
+    });
+
+    // Render Blocks in Editor Form
+    function renderLocutorForm() {
+      document.getElementById('pauta-title').value = currentPauta.title;
+      document.getElementById('pauta-duration').value = currentPauta.durationTotal;
+      document.getElementById('pauta-format').value = currentPauta.format;
+      document.getElementById('pauta-host').value = currentPauta.host;
+      document.getElementById('pauta-style').value = currentPauta.style;
+
+      const container = document.getElementById('blocks-builder-container');
+      container.innerHTML = '';
+
+      currentPauta.blocks.forEach((block, idx) => {
+        const blockDiv = document.createElement('div');
+        blockDiv.className = `block-card ${currentPauta.activeBlockIndex === idx ? 'active-live' : ''}`;
+        blockDiv.innerHTML = `
+          <div class="block-card-header">
+            <span class="block-number">BLOQUE #${idx + 1}</span>
+            <button class="block-remove" onclick="removeBlockField(${idx})">Eliminar</button>
+          </div>
+          <div class="form-row" style="margin-bottom: 12px;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label>Nombre del Bloque</label>
+              <input type="text" class="form-input block-name" value="${block.name}" onchange="updateBlockData(${idx}, 'name', this.value)">
+            </div>
+            <div class="form-row">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label>Inicio (mm:ss)</label>
+                <input type="text" class="form-input block-start" value="${block.timeStart}" onchange="updateBlockData(${idx}, 'timeStart', this.value)">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label>Fin (mm:ss)</label>
+                <input type="text" class="form-input block-end" value="${block.timeEnd}" onchange="updateBlockData(${idx}, 'timeEnd', this.value)">
+              </div>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label>Descripción / Guión / Viñetas</label>
+            <textarea class="form-input block-content" rows="3" style="resize: vertical; font-family: inherit;" onchange="updateBlockData(${idx}, 'content', this.value)">${block.content}</textarea>
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label>Apoyo Técnico / Notas</label>
+            <input type="text" class="form-input block-tech" value="${block.techNotes || ''}" onchange="updateBlockData(${idx}, 'techNotes', this.value)">
+          </div>
+        `;
+        container.appendChild(blockDiv);
+      });
+    }
+
+    // Render Side Controller List
+    function renderLiveController() {
+      const listContainer = document.getElementById('live-control-list');
+      listContainer.innerHTML = '';
+
+      currentPauta.blocks.forEach((block, idx) => {
+        const item = document.createElement('div');
+        item.className = `live-control-item ${currentPauta.activeBlockIndex === idx ? 'active' : ''}`;
+        item.onclick = () => selectActiveBlock(idx);
+        item.innerHTML = `
+          <div class="live-control-name">${block.name}</div>
+          <div class="live-control-time">${block.timeStart} - ${block.timeEnd} (${block.duration}m)</div>
+        `;
+        listContainer.appendChild(item);
+      });
+    }
+
+    // Update block specific data directly
+    function updateBlockData(index, field, value) {
+      currentPauta.blocks[index][field] = value;
+      if (field === 'timeStart' || field === 'timeEnd') {
+        const startSecs = parseTimeToSeconds(currentPauta.blocks[index].timeStart);
+        const endSecs = parseTimeToSeconds(currentPauta.blocks[index].timeEnd);
+        if (endSecs > startSecs) {
+          currentPauta.blocks[index].duration = Math.round((endSecs - startSecs) / 60);
+        }
+      }
+      localStorage.setItem('akmov_current_pauta', JSON.stringify(currentPauta));
+    }
+
+    // Add Block Field
+    function addNewBlockField() {
+      let lastEnd = "00:00";
+      if (currentPauta.blocks.length > 0) {
+        lastEnd = currentPauta.blocks[currentPauta.blocks.length - 1].timeEnd;
+      }
+      
+      const newBlock = {
+        timeStart: lastEnd,
+        timeEnd: lastEnd,
+        name: "Nuevo Bloque",
+        duration: 0,
+        content: "• Viñeta 1\n• Viñeta 2",
+        techNotes: ""
+      };
+      
+      currentPauta.blocks.push(newBlock);
+      saveAndBroadcastPauta();
+    }
+
+    // Remove Block
+    function removeBlockField(index) {
+      if (currentPauta.blocks.length <= 1) return;
+      currentPauta.blocks.splice(index, 1);
+      if (currentPauta.activeBlockIndex >= currentPauta.blocks.length) {
+        currentPauta.activeBlockIndex = currentPauta.blocks.length - 1;
+      }
+      saveAndBroadcastPauta();
+    }
+
+    // Restore default
+    function restoreDefaultExample() {
+      currentPauta = JSON.parse(JSON.stringify(defaultPauta));
+      saveAndBroadcastPauta();
+    }
+
+    // Save current fields into State and broadcast
+    function saveAndBroadcastPauta() {
+      currentPauta.title = document.getElementById('pauta-title').value;
+      currentPauta.durationTotal = parseInt(document.getElementById('pauta-duration').value) || 45;
+      currentPauta.format = document.getElementById('pauta-format').value;
+      currentPauta.host = document.getElementById('pauta-host').value;
+      currentPauta.style = document.getElementById('pauta-style').value;
+
+      localStorage.setItem('akmov_current_pauta', JSON.stringify(currentPauta));
+      
+      renderLocutorForm();
+      renderLiveController();
+      updateEstudioView();
+
+      syncChannel.postMessage({
+        type: 'pauta_update',
+        data: currentPauta
+      });
+    }
+
+    // Switch Active Block in Transmission
+    function selectActiveBlock(index) {
+      currentPauta.activeBlockIndex = index;
+      
+      const block = currentPauta.blocks[index];
+      const startSecs = parseTimeToSeconds(block.timeStart);
+      const endSecs = parseTimeToSeconds(block.timeEnd);
+      const totalSecs = endSecs > startSecs ? (endSecs - startSecs) : block.duration * 60;
+      
+      currentPauta.timerState.timeRemaining = totalSecs;
+      currentPauta.timerState.isRunning = false;
+
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+
+      saveAndBroadcastPauta();
+    }
+
+    // Update Estudio View DOM elements
+    function updateEstudioView() {
+      document.getElementById('st-pauta-title').innerText = currentPauta.title;
+      document.getElementById('st-pauta-host').innerText = currentPauta.host;
+      document.getElementById('st-pauta-format').innerText = currentPauta.format;
+      document.getElementById('st-pauta-style').innerText = currentPauta.style;
+
+      const activeIdx = currentPauta.activeBlockIndex;
+      const activeBlock = currentPauta.blocks[activeIdx];
+
+      if (activeBlock) {
+        document.getElementById('st-active-title').innerText = activeBlock.name;
+        document.getElementById('st-active-content').innerText = activeBlock.content;
+        document.getElementById('st-active-tech').innerText = activeBlock.techNotes ? `Nota Técnica: ${activeBlock.techNotes}` : 'Nota Técnica: -';
+        
+        const startSecs = parseTimeToSeconds(activeBlock.timeStart);
+        const endSecs = parseTimeToSeconds(activeBlock.timeEnd);
+        const durationDisplay = endSecs > startSecs ? (endSecs - startSecs) : activeBlock.duration * 60;
+        
+        document.getElementById('st-timer-duration').innerText = `Duración total del bloque: ${formatSecondsToTime(durationDisplay)}`;
+      } else {
+        document.getElementById('st-active-title').innerText = 'Transmisión Detenida';
+        document.getElementById('st-active-content').innerText = 'No hay ningún bloque activo.';
+        document.getElementById('st-active-tech').innerText = 'Nota Técnica: -';
+      }
+
+      const nextBlock = currentPauta.blocks[activeIdx + 1];
+      if (nextBlock) {
+        document.getElementById('st-next-title').innerText = nextBlock.name;
+        document.getElementById('st-next-time').innerText = `[${nextBlock.timeStart} - ${nextBlock.timeEnd}]`;
+        document.getElementById('st-next-content').innerText = nextBlock.content.replace(/•/g, '').substring(0, 150) + (nextBlock.content.length > 150 ? '...' : '');
+      } else {
+        document.getElementById('st-next-title').innerText = 'Fin del Show';
+        document.getElementById('st-next-time').innerText = '--:--';
+        document.getElementById('st-next-content').innerText = 'Este es el último bloque de la pauta.';
+      }
+
+      updateTimerDisplayOnly();
+    }
+
+    function parseTimeToSeconds(timeStr) {
+      if (!timeStr) return 0;
+      const parts = timeStr.split(':').map(Number);
+      if (parts.length === 2) {
+        return (parts[0] * 60) + parts[1];
+      }
+      return parts[0] * 60;
+    }
+
+    function formatSecondsToTime(totalSecs) {
+      const mins = Math.floor(totalSecs / 60);
+      const secs = totalSecs % 60;
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function updateTimerDisplayOnly() {
+      const display = document.getElementById('st-timer');
+      const timeRemaining = currentPauta.timerState.timeRemaining;
+      
+      display.innerText = formatSecondsToTime(timeRemaining);
+      
+      if (timeRemaining < 30) {
+        display.classList.add('warning');
+      } else {
+        display.classList.remove('warning');
+      }
+    }
+
+    function startTimer() {
+      if (currentPauta.timerState.isRunning) return;
+      currentPauta.timerState.isRunning = true;
+      currentPauta.timerState.lastUpdated = Date.now();
+      
+      syncChannel.postMessage({
+        type: 'timer_update',
+        data: currentPauta.timerState
+      });
+
+      setupTimerInterval();
+    }
+
+    function pauseTimer() {
+      if (!currentPauta.timerState.isRunning) return;
+      currentPauta.timerState.isRunning = false;
+      
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+
+      syncChannel.postMessage({
+        type: 'timer_update',
+        data: currentPauta.timerState
+      });
+    }
+
+    function resetTimer() {
+      const activeBlock = currentPauta.blocks[currentPauta.activeBlockIndex];
+      if (!activeBlock) return;
+
+      const startSecs = parseTimeToSeconds(activeBlock.timeStart);
+      const endSecs = parseTimeToSeconds(activeBlock.timeEnd);
+      const durationDisplay = endSecs > startSecs ? (endSecs - startSecs) : activeBlock.duration * 60;
+
+      currentPauta.timerState.timeRemaining = durationDisplay;
+      currentPauta.timerState.isRunning = false;
+
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+
+      updateTimerDisplayOnly();
+      
+      syncChannel.postMessage({
+        type: 'timer_update',
+        data: currentPauta.timerState
+      });
+    }
+
+    function setupTimerInterval() {
+      if (timerInterval) clearInterval(timerInterval);
+      
+      timerInterval = setInterval(() => {
+        if (currentPauta.timerState.isRunning && currentPauta.timerState.timeRemaining > 0) {
+          currentPauta.timerState.timeRemaining--;
+          updateTimerDisplayOnly();
+          
+          syncChannel.postMessage({
+            type: 'timer_update',
+            data: currentPauta.timerState
+          });
+        } else if (currentPauta.timerState.timeRemaining <= 0) {
+          clearInterval(timerInterval);
+          timerInterval = null;
+          currentPauta.timerState.isRunning = false;
+          if (currentPauta.activeBlockIndex < currentPauta.blocks.length - 1) {
+            selectActiveBlock(currentPauta.activeBlockIndex + 1);
+            startTimer();
+          }
+        }
+      }, 1000);
+    }
+
+    function setupTimerSync() {
+      if (currentPauta.timerState.isRunning) {
+        const elapsed = Math.floor((Date.now() - currentPauta.timerState.lastUpdated) / 1000);
+        currentPauta.timerState.timeRemaining = Math.max(0, currentPauta.timerState.timeRemaining - elapsed);
+        if (currentPauta.timerState.timeRemaining > 0) {
+          setupTimerInterval();
+        } else {
+          currentPauta.timerState.isRunning = false;
+        }
+      }
+    }
+  </script>
+</body>
+</html>

@@ -500,17 +500,17 @@ tabButtons.forEach(btn => {
       }
     });
 
-    // Dynamically set iframe src to CONFIG.API_BASE (e.g. api.akmovmedia.com)
+    // Dynamically set iframe src to local relative paths (same domain as web server)
     if (targetTab === 'overlays') {
       const overlaysIframe = document.getElementById('overlaysIframe');
       if (overlaysIframe && !overlaysIframe.src) {
-        overlaysIframe.src = CONFIG.API_BASE + '/streamers.html?auth=true';
+        overlaysIframe.src = './streamers.html?auth=true';
       }
       sessionStorage.setItem('akmov_panel_session', '1');
     } else if (targetTab === 'pauta') {
       const pautaIframe = document.getElementById('pautaIframe');
       if (pautaIframe && !pautaIframe.src) {
-        pautaIframe.src = CONFIG.API_BASE + '/pauta_studio.html';
+        pautaIframe.src = './pauta_studio.html';
       }
     }
   });
@@ -543,12 +543,16 @@ function renderYoutubeChannels() {
     return;
   }
 
-  container.innerHTML = youtubeChannels.map((channel, index) => `
-    <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-card); border: 1px solid var(--gray-border); padding: 10px 15px; margin-bottom: 5px;">
-      <span style="font-family: var(--font-mono); color: var(--neon); font-size: 0.95rem;">${channel}</span>
-      <button class="action-btn btn-stop" onclick="deleteYoutubeChannel(${index})" style="background: var(--red); color: white; border: none; padding: 5px 10px; cursor: pointer; font-family: var(--font-mono); font-size: 0.7rem; font-weight: bold;">ELIMINAR</button>
-    </div>
-  `).join('');
+  container.innerHTML = youtubeChannels.map((ch, index) => {
+    const handle = typeof ch === 'string' ? ch : ch.handle;
+    const count = typeof ch === 'string' ? 3 : (ch.count || 3);
+    return `
+      <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-card); border: 1px solid var(--gray-border); padding: 10px 15px; margin-bottom: 5px;">
+        <span style="font-family: var(--font-mono); color: var(--neon); font-size: 0.95rem;">${handle} <span style="color: var(--text-dim); font-size: 0.8rem;">(${count} videos)</span></span>
+        <button class="action-btn btn-stop" onclick="deleteYoutubeChannel(${index})" style="background: var(--red); color: white; border: none; padding: 5px 10px; cursor: pointer; font-family: var(--font-mono); font-size: 0.7rem; font-weight: bold;">ELIMINAR</button>
+      </div>
+    `;
+  }).join('');
 }
 
 window.deleteYoutubeChannel = function(index) {
@@ -558,17 +562,24 @@ window.deleteYoutubeChannel = function(index) {
 
 document.getElementById('btnAddYoutubeChannel')?.addEventListener('click', () => {
   const input = document.getElementById('newYoutubeChannel');
+  const countInput = document.getElementById('newYoutubeChannelCount');
   let handle = input.value.trim();
+  const count = parseInt(countInput ? countInput.value : '3', 10) || 3;
+  
   if (!handle) return;
   if (!handle.startsWith('@')) {
     handle = '@' + handle;
   }
-  if (youtubeChannels.includes(handle)) {
+  
+  const handleExists = youtubeChannels.some(ch => (typeof ch === 'string' ? ch : ch.handle) === handle);
+  if (handleExists) {
     alert('Este canal ya está en la lista.');
     return;
   }
-  youtubeChannels.push(handle);
+  
+  youtubeChannels.push({ handle, count });
   input.value = '';
+  if (countInput) countInput.value = '3';
   renderYoutubeChannels();
 });
 
