@@ -153,7 +153,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (iconVolumeHighVideo) iconVolumeHighVideo.classList.remove('hidden');
       if (iconVolumeMuteVideo) iconVolumeMuteVideo.classList.add('hidden');
       
-      if (mainVideoPlayer) mainVideoPlayer.classList.add('live-active');
+      if (mainVideoPlayer) {
+        mainVideoPlayer.classList.add('live-active');
+        showControls();
+      }
       if (playerCover) {
         playerCover.style.opacity = '0';
         setTimeout(() => playerCover.classList.add('hidden'), 300);
@@ -168,7 +171,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } else {
       liveVideo.pause();
-      if (mainVideoPlayer) mainVideoPlayer.classList.remove('live-active');
+      if (mainVideoPlayer) {
+        mainVideoPlayer.classList.remove('live-active');
+        mainVideoPlayer.classList.remove('user-active');
+        if (controlsTimeout) clearTimeout(controlsTimeout);
+      }
       if (playerCover) {
         playerCover.classList.remove('hidden');
         setTimeout(() => playerCover.style.opacity = '1', 50);
@@ -177,6 +184,35 @@ document.addEventListener('DOMContentLoaded', () => {
       if (iconPlayVideo) iconPlayVideo.classList.remove('hidden');
       if (iconPauseVideo) iconPauseVideo.classList.add('hidden');
     }
+  }
+
+  // Auto-hide player controls during video playback
+  let controlsTimeout = null;
+
+  function showControls() {
+    if (!mainVideoPlayer) return;
+    mainVideoPlayer.classList.add('user-active');
+    if (controlsTimeout) clearTimeout(controlsTimeout);
+    if (isVideoPlaying) {
+      controlsTimeout = setTimeout(() => {
+        mainVideoPlayer.classList.remove('user-active');
+      }, 3000);
+    }
+  }
+
+  function hideControls() {
+    if (!mainVideoPlayer) return;
+    if (controlsTimeout) clearTimeout(controlsTimeout);
+    if (isVideoPlaying) {
+      mainVideoPlayer.classList.remove('user-active');
+    }
+  }
+
+  if (mainVideoPlayer) {
+    mainVideoPlayer.addEventListener('mousemove', showControls);
+    mainVideoPlayer.addEventListener('mouseenter', showControls);
+    mainVideoPlayer.addEventListener('mouseleave', hideControls);
+    mainVideoPlayer.addEventListener('touchstart', showControls, { passive: true });
   }
 
   // Bind video player event listeners if elements exist
