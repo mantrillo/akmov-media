@@ -223,6 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const iconVolumeMuteVideo = videoMuteBtn.querySelector('.icon-volume-mute');
 
     if (playerCover) playerCover.addEventListener('click', toggleVideoPlayback);
+    liveVideo.addEventListener('click', toggleVideoPlayback);
     videoPlayPauseBtn.addEventListener('click', toggleVideoPlayback);
 
     // Mute / Unmute Video Audio
