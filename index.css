@@ -2605,4 +2605,478 @@ a {
 }
 
 
+/* ============================================================
+   SOCIAL CHAT — Facebook Login + Firebase
+   Estilo similar al chat de comentarios de Facebook
+   ============================================================ */
+
+/* ── Wrapper principal ── */
+.social-chat-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: #18191a;
+  border-radius: 0;
+  overflow: hidden;
+  font-family: var(--font-sans);
+}
+
+/* ── Header ── */
+.social-chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #242526;
+  border-bottom: 1px solid #3a3b3c;
+  flex-shrink: 0;
+  min-height: 48px;
+}
+
+.social-chat-header-left {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.social-chat-header-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--color-neon);
+  flex-shrink: 0;
+}
+
+.social-chat-title {
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--color-neon);
+  text-shadow: 0 0 8px rgba(0,255,0,0.4);
+}
+
+/* ── User info en header ── */
+.chat-header-user {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+
+.chat-header-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--color-neon);
+  flex-shrink: 0;
+}
+
+.chat-header-name {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-white);
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-logout-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #aaa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 50%;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+.chat-logout-btn svg {
+  width: 16px;
+  height: 16px;
+}
+.chat-logout-btn:hover {
+  color: var(--color-neon);
+  background: rgba(0,255,0,0.1);
+}
+
+/* ── Panel de Login ── */
+.social-chat-login {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 24px 20px;
+  text-align: center;
+}
+
+.chat-login-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-width: 220px;
+}
+
+.chat-login-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(0,255,0,0.1);
+  border: 2px solid var(--color-neon);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+.chat-login-icon svg {
+  width: 26px;
+  height: 26px;
+  color: var(--color-neon);
+}
+
+.chat-login-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-white);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.chat-login-desc {
+  font-size: 0.78rem;
+  color: #aaa;
+  line-height: 1.5;
+}
+
+/* ── Botón de Facebook Login ── */
+.chat-fb-login-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 16px;
+  background: #1877f2;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+  box-shadow: 0 2px 8px rgba(24, 119, 242, 0.4);
+  margin-top: 4px;
+}
+.chat-fb-login-btn:hover:not(:disabled) {
+  background: #1568d4;
+  box-shadow: 0 4px 16px rgba(24, 119, 242, 0.6);
+  transform: translateY(-1px);
+}
+.chat-fb-login-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+.chat-fb-login-btn:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+.chat-fb-login-btn .chat-btn-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.chat-login-note {
+  font-size: 0.68rem;
+  color: #777;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.chat-login-error {
+  font-size: 0.75rem;
+  color: #ff4d4d;
+  background: rgba(255,77,77,0.1);
+  border: 1px solid rgba(255,77,77,0.3);
+  border-radius: 6px;
+  padding: 8px 12px;
+  width: 100%;
+  text-align: center;
+}
+
+/* ── Spinner ── */
+.chat-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  display: inline-block;
+  animation: chat-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes chat-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Panel principal del chat ── */
+.social-chat-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Lista de mensajes ── */
+.social-chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: #3a3b3c #18191a;
+}
+.social-chat-messages::-webkit-scrollbar {
+  width: 4px;
+}
+.social-chat-messages::-webkit-scrollbar-track {
+  background: #18191a;
+}
+.social-chat-messages::-webkit-scrollbar-thumb {
+  background: #3a3b3c;
+  border-radius: 4px;
+}
+.social-chat-messages::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* ── Burbuja de mensaje (estilo Facebook Comments) ── */
+.chat-msg {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  animation: chat-msg-in 0.2s ease;
+}
+@keyframes chat-msg-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.chat-msg--own {
+  flex-direction: row; /* misma dirección, burbujas propias se destacan por color */
+}
+
+.chat-msg-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1.5px solid #3a3b3c;
+  margin-top: 2px;
+}
+
+.chat-msg-content {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-width: calc(100% - 44px);
+}
+
+.chat-msg-bubble {
+  background: #3a3b3c;
+  border-radius: 0 18px 18px 18px;
+  padding: 8px 12px;
+  word-break: break-word;
+  position: relative;
+}
+.chat-msg--own .chat-msg-bubble {
+  background: #1c4a1e; /* toque verde oscuro para mensajes propios */
+  border-radius: 18px 18px 18px 0;
+}
+
+.chat-msg-name {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--color-neon);
+  margin-bottom: 3px;
+  letter-spacing: 0.3px;
+}
+.chat-msg--own .chat-msg-name {
+  color: #7fff7f;
+}
+
+.chat-msg-text {
+  font-size: 0.82rem;
+  color: #e4e6eb;
+  line-height: 1.45;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.chat-msg-time {
+  font-size: 0.62rem;
+  color: #777;
+  padding-left: 4px;
+}
+
+/* ── Área de input ── */
+.social-chat-input-area {
+  padding: 10px 10px 8px;
+  background: #242526;
+  border-top: 1px solid #3a3b3c;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.chat-input-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1.5px solid var(--color-neon);
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Fila principal del input */
+.chat-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.chat-message-input {
+  flex: 1;
+  background: #3a3b3c;
+  border: 1.5px solid transparent;
+  border-radius: 20px;
+  padding: 9px 42px 9px 14px;
+  color: #e4e6eb;
+  font-family: var(--font-sans);
+  font-size: 0.83rem;
+  outline: none;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+  resize: none;
+}
+.chat-message-input::placeholder {
+  color: #777;
+}
+.chat-message-input:focus {
+  border-color: var(--color-neon);
+  background: #2d2e2f;
+  box-shadow: 0 0 0 3px rgba(0,255,0,0.08);
+}
+
+.chat-send-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-neon);
+  color: #000;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+  box-shadow: 0 2px 8px rgba(0,255,0,0.3);
+}
+.chat-send-btn svg {
+  width: 18px;
+  height: 18px;
+}
+.chat-send-btn:hover:not(:disabled) {
+  background: #00cc00;
+  transform: scale(1.08);
+  box-shadow: 0 4px 14px rgba(0,255,0,0.5);
+}
+.chat-send-btn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+.chat-send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Meta del input (error + contador) */
+.chat-input-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 4px;
+  min-height: 16px;
+}
+
+.chat-input-error {
+  font-size: 0.68rem;
+  color: #ff4d4d;
+}
+
+.chat-char-counter {
+  font-size: 0.65rem;
+  color: #666;
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+.chat-char-counter--warn {
+  color: #f0a800;
+}
+.chat-char-counter--over {
+  color: #ff4d4d;
+  font-weight: 700;
+}
+
+/* ── Estados especiales ── */
+.chat-error-state,
+.chat-config-warning {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 24px 16px;
+  text-align: center;
+  gap: 10px;
+  color: #aaa;
+  font-size: 0.82rem;
+}
+.chat-error-icon {
+  font-size: 2rem;
+}
+.chat-config-warning code {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: var(--color-neon);
+  background: rgba(0,255,0,0.08);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .social-chat-wrapper {
+    min-height: 320px;
+  }
+  .chat-login-content {
+    max-width: 100%;
+  }
+}
 
