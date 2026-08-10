@@ -7,7 +7,7 @@
 
 // ─── 1. CREDENCIALES — REEMPLAZA ESTOS VALORES ─────────────────────────────
 
-const FACEBOOK_APP_ID = '1789071428946709'; // ✅ App ID de AKMOV MEDIA Chat
+const FACEBOOK_APP_ID = '1773787660284363'; // ✅ Nueva App ID (sin restricción de negocio)
 
 const firebaseConfig = {
   apiKey:            "AIzaSyAZnIyKZ0iIL5xol8o1n1Pvr3Z6DzSpThs",
