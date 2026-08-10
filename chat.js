@@ -430,11 +430,10 @@ function escapeHtml(str) {
 
 function sanitizeUrl(url) {
   if (!url) return '';
-  // Solo permitir URLs de dominios conocidos
+  // Permitir URLs de Facebook CDN y Google/Firebase
   try {
     const parsed = new URL(url);
-    const allowed = ['graph.facebook.com', 'lookaside.fbsbx.com', 'platform-lookaside.fbsbx.com', 'scontent.fscl1-1.fna.fbcdn.net'];
-    if (allowed.some(d => parsed.hostname.includes(d)) || parsed.hostname.includes('fbcdn.net')) {
+    if (parsed.protocol === 'https:' || parsed.protocol === 'http:') {
       return url;
     }
   } catch (_) {}
