@@ -41,21 +41,14 @@ app.use(express.urlencoded({ limit: '20mb', extended: true }));
 // ─── INTEGRACIÓN OWNCAST CHAT (Multichat Bot Token) ─────────────────
 const OWNCAST_ADMIN_TOKEN = process.env.OWNCAST_ADMIN_TOKEN || '41f531ea-ba61-419b-a010-8bfa8795db28';
 const OWNCAST_API_URL     = process.env.OWNCAST_API_URL     || 'http://localhost:8080';
+const FACEBOOK_PAGE_TOKEN  = process.env.FACEBOOK_PAGE_TOKEN  || '';
 
 /**
- * Recibe comentarios enviados de Twitch / Kick / Facebook u otras plataformas
- * y los publica dentro del chat nativo de Owncast.
- * Body esperado: { platform: 'Twitch'|'Kick'|'Facebook', username: '...', message: '...' }
+ * Función interna para publicar mensajes en el chat de Owncast
  */
-app.post('/owncast/send-chat', async (req, res) => {
-  const { platform, username, message } = req.body;
-  if (!username || !message) {
-    return res.status(400).json({ success: false, error: 'username y message son requeridos' });
-  }
-
-  const prefix = platform ? `[${platform}] ` : '';
-  const formattedBody = `${prefix}**${username}**: ${message}`;
-
+async function sendToOwncastChat(platform, username, message) {
+  if (!username || !message) return;
+  const formattedBody = `[${platform}] **${username}**: ${message}`;
   try {
     const response = await fetch(`${OWNCAST_API_URL}/api/integrations/chat/send`, {
       method: 'POST',
@@ -65,20 +58,114 @@ app.post('/owncast/send-chat', async (req, res) => {
       },
       body: JSON.stringify({ body: formattedBody })
     });
-
     if (!response.ok) {
-      const errText = await response.text();
-      console.error('[Owncast Multichat Error]', response.status, errText);
-      return res.status(response.status).json({ success: false, error: errText });
+      console.error(`[Owncast Multichat Error ${platform}]`, response.status, await response.text());
+    } else {
+      console.log(`[Multichat Reenviado ${platform}] ${username}: ${message}`);
     }
-
-    const data = await response.json();
-    return res.json({ success: true, data });
   } catch (error) {
-    console.error('[Owncast Multichat Exception]', error.message);
-    return res.status(500).json({ success: false, error: error.message });
+    console.error(`[Owncast Multichat Exception ${platform}]`, error.message);
   }
+}
+
+/**
+ * Endpoint REST manual para recibir comentarios
+ */
+app.post('/owncast/send-chat', async (req, res) => {
+  const { platform, username, message } = req.body;
+  if (!username || !message) {
+    return res.status(400).json({ success: false, error: 'username y message son requeridos' });
+  }
+  await sendToOwncastChat(platform || 'Social', username, message);
+  return res.json({ success: true });
 });
+
+// ─── LISTENERS AUTOMÁTICOS MULTICAT (Twitch, Kick, Facebook) ───────
+const WebSocket = require('ws');
+
+// 1. TWITCH CHAT LISTENER (IRC WebSocket)
+function initTwitchListener(channelName = 'akmovmedia') {
+  try {
+    const ws = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
+    ws.on('open', () => {
+      ws.send('CAP REQ :twitch.tv/tags twitch.tv/commands');
+      ws.send(`NICK justinfan${Math.floor(100000 + Math.random() * 900000)}`);
+      ws.send(`JOIN #${channelName.toLowerCase()}`);
+      console.log(`[Twitch Chat] Conectado al canal #${channelName}`);
+    });
+
+    ws.on('message', (data) => {
+      const msgStr = data.toString();
+      if (msgStr.startsWith('PING')) {
+        ws.send('PONG :tmi.twitch.tv');
+        return;
+      }
+      if (msgStr.includes('PRIVMSG')) {
+        const match = msgStr.match(/:([^!]+)!.*PRIVMSG #[^ ]+ :(.*)/);
+        if (match) {
+          const user = match[1];
+          const text = match[2].trim();
+          sendToOwncastChat('Twitch', user, text);
+        }
+      }
+    });
+
+    ws.on('error', (err) => console.error('[Twitch Chat Error]', err.message));
+    ws.on('close', () => {
+      console.log('[Twitch Chat] Desconectado. Reintentando en 10s...');
+      setTimeout(() => initTwitchListener(channelName), 10000);
+    });
+  } catch (e) {
+    console.error('[Twitch Chat Init Exception]', e.message);
+  }
+}
+
+// 2. KICK CHAT LISTENER (Pusher WebSocket)
+async function initKickListener(channelSlug = 'akmovmedia') {
+  try {
+    const res = await fetch(`https://kick.com/api/v2/channels/${channelSlug}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    const chatroomId = data.chatroom?.id;
+    if (!chatroomId) return;
+
+    const ws = new WebSocket('wss://ws-us2.pusher.com/app/eb1d5f283082f78b7754?protocol=7&client=js&version=7.6.0&flash=false');
+    ws.on('open', () => {
+      ws.send(JSON.stringify({
+        event: 'pusher:subscribe',
+        data: { auth: '', channel: `chatrooms.${chatroomId}.v2` }
+      }));
+      console.log(`[Kick Chat] Conectado al chatroom ID ${chatroomId}`);
+    });
+
+    ws.on('message', (raw) => {
+      try {
+        const parsed = JSON.parse(raw.toString());
+        if (parsed.event === 'App\\Events\\ChatMessageEvent') {
+          const chatData = JSON.parse(parsed.data);
+          const sender = chatData.sender?.username || 'Usuario Kick';
+          const text = chatData.content;
+          sendToOwncastChat('Kick', sender, text);
+        }
+      } catch (e) {}
+    });
+
+    ws.on('error', (err) => console.error('[Kick Chat Error]', err.message));
+    ws.on('close', () => {
+      console.log('[Kick Chat] Desconectado. Reintentando en 10s...');
+      setTimeout(() => initKickListener(channelSlug), 10000);
+    });
+  } catch (e) {
+    console.error('[Kick Chat Exception]', e.message);
+  }
+}
+
+// Iniciar listeners de fondo al arrancar el servidor
+setTimeout(() => {
+  initTwitchListener('akmovmedia');
+  initKickListener('akmovmedia');
+}, 3000);
+
 
 // ─── STATIC FILE SERVING: Overlays & Control Panel via HTTPS ───────────────────
 app.use(express.static(path.join(__dirname)));
