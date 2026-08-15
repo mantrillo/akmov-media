@@ -567,6 +567,140 @@
         margin: 8mm 8mm 8mm 8mm;
       }
     }
+
+    /* ── COMPREHENSIVE RESPONSIVE MOBILE STYLES ── */
+    @media (max-width: 900px) {
+      .topbar {
+        height: auto;
+        padding: 12px 14px;
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+      }
+      .topbar-logo {
+        font-size: 1.2rem;
+        justify-content: space-between;
+      }
+      .topbar-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: space-between;
+        width: 100%;
+      }
+      .topbar-actions .sync-status {
+        width: 100%;
+        margin-bottom: 2px;
+      }
+      .topbar-actions .mode-tab,
+      .topbar-actions .btn {
+        flex: 1 1 calc(50% - 6px);
+        text-align: center;
+        padding: 10px 8px;
+        font-size: 0.72rem;
+        justify-content: center;
+      }
+      .view-container {
+        padding: 16px 10px;
+      }
+      .locutor-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      .teleprompter-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      .form-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      .panel {
+        padding: 16px 14px;
+      }
+      .panel-title {
+        font-size: 1.1rem;
+      }
+      .active-block-panel {
+        padding: 20px 16px;
+      }
+      .active-block-title {
+        font-size: 1.8rem;
+        word-break: break-word;
+      }
+      .active-block-content {
+        font-size: 1.25rem;
+        line-height: 1.5;
+        margin-bottom: 20px;
+      }
+      .active-block-tech {
+        font-size: 0.95rem;
+        padding: 12px;
+      }
+      .timer-display {
+        font-size: 3.5rem;
+      }
+      .timer-section {
+        padding: 20px 14px;
+      }
+      .estudio-meta {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        padding: 14px;
+      }
+      .meta-value {
+        font-size: 0.95rem;
+      }
+      .pdf-modal-overlay {
+        padding: 10px;
+      }
+      .pdf-modal-actions {
+        width: 100%;
+        flex-direction: column;
+        gap: 8px;
+        padding: 10px;
+      }
+      .pdf-modal-actions button {
+        width: 100%;
+      }
+      .toast-popup {
+        left: 14px;
+        right: 14px;
+        bottom: 14px;
+        font-size: 0.75rem;
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .topbar-logo {
+        font-size: 1.05rem;
+        letter-spacing: 2px;
+      }
+      .topbar-actions .mode-tab,
+      .topbar-actions .btn {
+        flex: 1 1 100%;
+      }
+      .estudio-meta {
+        grid-template-columns: 1fr;
+      }
+      .timer-display {
+        font-size: 2.8rem;
+      }
+      .active-block-title {
+        font-size: 1.45rem;
+      }
+      .active-block-content {
+        font-size: 1.15rem;
+      }
+      .block-card {
+        padding: 14px 12px;
+      }
+      .btn {
+        padding: 10px 14px;
+        font-size: 0.8rem;
+      }
+    }
   </style>
 </head>
 <body>
