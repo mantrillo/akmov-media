@@ -584,6 +584,8 @@ tabButtons.forEach(btn => {
       if (pautaIframe && !pautaIframe.src.includes('pauta_studio.html')) {
         pautaIframe.src = './pauta_studio.html';
       }
+    } else if (targetTab === 'users') {
+      renderUsersTable();
     }
   });
 });
