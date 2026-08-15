@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Oswald:wght@500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     :root {
       --black: #050505;
@@ -486,6 +487,46 @@
     .text-glow {
       text-shadow: var(--neon-glow);
     }
+
+    /* ── TOAST NOTIFICATIONS ── */
+    .toast-popup {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--gray-panel);
+      border: 1.5px solid var(--neon);
+      box-shadow: 0 0 20px rgba(0, 255, 102, 0.3);
+      color: var(--white);
+      padding: 14px 20px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      border-radius: 4px;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideIn 0.3s ease-out;
+    }
+    @keyframes slideIn {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* ── NATIVE PRINT STYLES (LETTER OPTIMIZED) ── */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+      .topbar, .mode-tab, .btn, .live-controller-card, .block-remove, .toast-popup {
+        display: none !important;
+      }
+      .view-container {
+        display: block !important;
+        padding: 0 !important;
+        max-width: 100% !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -500,6 +541,12 @@
         <span class="sync-dot"></span>
         <span>Sincronizado</span>
       </div>
+      <button class="btn btn-neon btn-sm" id="btn-export-pdf" onclick="exportPautaPDF()" title="Descargar Pauta completa en PDF optimizada para hojas tamaño Carta (8.5x11 in)">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="display:inline-block; vertical-align:middle; margin-right:4px;">
+          <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+        </svg>
+        <span>DESCARGAR PAUTA PDF (CARTA)</span>
+      </button>
       <button class="mode-tab active" id="tab-locutor" onclick="switchView('locutor')">Vista Locutor</button>
       <button class="mode-tab" id="tab-estudio" onclick="switchView('estudio')">Vista Estudio</button>
       <button class="btn btn-outline btn-sm" onclick="openStudioWindow()">Abrir Ventana Estudio</button>
@@ -576,8 +623,12 @@
           <!-- Dynamic blocks loaded from JS -->
         </div>
 
-        <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <div style="display: flex; justify-content: flex-end; gap: 12px; flex-wrap: wrap;">
           <button class="btn btn-outline" onclick="restoreDefaultExample()">Restaurar Ejemplo Ascoypera</button>
+          <button class="btn btn-outline" onclick="exportPautaPDF()" title="Descargar Pauta completa en PDF (Carta)">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            Descargar PDF (Carta)
+          </button>
           <button class="btn btn-neon" onclick="saveAndBroadcastPauta()">Guardar y Sincronizar</button>
         </div>
       </section>
@@ -1066,6 +1117,258 @@
         } else {
           currentPauta.timerState.isRunning = false;
         }
+      }
+    }
+
+    // ─── TOAST NOTIFICATION ───
+    function showToast(message, isError = false) {
+      const existing = document.querySelector('.toast-popup');
+      if (existing) existing.remove();
+
+      const toast = document.createElement('div');
+      toast.className = 'toast-popup';
+      if (isError) toast.style.borderColor = 'var(--accent-red)';
+      toast.innerHTML = `
+        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:${isError ? '#ff3b30' : '#00ff66'}; box-shadow:0 0 10px ${isError ? '#ff3b30' : '#00ff66'};"></span>
+        <span>${message}</span>
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.style.transition = 'opacity 0.3s';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // ─── EXPORT PAUTA PDF (TAMAÑO CARTA OPTIMIZADO) ───
+    function exportPautaPDF() {
+      // 1. Guardar cualquier cambio que esté en los inputs del formulario
+      const titleInput = document.getElementById('pauta-title');
+      if (titleInput) {
+        saveAndBroadcastPauta();
+      }
+
+      showToast("Generando Pauta PDF tamaño Carta...");
+
+      // 2. Formatear la fecha y hora
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('es-CL', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      const timeStr = now.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+
+      // 3. Crear contenedor temporal para el renderizado del PDF tamaño Carta (8.5 x 11 in / 215.9 x 279.4 mm)
+      const printContainer = document.createElement('div');
+      printContainer.id = 'pauta-pdf-print-area';
+      printContainer.style.cssText = `
+        position: fixed;
+        top: -99999px;
+        left: -99999px;
+        width: 794px; /* Ancho optimizado para Letter a 96DPI con márgenes */
+        background: #ffffff;
+        color: #111111;
+        font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
+        padding: 22px 26px;
+        box-sizing: border-box;
+        font-size: 13px;
+        line-height: 1.45;
+      `;
+
+      // Construir filas de la escaleta
+      const blocksHtml = currentPauta.blocks.map((b, i) => {
+        // Formatear viñetas limpias
+        const lines = (b.content || '').split('\n').filter(l => l.trim().length > 0);
+        const contentFormatted = lines.map(line => {
+          const cleanLine = line.replace(/^[•\-\*]\s*/, '').trim();
+          return `<div style="display:flex; gap:6px; margin-bottom:5px;">
+            <span style="color:#00883a; font-weight:bold; font-size:14px; line-height:1.2;">•</span>
+            <span style="color:#222222; font-size:12.5px; line-height:1.35;">${cleanLine}</span>
+          </div>`;
+        }).join('');
+
+        const techHtml = b.techNotes ? `
+          <div style="margin-top:8px; padding:6px 10px; background:#f4f6f8; border-left:3px solid #00bb55; font-family:'JetBrains Mono', monospace; font-size:11px; color:#1a3024;">
+            <strong style="color:#007a33; text-transform:uppercase; font-size:10px; letter-spacing:0.5px;">CUE / NOTA TÉCNICA:</strong> ${b.techNotes}
+          </div>
+        ` : '';
+
+        return `
+          <tr style="page-break-inside: avoid; border-bottom: 1.5px solid #e2e8f0;">
+            <td style="width: 140px; vertical-align: top; padding: 12px 10px; background: #fafafa; border-right: 1.5px solid #e2e8f0;">
+              <div style="font-family:'Oswald', sans-serif; font-size:11px; font-weight:700; color:#ffffff; background:#0f172a; display:inline-block; padding:2px 8px; border-radius:2px; letter-spacing:1px; margin-bottom:6px;">
+                BLOQUE #${(i + 1).toString().padStart(2, '0')}
+              </div>
+              <div style="font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:700; color:#0f172a;">
+                ${b.timeStart} → ${b.timeEnd}
+              </div>
+              <div style="font-family:'JetBrains Mono', monospace; font-size:11px; color:#64748b; margin-top:2px;">
+                Duración: ${b.duration} min
+              </div>
+            </td>
+            <td style="vertical-align: top; padding: 12px 16px;">
+              <div style="font-family:'Oswald', sans-serif; font-size:15px; font-weight:700; text-transform:uppercase; color:#0f172a; letter-spacing:0.5px; margin-bottom:8px;">
+                ${b.name}
+              </div>
+              <div>
+                ${contentFormatted || '<span style="color:#94a3b8; font-style:italic;">Sin contenido especificado</span>'}
+              </div>
+              ${techHtml}
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      printContainer.innerHTML = `
+        <!-- HEADER BRANDING -->
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #00cc55; padding-bottom:12px; margin-bottom:16px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:36px; height:36px; background:#050505; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#00ff66; font-family:'Oswald', sans-serif; font-weight:700; font-size:20px;">
+              AK
+            </div>
+            <div>
+              <h1 style="font-family:'Oswald', sans-serif; font-size:22px; font-weight:700; letter-spacing:1.5px; margin:0; text-transform:uppercase; color:#050505; line-height:1;">
+                AKMOV <span style="color:#009944;">MEDIA</span>
+              </h1>
+              <div style="font-family:'JetBrains Mono', monospace; font-size:10px; color:#64748b; letter-spacing:1.5px; font-weight:600; text-transform:uppercase; margin-top:3px;">
+                PAUTA DE TRANSMISIÓN & PRODUCCIÓN DE ESTUDIO
+              </div>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-family:'JetBrains Mono', monospace; font-size:9.5px; color:#475569; text-transform:uppercase; font-weight:600;">
+              EMISIÓN & ESTUDIO
+            </div>
+            <div style="font-family:'JetBrains Mono', monospace; font-size:11px; color:#0f172a; font-weight:700; margin-top:2px;">
+              ${dateStr.toUpperCase()}
+            </div>
+            <div style="font-family:'JetBrains Mono', monospace; font-size:9.5px; color:#00883a; font-weight:700;">
+              HORA: ${timeStr} // LIVE PROD
+            </div>
+          </div>
+        </div>
+
+        <!-- METADATA BOX -->
+        <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:4px; padding:12px 16px; margin-bottom:16px;">
+          <div style="display:grid; grid-template-columns: 2fr 1.5fr 1fr; gap:10px 18px;">
+            <div>
+              <div style="font-family:'JetBrains Mono', monospace; font-size:9px; color:#64748b; text-transform:uppercase; letter-spacing:1px; font-weight:700;">
+                PROGRAMA / SHOW
+              </div>
+              <div style="font-family:'Oswald', sans-serif; font-size:17px; font-weight:700; color:#0f172a; text-transform:uppercase; margin-top:1px;">
+                ${currentPauta.title || 'Sin Título'}
+              </div>
+            </div>
+            <div>
+              <div style="font-family:'JetBrains Mono', monospace; font-size:9px; color:#64748b; text-transform:uppercase; letter-spacing:1px; font-weight:700;">
+                CONDUCCIÓN / HOST
+              </div>
+              <div style="font-size:13.5px; font-weight:700; color:#0f172a; margin-top:2px;">
+                ${currentPauta.host || 'Por definir'}
+              </div>
+            </div>
+            <div>
+              <div style="font-family:'JetBrains Mono', monospace; font-size:9px; color:#64748b; text-transform:uppercase; letter-spacing:1px; font-weight:700;">
+                DURACIÓN TOTAL
+              </div>
+              <div style="font-family:'JetBrains Mono', monospace; font-size:14px; font-weight:700; color:#00883a; margin-top:1px;">
+                ${currentPauta.durationTotal || 45} MINUTOS
+              </div>
+            </div>
+            <div>
+              <div style="font-family:'JetBrains Mono', monospace; font-size:9px; color:#64748b; text-transform:uppercase; letter-spacing:1px; font-weight:700;">
+                ESTILO & TONO
+              </div>
+              <div style="font-size:12px; color:#334155; margin-top:2px;">
+                ${currentPauta.style || 'Dinámico / En vivo'}
+              </div>
+            </div>
+            <div>
+              <div style="font-family:'JetBrains Mono', monospace; font-size:9px; color:#64748b; text-transform:uppercase; letter-spacing:1px; font-weight:700;">
+                FORMATO
+              </div>
+              <div style="font-size:12px; color:#334155; margin-top:2px;">
+                ${currentPauta.format || 'Transmisión Online'}
+              </div>
+            </div>
+            <div>
+              <div style="font-family:'JetBrains Mono', monospace; font-size:9px; color:#64748b; text-transform:uppercase; letter-spacing:1px; font-weight:700;">
+                TOTAL BLOQUES
+              </div>
+              <div style="font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:700; color:#0f172a; margin-top:1px;">
+                ${currentPauta.blocks.length} BLOQUES
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ESCALETA TABLE -->
+        <div style="margin-bottom:16px;">
+          <table style="width:100%; border-collapse:collapse; background:#ffffff; border:1.5px solid #cbd5e1;">
+            <thead>
+              <tr style="background:#0f172a; color:#ffffff;">
+                <th style="font-family:'Oswald', sans-serif; font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:8px 10px; text-align:left; width:140px; border-right:1px solid #334155;">
+                  TIEMPO / BLOQUE
+                </th>
+                <th style="font-family:'Oswald', sans-serif; font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:8px 16px; text-align:left;">
+                  ESCALETA DE CONTENIDO & NOTAS TÉCNICAS
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              ${blocksHtml}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- FOOTER -->
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1.5px solid #e2e8f0; padding-top:10px; font-family:'JetBrains Mono', monospace; font-size:9.5px; color:#64748b;">
+          <div>
+            <strong>AKMOV MEDIA</strong> — Centro de Producción Audiovisual & Streaming (akmovmedia.com)
+          </div>
+          <div>
+            DOCUMENTO TAMAÑO CARTA (8.5 × 11 in)
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(printContainer);
+
+      const cleanTitle = (currentPauta.title || 'Pauta_Transmision').replace(/[^a-zA-Z0-9_-]/g, '_');
+      const filename = `Pauta_${cleanTitle}_${now.toISOString().slice(0, 10)}.pdf`;
+
+      if (typeof html2pdf !== 'undefined') {
+        const opt = {
+          margin: [6, 6, 6, 6],
+          filename: filename,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#ffffff'
+          },
+          jsPDF: {
+            unit: 'mm',
+            format: 'letter',
+            orientation: 'portrait'
+          },
+          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        };
+
+        html2pdf().set(opt).from(printContainer).save().then(() => {
+          printContainer.remove();
+          showToast("¡PDF de la Pauta descargado exitosamente!");
+        }).catch(err => {
+          console.error("Error generating PDF with html2pdf:", err);
+          printContainer.remove();
+          window.print();
+        });
+      } else {
+        printContainer.remove();
+        window.print();
       }
     }
   </script>
