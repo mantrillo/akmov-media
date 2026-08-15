@@ -154,6 +154,7 @@ a {
 .nav-links {
   display: flex;
   gap: 30px;
+  align-items: center;
 }
 
 .nav-item {
@@ -174,6 +175,42 @@ a {
   border-color: var(--color-white);
 }
 
+/* HAMBURGER TOGGLE BUTTON */
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 30px;
+  height: 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 1001;
+}
+
+.nav-toggle .bar {
+  width: 100%;
+  height: 2.5px;
+  background-color: var(--color-white);
+  border-radius: 2px;
+  transition: all 0.3s ease-in-out;
+}
+
+.nav-toggle.active .bar:nth-child(1) {
+  transform: translateY(8.5px) rotate(45deg);
+  background-color: var(--color-neon);
+}
+
+.nav-toggle.active .bar:nth-child(2) {
+  opacity: 0;
+}
+
+.nav-toggle.active .bar:nth-child(3) {
+  transform: translateY(-8.5px) rotate(-45deg);
+  background-color: var(--color-neon);
+}
+
 /* MAIN CONTENT CONTAINER */
 .main-content {
   max-width: 1200px;
@@ -182,6 +219,109 @@ a {
   display: flex;
   flex-direction: column;
   gap: 50px;
+}
+
+/* ── NAVBAR RESPONSIVE MEDIA QUERIES ── */
+@media (max-width: 768px) {
+  .navbar {
+    height: 60px;
+  }
+
+  .navbar-container {
+    padding: 0 16px;
+  }
+
+  .logo-akmov {
+    font-size: 1.8rem;
+  }
+
+  .logo-media {
+    font-size: 0.9rem;
+    letter-spacing: 3px;
+  }
+
+  .logo-star {
+    width: 12px;
+    height: 12px;
+    bottom: 2px;
+  }
+
+  .nav-toggle {
+    display: flex;
+  }
+
+  .nav-links {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    width: 100%;
+    background: rgba(5, 5, 5, 0.97);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 2px solid var(--color-neon);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 10px 16px 20px;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), 0 0 15px rgba(0, 255, 0, 0.15);
+  }
+
+  .nav-links.active {
+    max-height: 420px;
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .nav-item {
+    font-size: 0.92rem;
+    letter-spacing: 2px;
+    padding: 14px 8px;
+    border-bottom: 1px solid var(--color-gray-border);
+    color: var(--color-white);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  .nav-item:last-child {
+    border-bottom: none;
+  }
+
+  .nav-item:hover, .nav-item.active {
+    color: var(--color-neon);
+    border-color: var(--color-gray-border);
+    text-shadow: 0 0 8px rgba(0, 255, 0, 0.4);
+    padding-left: 14px;
+    transition: padding-left 0.2s ease, color 0.2s ease;
+  }
+
+  .nav-btn-app {
+    margin-top: 10px;
+    background: var(--color-neon);
+    color: var(--color-black) !important;
+    text-align: center;
+    justify-content: center;
+    font-weight: 900;
+    border-radius: 4px;
+    border: none;
+    padding: 12px !important;
+  }
+
+  .nav-btn-app:hover {
+    background: #fff;
+    color: #000 !important;
+  }
+
+  .main-content {
+    margin-top: 60px;
+    padding: 16px 12px 30px;
+    gap: 28px;
+  }
 }
 
 /* HERO SECTION - 16:9 VIDEO CONTAINER */

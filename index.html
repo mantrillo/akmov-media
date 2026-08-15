@@ -106,25 +106,33 @@
 
     <!-- FIXED NAVBAR -->
     <header class="navbar">
-    <div class="navbar-container">
-      <a href="#" class="brand-logo-link" style="text-decoration: none;" aria-label="AKMOV MEDIA Inicio">
-        <div class="logo-wrapper">
-          <span class="logo-akmov">AKMOV</span>
-          <span class="logo-media">MEDIA</span>
-          <svg class="logo-star" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9Z" />
-          </svg>
-        </div>
-      </a>
-      <nav class="nav-links">
-        <a href="#inicio" class="nav-item active">INICIO</a>
-        <a href="#programacion" class="nav-item">PROGRAMACIÓN</a>
-        <a href="#on-demand" class="nav-item">ON DEMAND</a>
-        <a href="postula.html" class="nav-item">INSCRÍBETE</a>
-        <a href="akmov-app.apk" class="nav-item" download>DESCARGAR APP</a>
-      </nav>
-    </div>
-  </header>
+      <div class="navbar-container">
+        <a href="#" class="brand-logo-link" style="text-decoration: none;" aria-label="AKMOV MEDIA Inicio">
+          <div class="logo-wrapper">
+            <span class="logo-akmov">AKMOV</span>
+            <span class="logo-media">MEDIA</span>
+            <svg class="logo-star" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9Z" />
+            </svg>
+          </div>
+        </a>
+
+        <!-- BOTÓN HAMBURGUESA MÓVIL -->
+        <button class="nav-toggle" id="navToggle" aria-label="Abrir menú de navegación">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </button>
+
+        <nav class="nav-links" id="navLinks">
+          <a href="#inicio" class="nav-item active">INICIO</a>
+          <a href="#programacion" class="nav-item">PROGRAMACIÓN</a>
+          <a href="#on-demand" class="nav-item">ON DEMAND</a>
+          <a href="postula.html" class="nav-item">INSCRÍBETE</a>
+          <a href="akmov-app.apk" class="nav-item nav-btn-app" download>DESCARGAR APP</a>
+        </nav>
+      </div>
+    </header>
 
   <!-- MAIN CONTAINER -->
   <main class="main-content">

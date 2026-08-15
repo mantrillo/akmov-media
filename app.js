@@ -46,8 +46,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 600);
   }
 
-  // Initial Portal Access
   initPortalAccess();
+
+  // ==========================================
+  // MOBILE NAVIGATION TOGGLE (HAMBURGER)
+  // ==========================================
+  const navToggle = document.getElementById('navToggle');
+  const navLinks = document.getElementById('navLinks');
+
+  if (navToggle && navLinks) {
+    navToggle.addEventListener('click', () => {
+      navToggle.classList.toggle('active');
+      navLinks.classList.toggle('active');
+    });
+
+    // Close menu when clicking on any navigation link
+    const navItems = navLinks.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+      item.addEventListener('click', () => {
+        navToggle.classList.remove('active');
+        navLinks.classList.remove('active');
+      });
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!navToggle.contains(e.target) && !navLinks.contains(e.target) && navLinks.classList.contains('active')) {
+        navToggle.classList.remove('active');
+        navLinks.classList.remove('active');
+      }
+    });
+  }
 
   // ==========================================
   // 1. LIVE VIDEO PLAYER CONTROL SIMULATION
