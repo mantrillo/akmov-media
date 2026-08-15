@@ -283,6 +283,23 @@ body {
   animation: floatLogo 4s ease-in-out infinite alternate;
 }
 
+.streamer-logo-img-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+  position: relative;
+  animation: floatLogo 4s ease-in-out infinite alternate;
+}
+
+.streamer-logo-img {
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 0 25px rgba(var(--neon-primary-rgb), 0.75)) drop-shadow(0 4px 15px rgba(0, 0, 0, 0.8));
+}
+
 /* ==========================================================================
    ESCENA 6: INVITADO (DUAL EQUAL CAMERAS: HOST + GUEST)
    ========================================================================== */

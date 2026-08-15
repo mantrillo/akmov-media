@@ -14,6 +14,12 @@ const DEFAULT_CONFIG = {
   statusEnding: "¡NOS VEMOS PRONTO!",
   tickerText: "YA COMENZAMOS",
   
+  // Program Logo Configuration
+  logoType: "text", // "text" | "image"
+  logoImageBase64: "",
+  logoImageUrl: "",
+  logoImageWidth: 320,
+
   // Scene Specific Names
   hostName: "AKMOVMEDIA",
   guestName: "INVITADO",
@@ -181,6 +187,11 @@ class OverlayEngine {
         urlConfig.chat.enabled = (ch === '1' || ch === 'true');
       }
 
+      // Logo URL parameters
+      if (params.has('logotype')) urlConfig.logoType = params.get('logotype');
+      if (params.has('logourl')) urlConfig.logoImageUrl = params.get('logourl');
+      if (params.has('logowidth')) urlConfig.logoImageWidth = parseInt(params.get('logowidth'), 10);
+
       return Object.keys(urlConfig).length > 0 ? urlConfig : null;
     } catch (err) {
       console.warn("Could not parse URL configuration:", err);
@@ -203,20 +214,23 @@ class OverlayEngine {
     if (cfg.theme && cfg.theme.neonPrimary) base.searchParams.set('color', cfg.theme.neonPrimary.replace('#', ''));
     if (cfg.background && cfg.background.mode) base.searchParams.set('bg', cfg.background.mode);
 
+    if (cfg.logoType) base.searchParams.set('logotype', cfg.logoType);
+    if (cfg.logoImageUrl) base.searchParams.set('logourl', cfg.logoImageUrl);
+    if (cfg.logoImageWidth) base.searchParams.set('logowidth', cfg.logoImageWidth);
+
     if (cfg.chat) {
       base.searchParams.set('chat', cfg.chat.enabled !== false ? '1' : '0');
       base.searchParams.set('chatsim', cfg.chat.simulation === true ? '1' : '0');
     }
 
-    // Encode full config (without massive base64 image if too large) into #cfg=
+    // Encode full config (including optimized logo image) into #cfg= for standalone OBS loading
     try {
       const cleanCfg = JSON.parse(JSON.stringify(cfg));
-      if (cleanCfg.logoImageBase64 && cleanCfg.logoImageBase64.length > 2000) {
-        delete cleanCfg.logoImageBase64;
-      }
       const b64 = btoa(encodeURIComponent(JSON.stringify(cleanCfg)));
       base.hash = `cfg=${b64}`;
-    } catch (e) {}
+    } catch (e) {
+      console.warn("Could not encode config hash:", e);
+    }
 
     return base.href;
   }
@@ -708,10 +722,14 @@ class OverlayEngine {
   renderHeroLogo(containerEl) {
     if (!containerEl) return;
     const config = this.config;
-    if (config.logoType === 'image' && config.logoImageBase64) {
+    const logoSrc = config.logoImageBase64 || config.logoImageUrl;
+
+    if (config.logoType === 'image' && logoSrc) {
       const width = config.logoImageWidth || 320;
-      containerEl.innerHTML = `<img src="${config.logoImageBase64}" alt="Logo" class="streamer-logo-img" style="max-width: ${width}px; height: auto; filter: drop-shadow(0 0 20px rgba(var(--neon-primary-rgb), 0.7)); display: block; margin: 0 auto;">`;
+      containerEl.className = 'streamer-logo-img-wrapper';
+      containerEl.innerHTML = `<img src="${logoSrc}" alt="Logo" class="streamer-logo-img" style="max-width: ${width}px; max-height: 240px; width: 100%; height: auto; object-fit: contain; filter: drop-shadow(0 0 25px rgba(var(--neon-primary-rgb), 0.75)) drop-shadow(0 4px 15px rgba(0, 0, 0, 0.8)); display: block; margin: 0 auto;">`;
     } else {
+      containerEl.className = 'streamer-logo-text';
       const name = config.streamerName !== undefined ? config.streamerName : "AKMOVMEDIA";
       if (!name || name.trim() === '') {
         containerEl.innerHTML = '';
