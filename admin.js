@@ -147,9 +147,48 @@ function showGate() {
   loginGate.classList.remove('hidden');
 }
 
-// Check if already logged in
+// Check if already logged in or arriving via Supabase confirmation link (#access_token=...)
 if (sessionStorage.getItem('akmov_admin') === 'true') {
   showPanel();
+}
+
+if (supabaseClient) {
+  // Check active Supabase session or parse URL hash token
+  supabaseClient.auth.getSession().then(({ data: { session } }) => {
+    if (session && session.user) {
+      const userEmail = session.user.email;
+      const meta = session.user.user_metadata || {};
+      const regUsers = getRegisteredUsers();
+      const cached = regUsers.find(u => u.email.toLowerCase() === userEmail.toLowerCase());
+      const userRole = meta.role || (cached ? cached.role : (userEmail.toLowerCase() === CONFIG.ADMIN_EMAIL.toLowerCase() ? 'superadmin' : 'locutor'));
+      const userTabs = meta.allowed_tabs || (cached ? cached.allowed_tabs : (userRole === 'superadmin' ? ['stream-control', 'overlays', 'pauta', 'vod-config', 'users'] : ['pauta']));
+
+      sessionStorage.setItem('akmov_admin', 'true');
+      sessionStorage.setItem('akmov_user_email', userEmail);
+      sessionStorage.setItem('akmov_user_role', userRole);
+      sessionStorage.setItem('akmov_user_tabs', JSON.stringify(userTabs));
+      sessionStorage.setItem('akmov_panel_session', '1');
+      showPanel();
+    }
+  }).catch(err => console.warn('Supabase getSession error:', err));
+
+  supabaseClient.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN' && session && session.user) {
+      const userEmail = session.user.email;
+      const meta = session.user.user_metadata || {};
+      const regUsers = getRegisteredUsers();
+      const cached = regUsers.find(u => u.email.toLowerCase() === userEmail.toLowerCase());
+      const userRole = meta.role || (cached ? cached.role : (userEmail.toLowerCase() === CONFIG.ADMIN_EMAIL.toLowerCase() ? 'superadmin' : 'locutor'));
+      const userTabs = meta.allowed_tabs || (cached ? cached.allowed_tabs : (userRole === 'superadmin' ? ['stream-control', 'overlays', 'pauta', 'vod-config', 'users'] : ['pauta']));
+
+      sessionStorage.setItem('akmov_admin', 'true');
+      sessionStorage.setItem('akmov_user_email', userEmail);
+      sessionStorage.setItem('akmov_user_role', userRole);
+      sessionStorage.setItem('akmov_user_tabs', JSON.stringify(userTabs));
+      sessionStorage.setItem('akmov_panel_session', '1');
+      showPanel();
+    }
+  });
 }
 
 loginForm.addEventListener('submit', async (e) => {
@@ -839,10 +878,15 @@ document.getElementById('newUserForm')?.addEventListener('submit', async (e) => 
   try {
     // 1. Intentar registrar en Supabase Auth
     if (supabaseClient) {
+      const redirectUrl = window.location.origin.includes('localhost')
+        ? 'https://akmovmedia.com/_ctrl_ak9x2.html'
+        : `${window.location.origin}${window.location.pathname}`;
+
       const { data, error } = await supabaseClient.auth.signUp({
         email: email,
         password: pass,
         options: {
+          emailRedirectTo: redirectUrl,
           data: {
             role: role,
             allowed_tabs: allowed_tabs
