@@ -299,12 +299,23 @@
       font-size: 0.75rem;
       color: var(--color-neon);
       text-transform: uppercase;
+      transition: opacity 0.3s ease;
+    }
+
+    .weather-location.fade-out {
+      opacity: 0;
     }
 
     .weather-days {
       display: flex;
       flex-direction: column;
       gap: 8px;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .weather-days.fade-out {
+      opacity: 0;
+      transform: translateY(-5px);
     }
 
     .weather-day-row {
@@ -510,7 +521,17 @@
     // Ejecución inicial rápida
     checkNowPlaying();
 
-    // --- CÓDIGO DEL CLIMA (3 DÍAS CON OPEN-METEO & GEOIP) ---
+    // --- CÓDIGO DEL CLIMA (VALLE DEL HUASCO SLIDE - 3 DÍAS CON OPEN-METEO) ---
+    const huascoLocations = [
+      { name: 'Vallenar', lat: -28.5750, lon: -70.7583 },
+      { name: 'Huasco', lat: -28.4683, lon: -71.2197 },
+      { name: 'Freirina', lat: -28.5083, lon: -71.0778 },
+      { name: 'Alto del Carmen', lat: -28.7583, lon: -70.4861 }
+    ];
+
+    let weatherCache = {};
+    let currentLocationIndex = 0;
+
     function getWeatherDescription(code) {
       if (code === 0) return { label: 'Despejado', icon: '☀️' };
       if ([1, 2, 3].includes(code)) return { label: 'P. Nublado', icon: '⛅' };
@@ -521,33 +542,38 @@
       return { label: 'Despejado', icon: '☀️' };
     }
 
-    async function updateWeather() {
-      let lat = -33.4489;
-      let lon = -70.6693;
-      let city = 'Santiago';
-
-      try {
-        const geoRes = await fetch('https://ipapi.co/json/');
-        if (geoRes.ok) {
-          const geoData = await geoRes.json();
-          if (geoData.latitude && geoData.longitude) {
-            lat = geoData.latitude;
-            lon = geoData.longitude;
-            city = geoData.city || 'Santiago';
+    async function fetchAllLocationsWeather() {
+      for (const loc of huascoLocations) {
+        try {
+          const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,weathercode&timezone=auto`);
+          if (res.ok) {
+            const data = await res.json();
+            weatherCache[loc.name] = data.daily;
           }
+        } catch (err) {
+          console.warn(`Error al obtener el clima de ${loc.name}:`, err);
         }
-      } catch (err) {
-        console.warn('GeoIP failed, using default location:', err);
+      }
+    }
+
+    function renderCurrentLocationWeather() {
+      const loc = huascoLocations[currentLocationIndex];
+      const daily = weatherCache[loc.name];
+      const daysContainer = document.getElementById('weatherDays');
+      const locationElem = document.getElementById('weatherLocation');
+
+      if (!daily) {
+        locationElem.textContent = loc.name;
+        daysContainer.innerHTML = '<div style="font-size:0.8rem;color:#aaa;padding:10px 0;">Cargando...</div>';
+        return;
       }
 
-      try {
-        document.getElementById('weatherLocation').textContent = city;
-        const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,weathercode&timezone=auto`);
-        if (!weatherRes.ok) throw new Error('Weather API offline');
-        
-        const weatherData = await weatherRes.json();
-        const daily = weatherData.daily;
-        const daysContainer = document.getElementById('weatherDays');
+      // Transición suave de salida
+      daysContainer.classList.add('fade-out');
+      locationElem.classList.add('fade-out');
+
+      setTimeout(() => {
+        locationElem.textContent = loc.name;
         daysContainer.innerHTML = '';
 
         const weekdayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -581,14 +607,28 @@
           `;
           daysContainer.appendChild(dayRow);
         }
-      } catch (err) {
-        console.error('Error fetching weather data:', err);
-        document.getElementById('weatherLocation').textContent = 'Error API';
-      }
+
+        // Transición de entrada
+        daysContainer.classList.remove('fade-out');
+        locationElem.classList.remove('fade-out');
+      }, 300);
     }
 
-    updateWeather();
-    setInterval(updateWeather, 30 * 60 * 1000);
+    async function initWeatherSlide() {
+      await fetchAllLocationsWeather();
+      renderCurrentLocationWeather();
+
+      // Cambiar de comuna cada 8 segundos
+      setInterval(() => {
+        currentLocationIndex = (currentLocationIndex + 1) % huascoLocations.length;
+        renderCurrentLocationWeather();
+      }, 8000);
+
+      // Actualizar datos de Open-Meteo cada 30 minutos
+      setInterval(fetchAllLocationsWeather, 30 * 60 * 1000);
+    }
+
+    initWeatherSlide();
   </script>
 </body>
 </html>

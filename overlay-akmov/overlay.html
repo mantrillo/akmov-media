@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Overlay Universal - AKMOV Media</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: transparent;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+      background: transparent;
+    }
+  </style>
+</head>
+<body>
+  <iframe id="scene-frame" src="scene-ya-comenzamos.html"></iframe>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const scene = params.get('scene') || 'ya-comenzamos';
+    const sceneMap = {
+      'ya-comenzamos': 'scene-ya-comenzamos.html',
+      'nos-vemos-pronto': 'scene-nos-vemos-pronto.html',
+      'escritorio': 'scene-escritorio.html',
+      'reaccion': 'scene-reaccion.html',
+      'reaccion-dual': 'scene-reaccion-dual.html',
+      'camara-chat': 'scene-camara-chat.html',
+      'invitado': 'scene-invitado.html',
+      'cam1': 'scene-cam1.html',
+      'cam2': 'scene-cam2.html',
+      'cam3': 'scene-cam3.html',
+      'cam4': 'scene-cam4.html'
+    };
+
+    const targetUrl = sceneMap[scene] || 'scene-ya-comenzamos.html';
+    document.getElementById('scene-frame').src = targetUrl + window.location.search + window.location.hash;
+  </script>
+</body>
+</html>

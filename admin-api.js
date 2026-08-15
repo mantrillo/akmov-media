@@ -80,93 +80,6 @@ app.post('/owncast/send-chat', async (req, res) => {
   return res.json({ success: true });
 });
 
-// ─── LISTENERS AUTOMÁTICOS MULTICAT (Twitch, Kick, Facebook) ───────
-const WebSocket = require('ws');
-
-// 1. TWITCH CHAT LISTENER (IRC WebSocket)
-function initTwitchListener(channelName = 'akmovmedia') {
-  try {
-    const ws = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
-    ws.on('open', () => {
-      ws.send('CAP REQ :twitch.tv/tags twitch.tv/commands');
-      ws.send(`NICK justinfan${Math.floor(100000 + Math.random() * 900000)}`);
-      ws.send(`JOIN #${channelName.toLowerCase()}`);
-      console.log(`[Twitch Chat] Conectado al canal #${channelName}`);
-    });
-
-    ws.on('message', (data) => {
-      const msgStr = data.toString();
-      if (msgStr.startsWith('PING')) {
-        ws.send('PONG :tmi.twitch.tv');
-        return;
-      }
-      if (msgStr.includes('PRIVMSG')) {
-        const match = msgStr.match(/:([^!]+)!.*PRIVMSG #[^ ]+ :(.*)/);
-        if (match) {
-          const user = match[1];
-          const text = match[2].trim();
-          sendToOwncastChat('Twitch', user, text);
-        }
-      }
-    });
-
-    ws.on('error', (err) => console.error('[Twitch Chat Error]', err.message));
-    ws.on('close', () => {
-      console.log('[Twitch Chat] Desconectado. Reintentando en 10s...');
-      setTimeout(() => initTwitchListener(channelName), 10000);
-    });
-  } catch (e) {
-    console.error('[Twitch Chat Init Exception]', e.message);
-  }
-}
-
-// 2. KICK CHAT LISTENER (Pusher WebSocket)
-async function initKickListener(channelSlug = 'akmovmedia') {
-  try {
-    const res = await fetch(`https://kick.com/api/v2/channels/${channelSlug}`);
-    if (!res.ok) return;
-    const data = await res.json();
-    const chatroomId = data.chatroom?.id;
-    if (!chatroomId) return;
-
-    const ws = new WebSocket('wss://ws-us2.pusher.com/app/eb1d5f283082f78b7754?protocol=7&client=js&version=7.6.0&flash=false');
-    ws.on('open', () => {
-      ws.send(JSON.stringify({
-        event: 'pusher:subscribe',
-        data: { auth: '', channel: `chatrooms.${chatroomId}.v2` }
-      }));
-      console.log(`[Kick Chat] Conectado al chatroom ID ${chatroomId}`);
-    });
-
-    ws.on('message', (raw) => {
-      try {
-        const parsed = JSON.parse(raw.toString());
-        if (parsed.event === 'App\\Events\\ChatMessageEvent') {
-          const chatData = JSON.parse(parsed.data);
-          const sender = chatData.sender?.username || 'Usuario Kick';
-          const text = chatData.content;
-          sendToOwncastChat('Kick', sender, text);
-        }
-      } catch (e) {}
-    });
-
-    ws.on('error', (err) => console.error('[Kick Chat Error]', err.message));
-    ws.on('close', () => {
-      console.log('[Kick Chat] Desconectado. Reintentando en 10s...');
-      setTimeout(() => initKickListener(channelSlug), 10000);
-    });
-  } catch (e) {
-    console.error('[Kick Chat Exception]', e.message);
-  }
-}
-
-// Iniciar listeners de fondo al arrancar el servidor
-setTimeout(() => {
-  initTwitchListener('akmovmedia');
-  initKickListener('akmovmedia');
-}, 3000);
-
-
 // ─── STATIC FILE SERVING: Overlays & Control Panel via HTTPS ───────────────────
 app.use(express.static(path.join(__dirname)));
 
@@ -245,6 +158,13 @@ app.get('/now-playing', (req, res) => {
 // Endpoint to update current playing song info from the local automation script
 app.post('/now-playing', (req, res) => {
   const { artist, title, cover } = req.body;
+
+  // Ignorar actualizaciones si el título o artista corresponden a un archivo de video fallback (ej: video_3)
+  const isVideoFallback = /video[_\s]?\d+/i.test(title || '') || /video[_\s]?\d+/i.test(artist || '');
+  if (isVideoFallback) {
+    return res.json({ success: true, ignored: true, currentTrack });
+  }
+
   currentTrack = {
     artist: artist || '',
     title: title || 'Transmisión Online',

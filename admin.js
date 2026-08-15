@@ -88,8 +88,6 @@ const confirmSlot     = document.getElementById('confirmSlot');
 const toastWrap       = document.getElementById('toastWrap');
 const logoutBtn       = document.getElementById('logoutBtn');
 
-
-
 // ─── LOGIN ────────────────────────────────────────────────────
 function showPanel() {
   loginGate.classList.add('hidden');
@@ -301,7 +299,6 @@ btnOpenChat.addEventListener('click', () => {
 });
 
 // ─── POLLING ─────────────────────────────────────────────────
-
 function startPolling() {
   fetchOwncastStatus();
   pollTimer = setInterval(fetchOwncastStatus, CONFIG.POLL_INTERVAL);
@@ -312,7 +309,6 @@ function stopPolling() {
 }
 
 // ─── STREAM KEY REVEAL ────────────────────────────────────────
-
 revealKeyBtn.addEventListener('click', () => {
   keyRevealed = !keyRevealed;
   streamKeyVal.textContent = keyRevealed ? CONFIG.STREAM_KEY : '••••••••';
@@ -341,8 +337,6 @@ document.addEventListener('click', (e) => {
 });
 
 // ─── SCHEDULE EDITOR ─────────────────────────────────────────
-// DEFAULT_SCHEDULE movido al inicio del archivo
-
 async function loadSchedule() {
   try {
     const data = await apiCall('/schedule');

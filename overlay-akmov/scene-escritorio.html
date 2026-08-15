@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Escena 3: Escritorio - Overlay Streaming</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body, html {
+      background-color: transparent !important;
+      background: transparent !important;
+    }
+  </style>
+</head>
+<body class="scene-escritorio">
+  <div class="scene-container">
+    <!-- Marco de Webcam Superior Izquierda con bisel y badge LED -->
+    <div class="webcam-top-left" id="webcam-box">
+      <div class="cam-frame-box"></div>
+      <div class="cam-badge-tag">
+        <span class="live-indicator-dot"></span>
+        <span id="cam-streamer-name">AKMOVMEDIA</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    window.overlayApp.setupBackground('scene-escritorio.html');
+    const nameEl = document.getElementById('cam-streamer-name');
+    window.overlayApp.subscribe((config) => {
+      const name = config.streamerName !== undefined ? config.streamerName : 'AKMOVMEDIA';
+      nameEl.innerText = name;
+      const badge = document.querySelector('.cam-badge-tag');
+      if (badge) {
+        badge.style.display = name.trim() ? 'flex' : 'none';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Escena 6: Invitado - Overlay Streaming</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body, html {
+      background-color: transparent !important;
+      background: transparent !important;
+    }
+  </style>
+</head>
+<body>
+  <!-- Ambient background subtle elements -->
+  <div class="scene-solid-bg" style="opacity: 0.94;"></div>
+  <div class="tech-ambient-lines" style="opacity: 0.3;"></div>
+  <canvas id="bg-canvas" class="overlay-canvas-bg"></canvas>
+
+  <div class="scene-container">
+    <!-- Top Pattern Watermark Ticker -->
+    <div class="top-brand-pattern">
+      <div id="invitado-brand-title" class="brand-pattern-title">AKMOVMEDIA • EN DIRECTO</div>
+      <div id="invitado-brand-ticker" style="color: rgba(255,255,255,0.7); font-size: 14px; letter-spacing: 2px; font-weight: 700;">
+        SPECIAL GUEST
+      </div>
+    </div>
+
+    <!-- Dual Equal Frames: Host Cam a la izquierda + Guest Cam a la derecha -->
+    <div class="scene-invitado-layout">
+      <!-- Host Camera Box -->
+      <div class="invitado-cam-box">
+        <div class="invitado-cam-frame"></div>
+        <div class="invitado-name-tag">
+          <span class="live-indicator-dot"></span>
+          <span id="invitado-host-name">AKMOVMEDIA</span>
+        </div>
+      </div>
+
+      <!-- Guest Camera Box -->
+      <div class="invitado-cam-box">
+        <div class="invitado-cam-frame"></div>
+        <div class="invitado-name-tag">
+          <span class="live-indicator-dot"></span>
+          <span id="invitado-guest-name">INVITADO</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra de Redes Sociales Biselada Inferior -->
+    <div class="social-bar-container" id="social-bar" style="bottom: 25px;"></div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    window.overlayApp.setupBackground('scene-invitado.html');
+    const brandTitleEl = document.getElementById('invitado-brand-title');
+    const hostNameEl = document.getElementById('invitado-host-name');
+    const guestNameEl = document.getElementById('invitado-guest-name');
+    const socialBarEl = document.getElementById('social-bar');
+
+    window.overlayApp.subscribe((config) => {
+      const host = config.hostName !== undefined ? config.hostName : (config.streamerName !== undefined ? config.streamerName : 'AKMOVMEDIA');
+      const guest = config.guestName !== undefined ? config.guestName : 'INVITADO';
+      brandTitleEl.innerText = host.trim() ? `${host} • EN DIRECTO` : 'EN DIRECTO';
+      hostNameEl.innerText = host;
+      guestNameEl.innerText = guest;
+      window.overlayApp.renderSocialBar(socialBarEl);
+    });
+  </script>
+</body>
+</html>
