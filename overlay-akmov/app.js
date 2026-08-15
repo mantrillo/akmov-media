@@ -27,7 +27,7 @@ const DEFAULT_CONFIG = {
   // Chat & Stream Integration
   chat: {
     enabled: true,
-    simulation: true,
+    simulation: false, // Por defecto inactivo para evitar spam automático en OBS a menos que se active
     apiBase: "https://api.akmovmedia.com",
     webhookUrl: "https://api.akmovmedia.com/owncast-webhook",
     streamUrl: "https://stream.akmovmedia.com",
@@ -170,6 +170,17 @@ class OverlayEngine {
         if (params.has('cam4')) urlConfig.camTitles.cam4 = params.get('cam4');
       }
 
+      if (params.has('chatsim')) {
+        if (!urlConfig.chat) urlConfig.chat = {};
+        const cs = params.get('chatsim');
+        urlConfig.chat.simulation = (cs === '1' || cs === 'true');
+      }
+      if (params.has('chat')) {
+        if (!urlConfig.chat) urlConfig.chat = {};
+        const ch = params.get('chat');
+        urlConfig.chat.enabled = (ch === '1' || ch === 'true');
+      }
+
       return Object.keys(urlConfig).length > 0 ? urlConfig : null;
     } catch (err) {
       console.warn("Could not parse URL configuration:", err);
@@ -191,6 +202,11 @@ class OverlayEngine {
     if (cfg.statusEnding) base.searchParams.set('ending', cfg.statusEnding);
     if (cfg.theme && cfg.theme.neonPrimary) base.searchParams.set('color', cfg.theme.neonPrimary.replace('#', ''));
     if (cfg.background && cfg.background.mode) base.searchParams.set('bg', cfg.background.mode);
+
+    if (cfg.chat) {
+      base.searchParams.set('chat', cfg.chat.enabled !== false ? '1' : '0');
+      base.searchParams.set('chatsim', cfg.chat.simulation === true ? '1' : '0');
+    }
 
     // Encode full config (without massive base64 image if too large) into #cfg=
     try {
@@ -250,6 +266,9 @@ class OverlayEngine {
             this.config.timer = event.data.timer;
             this.notifyListeners();
           } else if (event.data && event.data.type === 'CHAT_MESSAGE') {
+            if (event.data.isSimulated && (!this.config || !this.config.chat || !this.config.chat.enabled || this.config.chat.simulation !== true)) {
+              return;
+            }
             this.notifyChatListeners(event.data.user, event.data.text);
           }
         };
@@ -264,6 +283,7 @@ class OverlayEngine {
         this.config = this.deepMerge(this.config, event.data.config);
         this.applyThemeToCSS();
         this.notifyListeners();
+        this.initChatSimulator();
       }
     });
 
@@ -274,6 +294,7 @@ class OverlayEngine {
           this.config = JSON.parse(e.newValue);
           this.applyThemeToCSS();
           this.notifyListeners();
+          this.initChatSimulator();
         } catch (err) {}
       }
     });
@@ -329,20 +350,29 @@ class OverlayEngine {
     this.chatListeners.forEach(fn => fn(user, text));
   }
 
-  sendChatMessage(user, text) {
+  sendChatMessage(user, text, isSimulated = false) {
     if (!user || !text) return;
+    if (isSimulated && (!this.config || !this.config.chat || !this.config.chat.enabled || this.config.chat.simulation !== true)) {
+      return;
+    }
     this.notifyChatListeners(user, text);
     if (this.broadcastChannel) {
       this.broadcastChannel.postMessage({
         type: 'CHAT_MESSAGE',
         user: user,
-        text: text
+        text: text,
+        isSimulated: isSimulated
       });
     }
   }
 
   // Simulated live chat pool
   initChatSimulator() {
+    if (this.chatSimInterval) {
+      clearInterval(this.chatSimInterval);
+      this.chatSimInterval = null;
+    }
+
     const sampleUsers = ['Matias_H', 'Vallenar_Gamer', 'Koke_Radio', 'AtacamaStreamer', 'Fran_V', 'HuascoMax', 'GamerRetro', 'CyberBrutal', 'Lucas_CL', 'Valen_Tech'];
     const sampleMsgs = [
       '¡Excelente transmisión cabros! 🔥',
@@ -355,11 +385,11 @@ class OverlayEngine {
       '¡Muy buena vibra gente!'
     ];
 
-    setInterval(() => {
-      if (this.config.chat && this.config.chat.enabled && this.config.chat.simulation) {
+    this.chatSimInterval = setInterval(() => {
+      if (this.config && this.config.chat && this.config.chat.enabled && this.config.chat.simulation === true) {
         const u = sampleUsers[Math.floor(Math.random() * sampleUsers.length)];
         const m = sampleMsgs[Math.floor(Math.random() * sampleMsgs.length)];
-        this.sendChatMessage(u, m);
+        this.sendChatMessage(u, m, true);
       }
     }, 4500);
   }

@@ -1065,7 +1065,7 @@
 
           <div class="social-row">
             <label class="toggle-switch">
-              <input type="checkbox" id="cfg-chat-simulation" checked>
+              <input type="checkbox" id="cfg-chat-simulation">
               <span class="slider"></span>
             </label>
             <span style="font-weight: 700; font-size: 12px;">Simulador Automático de Mensajes</span>
@@ -1506,7 +1506,7 @@
 
       if (cfg.chat) {
         if (document.activeElement !== chatEnabledInput) chatEnabledInput.checked = cfg.chat.enabled !== false;
-        if (document.activeElement !== chatSimInput) chatSimInput.checked = cfg.chat.simulation !== false;
+        if (document.activeElement !== chatSimInput) chatSimInput.checked = cfg.chat.simulation === true;
         if (document.activeElement !== chatEndingInput) chatEndingInput.checked = cfg.chat.showInEndingScene !== false;
         setVal(chatWebhookInput, cfg.chat.webhookUrl, 'https://api.akmovmedia.com/owncast-webhook');
         setVal(chatApiBaseInput, cfg.chat.apiBase, 'https://api.akmovmedia.com');
