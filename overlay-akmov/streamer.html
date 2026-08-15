@@ -744,6 +744,7 @@
       <!-- Tabs Navigation -->
       <nav class="tabs-nav">
         <button class="tab-btn active" onclick="switchTab('tab-branding')">🎨 Marca</button>
+        <button class="tab-btn" onclick="switchTab('tab-croma')">🎙️ Croma 3D</button>
         <button class="tab-btn" onclick="switchTab('tab-backgrounds')">🌌 Fondos</button>
         <button class="tab-btn" onclick="switchTab('tab-socials')">📱 Redes</button>
         <button class="tab-btn" onclick="switchTab('tab-chat')">💬 Chat</button>
@@ -751,6 +752,121 @@
         <button class="tab-btn" onclick="switchTab('tab-theme')">⚡ Luces</button>
         <button class="tab-btn" onclick="switchTab('tab-obs')">🎬 OBS</button>
       </nav>
+
+      <!-- TAB: ESTUDIO CROMA 3D -->
+      <section id="tab-croma" class="tab-content">
+        <!-- OBS 3D Layers Visual Guide -->
+        <div class="control-card" style="border-color: rgba(0, 255, 102, 0.4); background: rgba(5, 15, 10, 0.85);">
+          <div class="card-title" style="color: #00ff66;">🎙️ Estudio Croma 3D — Configuración OBS</div>
+          <p style="font-size: 11.5px; color: var(--text-sub); line-height: 1.45; margin-bottom: 12px;">
+            Para lograr el efecto 3D donde los locutores quedan <b>detrás del mesón</b> y <b>delante del fondo</b>, organiza tus fuentes de OBS en este orden exacto de arriba a abajo:
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 6px; font-family: 'JetBrains Mono', monospace; font-size: 11px;">
+            <div style="background: rgba(0, 255, 102, 0.15); border: 1px solid #00ff66; padding: 7px 10px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+              <span>🔝 <b>1. Capa Superior (Mesón):</b> scene-croma-meson.html</span>
+              <button class="quick-time-btn" onclick="copySceneUrl('scene-croma-meson.html')" style="padding: 2px 8px; font-size: 10px;">Copiar</button>
+            </div>
+            <div style="background: rgba(255, 204, 0, 0.12); border: 1px dashed #ffcc00; padding: 7px 10px; border-radius: 4px; color: #ffeb99;">
+              <span>📹 <b>2. Capa Media:</b> Cámara Locutor con Filtro de Fondo Verde (Chroma Key recortado)</span>
+            </div>
+            <div style="background: rgba(0, 200, 255, 0.12); border: 1px solid #00c8ff; padding: 7px 10px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+              <span>🔻 <b>3. Capa Fondo (Estudio):</b> scene-croma-fondo.html</span>
+              <button class="quick-time-btn" onclick="copySceneUrl('scene-croma-fondo.html')" style="padding: 2px 8px; font-size: 10px;">Copiar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Access Scene Cards -->
+        <div class="control-card">
+          <div class="card-title">🎬 Escenas de Croma Disponibles</div>
+          
+          <!-- Capa 1 -->
+          <div class="obs-scene-card" style="margin-bottom: 8px;">
+            <div class="obs-scene-header">
+              <span class="obs-scene-name">Fondo de Estudio 3D (Capa 1)</span>
+              <div class="obs-actions">
+                <button class="copy-link-btn" onclick="copySceneUrl('scene-croma-fondo.html')">Copiar URL</button>
+                <button class="copy-link-btn" style="border-color: rgba(255,255,255,0.3); color: #fff;" onclick="window.open('scene-croma-fondo.html', '_blank')">Abrir</button>
+              </div>
+            </div>
+            <div style="font-size: 10.5px; color: var(--text-sub);">Pared grunge, posters, repisa, TV retro animada, boombox con VU meter y luces neón.</div>
+          </div>
+
+          <!-- Capa 3 -->
+          <div class="obs-scene-card" style="margin-bottom: 8px;">
+            <div class="obs-scene-header">
+              <span class="obs-scene-name">Mesón Delantero Transparente (Capa 3)</span>
+              <div class="obs-actions">
+                <button class="copy-link-btn" onclick="copySceneUrl('scene-croma-meson.html')">Copiar URL</button>
+                <button class="copy-link-btn" style="border-color: rgba(255,255,255,0.3); color: #fff;" onclick="window.open('scene-croma-meson.html', '_blank')">Abrir</button>
+              </div>
+            </div>
+            <div style="font-size: 10.5px; color: var(--text-sub);">Mesa de madera rústica tallada, soportes de micrófono, cables XLR y luz ON AIR. Fondo 100% transparente.</div>
+          </div>
+
+          <!-- Escena Completa -->
+          <div class="obs-scene-card">
+            <div class="obs-scene-header">
+              <span class="obs-scene-name">Estudio Croma Completo (Fondo + Mesón)</span>
+              <div class="obs-actions">
+                <button class="copy-link-btn" onclick="copySceneUrl('scene-croma-estudio.html')">Copiar URL</button>
+                <button class="copy-link-btn" style="border-color: rgba(255,255,255,0.3); color: #fff;" onclick="window.open('scene-croma-estudio.html', '_blank')">Abrir</button>
+              </div>
+            </div>
+            <div style="font-size: 10.5px; color: var(--text-sub);">Vista integrada ideal para previsualización o para OBS si no se requiere cámara en medio.</div>
+          </div>
+        </div>
+
+        <!-- Real-Time Studio Lights & FX Controls -->
+        <div class="control-card">
+          <div class="card-title">💡 Efectos y Luces del Estudio en Vivo</div>
+
+          <div class="input-group">
+            <label class="input-label">Canal Pantalla TV Retro CRT</label>
+            <select id="cfg-croma-tv" class="input-field" onchange="updateCromaSetting('tvMode', this.value)">
+              <option value="cartoon">📺 Caricatura Retro 90s (Animada)</option>
+              <option value="static">⚡ Estática VHS / Ruido de TV</option>
+              <option value="akmov">🟢 Visualizador Neón AKMOV MEDIA</option>
+              <option value="test">📶 Barras de Ajuste SMPTE</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <div class="social-row" style="margin-bottom: 8px;">
+              <label class="toggle-switch">
+                <input type="checkbox" id="cfg-croma-neon" checked onchange="updateCromaSetting('neonLight', this.checked)">
+                <span class="slider"></span>
+              </label>
+              <span style="font-size: 12px; font-weight: 700;">Tubo Fluorescente Cenital (Glow & Parpadeo)</span>
+            </div>
+
+            <div class="social-row" style="margin-bottom: 8px;">
+              <label class="toggle-switch">
+                <input type="checkbox" id="cfg-croma-strings" checked onchange="updateCromaSetting('stringLights', this.checked)">
+                <span class="slider"></span>
+              </label>
+              <span style="font-size: 12px; font-weight: 700;">Guirnalda de Luces Cálidas (Bombillas)</span>
+            </div>
+
+            <div class="social-row" style="margin-bottom: 8px;">
+              <label class="toggle-switch">
+                <input type="checkbox" id="cfg-croma-tally" onchange="updateCromaSetting('showTally', this.checked)">
+                <span class="slider"></span>
+              </label>
+              <span style="font-size: 12px; font-weight: 700;">Indicador "ON AIR" en el Mesón</span>
+            </div>
+
+            <div class="social-row">
+              <label class="toggle-switch">
+                <input type="checkbox" id="cfg-croma-smoke" checked onchange="updateCromaSetting('smoke', this.checked)">
+                <span class="slider"></span>
+              </label>
+              <span style="font-size: 12px; font-weight: 700;">Haze / Partículas de Polvo Ambiental</span>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <!-- TAB: FONDOS DINÁMICOS & ANIMADOS -->
       <section id="tab-backgrounds" class="tab-content">
@@ -1297,6 +1413,37 @@
               </div>
             </div>
           </div>
+
+          <!-- ESTUDIO CROMA 3D -->
+          <div class="obs-scene-card" style="border-color: rgba(0, 255, 102, 0.4); background: rgba(5, 15, 10, 0.85);">
+            <div class="obs-scene-header">
+              <span class="obs-scene-name" style="color: #00ff66;">🎙️ Fondo Croma 3D (Capa 1)</span>
+              <div class="obs-actions">
+                <button class="copy-link-btn" onclick="copySceneUrl('scene-croma-fondo.html')">Copiar URL</button>
+                <button class="copy-link-btn" style="border-color: rgba(255,255,255,0.3); color: #fff;" onclick="window.open('scene-croma-fondo.html', '_blank')">Abrir</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="obs-scene-card" style="border-color: rgba(0, 255, 102, 0.4); background: rgba(5, 15, 10, 0.85);">
+            <div class="obs-scene-header">
+              <span class="obs-scene-name" style="color: #00ff66;">🪵 Mesón Delantero Transparente (Capa 3)</span>
+              <div class="obs-actions">
+                <button class="copy-link-btn" onclick="copySceneUrl('scene-croma-meson.html')">Copiar URL</button>
+                <button class="copy-link-btn" style="border-color: rgba(255,255,255,0.3); color: #fff;" onclick="window.open('scene-croma-meson.html', '_blank')">Abrir</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="obs-scene-card" style="border-color: rgba(0, 255, 102, 0.4); background: rgba(5, 15, 10, 0.85);">
+            <div class="obs-scene-header">
+              <span class="obs-scene-name" style="color: #00ff66;">🎬 Estudio Croma Completo (Preview)</span>
+              <div class="obs-actions">
+                <button class="copy-link-btn" onclick="copySceneUrl('scene-croma-estudio.html')">Copiar URL</button>
+                <button class="copy-link-btn" style="border-color: rgba(255,255,255,0.3); color: #fff;" onclick="window.open('scene-croma-estudio.html', '_blank')">Abrir</button>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     </aside>
@@ -1316,6 +1463,9 @@
           <button class="scene-select-btn" onclick="loadPreviewScene('scene-cam2.html', this)">CAM 2</button>
           <button class="scene-select-btn" onclick="loadPreviewScene('scene-cam3.html', this)">CAM 3</button>
           <button class="scene-select-btn" onclick="loadPreviewScene('scene-cam4.html', this)">CAM 4</button>
+          <button class="scene-select-btn" style="border-color: #00ff66; color: #00ff66;" onclick="loadPreviewScene('scene-croma-fondo.html', this)">🎙️ Fondo Croma</button>
+          <button class="scene-select-btn" style="border-color: #00ff66; color: #00ff66;" onclick="loadPreviewScene('scene-croma-meson.html', this)">🪵 Mesón</button>
+          <button class="scene-select-btn" style="border-color: #00ff66; color: #00ff66;" onclick="loadPreviewScene('scene-croma-estudio.html', this)">🎬 Estudio 3D</button>
         </div>
 
         <div style="display: flex; gap: 8px; align-items: center;">
@@ -1885,6 +2035,55 @@
       }
       document.body.removeChild(textarea);
     }
+
+    // ─── CROMA STUDIO SETTINGS SYNC ───
+    let cromaStudioConfig = {
+      tvMode: 'cartoon',
+      neonLight: true,
+      stringLights: true,
+      showTally: false,
+      smoke: true
+    };
+
+    try {
+      const savedCroma = localStorage.getItem('akmov_croma_studio_config');
+      if (savedCroma) {
+        cromaStudioConfig = { ...cromaStudioConfig, ...JSON.parse(savedCroma) };
+      }
+    } catch(e) {}
+
+    function initCromaUI() {
+      const tvEl = document.getElementById('cfg-croma-tv');
+      const neonEl = document.getElementById('cfg-croma-neon');
+      const stringsEl = document.getElementById('cfg-croma-strings');
+      const tallyEl = document.getElementById('cfg-croma-tally');
+      const smokeEl = document.getElementById('cfg-croma-smoke');
+
+      if (tvEl) tvEl.value = cromaStudioConfig.tvMode;
+      if (neonEl) neonEl.checked = cromaStudioConfig.neonLight;
+      if (stringsEl) stringsEl.checked = cromaStudioConfig.stringLights;
+      if (tallyEl) tallyEl.checked = cromaStudioConfig.showTally;
+      if (smokeEl) smokeEl.checked = cromaStudioConfig.smoke;
+    }
+
+    function updateCromaSetting(key, val) {
+      cromaStudioConfig[key] = val;
+      try {
+        localStorage.setItem('akmov_croma_studio_config', JSON.stringify(cromaStudioConfig));
+      } catch(e) {}
+
+      if (window.overlayApp && window.overlayApp.broadcastChannel) {
+        window.overlayApp.broadcastChannel.postMessage({
+          type: 'croma_studio_update',
+          settings: cromaStudioConfig
+        });
+      }
+
+      showToast(`Efecto Croma actualizado: ${key}`);
+    }
+
+    // Initialize UI on load
+    initCromaUI();
 
     function showToast(msg) {
       const toast = document.getElementById('toast');

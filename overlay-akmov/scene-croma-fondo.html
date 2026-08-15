@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Croma Estudio — Fondo (Capa 1) - AKMOV Media</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body, html {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: #000000;
+      user-select: none;
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    /* 16:9 Studio Container */
+    .studio-viewport {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: #060907;
+      overflow: hidden;
+    }
+
+    /* Photographic Background Layer */
+    .studio-bg-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      z-index: 1;
+      filter: contrast(1.04) brightness(0.98);
+      transition: filter 0.5s ease;
+    }
+
+    /* Overhead Fluorescent Tube Light Overlay */
+    .neon-tube-glow {
+      position: absolute;
+      top: 3.2%;
+      left: 35.8%;
+      width: 28.5%;
+      height: 2.8%;
+      background: radial-gradient(ellipse at center, rgba(200, 255, 255, 0.95) 0%, rgba(0, 255, 200, 0.6) 45%, rgba(0, 255, 150, 0) 80%);
+      box-shadow: 0 0 35px rgba(0, 255, 204, 0.7), 0 0 70px rgba(0, 255, 150, 0.35);
+      border-radius: 12px;
+      z-index: 5;
+      pointer-events: none;
+      animation: tubeFlicker 8s infinite ease-in-out;
+      mix-blend-mode: screen;
+    }
+
+    .neon-tube-ambient {
+      position: absolute;
+      top: 0;
+      left: 20%;
+      width: 60%;
+      height: 45%;
+      background: radial-gradient(ellipse at 50% 10%, rgba(0, 255, 170, 0.15) 0%, rgba(0, 255, 102, 0.05) 50%, rgba(0, 0, 0, 0) 80%);
+      z-index: 4;
+      pointer-events: none;
+      mix-blend-mode: screen;
+      animation: ambientPulse 5s infinite alternate ease-in-out;
+    }
+
+    @keyframes tubeFlicker {
+      0%, 100% { opacity: 0.95; }
+      42% { opacity: 0.95; }
+      42.5% { opacity: 0.7; }
+      43% { opacity: 0.98; }
+      71% { opacity: 0.95; }
+      71.2% { opacity: 0.6; }
+      71.4% { opacity: 0.95; }
+      88% { opacity: 0.9; }
+      88.3% { opacity: 0.75; }
+      88.6% { opacity: 0.98; }
+    }
+
+    @keyframes ambientPulse {
+      0% { opacity: 0.8; }
+      100% { opacity: 1.0; }
+    }
+
+    /* String Lights Bulbs Glow Points */
+    .string-lights-layer {
+      position: absolute;
+      top: 13%;
+      left: 17%;
+      width: 66%;
+      height: 15%;
+      z-index: 6;
+      pointer-events: none;
+    }
+
+    .bulb-glow {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 230, 150, 0.9) 0%, rgba(255, 170, 0, 0.4) 60%, transparent 100%);
+      box-shadow: 0 0 16px rgba(255, 180, 50, 0.85);
+      animation: bulbWarmPulse 3s infinite alternate ease-in-out;
+    }
+
+    @keyframes bulbWarmPulse {
+      0% { transform: scale(0.9); opacity: 0.75; }
+      100% { transform: scale(1.15); opacity: 1; }
+    }
+
+    /* CRT Vintage TV Screen Overlay */
+    .crt-tv-screen-container {
+      position: absolute;
+      top: 45.4%;
+      left: 56.1%;
+      width: 6.85%;
+      height: 9.3%;
+      background: #020703;
+      border-radius: 4px;
+      overflow: hidden;
+      z-index: 7;
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.95), 0 0 15px rgba(0, 255, 102, 0.25);
+    }
+
+    .crt-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      image-rendering: pixelated;
+    }
+
+    /* Scanlines & CRT Bezel Curve */
+    .crt-scanlines {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.45) 50%),
+                  linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.04));
+      background-size: 100% 3px, 4px 100%;
+      pointer-events: none;
+      z-index: 8;
+      opacity: 0.85;
+    }
+
+    .crt-glare {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 35% 25%, rgba(255, 255, 255, 0.22) 0%, transparent 65%);
+      pointer-events: none;
+      z-index: 9;
+    }
+
+    /* Boombox VU Meter Overlay */
+    .boombox-vu-meter {
+      position: absolute;
+      top: 51.5%;
+      left: 37.8%;
+      width: 3.4%;
+      height: 1.6%;
+      display: flex;
+      gap: 3px;
+      padding: 1px 2px;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 2px;
+      z-index: 7;
+      overflow: hidden;
+    }
+
+    .vu-channel {
+      flex: 1;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 1.5px;
+      height: 100%;
+    }
+
+    .vu-bar-seg {
+      width: 100%;
+      height: 2.2px;
+      border-radius: 0.5px;
+      background: #112211;
+      transition: background 0.08s ease;
+    }
+
+    .vu-bar-seg.g.active { background: #00ff66; box-shadow: 0 0 4px #00ff66; }
+    .vu-bar-seg.y.active { background: #ffcc00; box-shadow: 0 0 4px #ffcc00; }
+    .vu-bar-seg.r.active { background: #ff3333; box-shadow: 0 0 5px #ff3333; }
+
+    /* Spinning Cassette Wheels */
+    .cassette-reels {
+      position: absolute;
+      top: 52.8%;
+      left: 42.15%;
+      width: 2.5%;
+      height: 2.2%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 7;
+      pointer-events: none;
+    }
+
+    .reel {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 1.5px dashed rgba(255, 255, 255, 0.6);
+      animation: spinReel 2s linear infinite;
+    }
+
+    @keyframes spinReel {
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Ambient Dust & Atmospheric Fog Canvas */
+    .haze-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
+      opacity: 0.6;
+    }
+
+    /* Dynamic Studio Banner (Optional custom overlay banner) */
+    .studio-live-tag {
+      position: absolute;
+      top: 24px;
+      left: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(5, 12, 8, 0.85);
+      border: 1px solid rgba(0, 255, 102, 0.3);
+      padding: 6px 14px;
+      border-radius: 4px;
+      z-index: 20;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(6px);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: #fff;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ff3333;
+      box-shadow: 0 0 10px #ff3333;
+      animation: livePulse 1.5s infinite;
+    }
+
+    @keyframes livePulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(0.85); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="studio-viewport" id="studioViewport">
+    <!-- Base Background Image -->
+    <img src="croma_studio_bg.jpg" alt="AKMOV Media Studio Background" class="studio-bg-img" id="studioBgImg">
+
+    <!-- Overhead Neon Light & Glow -->
+    <div class="neon-tube-glow" id="neonTubeEl"></div>
+    <div class="neon-tube-ambient" id="neonAmbientEl"></div>
+
+    <!-- Warm String Lights Glow Overlays -->
+    <div class="string-lights-layer" id="stringLightsLayer">
+      <div class="bulb-glow" style="left: 1.5%; top: 12%; animation-delay: 0.2s;"></div>
+      <div class="bulb-glow" style="left: 14%; top: 40%; animation-delay: 0.7s;"></div>
+      <div class="bulb-glow" style="left: 27.5%; top: 62%; animation-delay: 1.2s;"></div>
+      <div class="bulb-glow" style="left: 41%; top: 76%; animation-delay: 0.4s;"></div>
+      <div class="bulb-glow" style="left: 55%; top: 74%; animation-delay: 1.6s;"></div>
+      <div class="bulb-glow" style="left: 69%; top: 58%; animation-delay: 0.9s;"></div>
+      <div class="bulb-glow" style="left: 82.5%; top: 38%; animation-delay: 1.4s;"></div>
+      <div class="bulb-glow" style="left: 95.5%; top: 15%; animation-delay: 0.5s;"></div>
+    </div>
+
+    <!-- Vintage CRT TV Animated Screen -->
+    <div class="crt-tv-screen-container" id="crtTvBox">
+      <canvas id="crtCanvas" class="crt-canvas" width="160" height="120"></canvas>
+      <div class="crt-scanlines"></div>
+      <div class="crt-glare"></div>
+    </div>
+
+    <!-- Boombox VU Meter -->
+    <div class="boombox-vu-meter" id="boomboxVu">
+      <div class="vu-channel" id="vuLeft">
+        <div class="vu-bar-seg g"></div>
+        <div class="vu-bar-seg g"></div>
+        <div class="vu-bar-seg g"></div>
+        <div class="vu-bar-seg y"></div>
+        <div class="vu-bar-seg y"></div>
+        <div class="vu-bar-seg r"></div>
+      </div>
+      <div class="vu-channel" id="vuRight">
+        <div class="vu-bar-seg g"></div>
+        <div class="vu-bar-seg g"></div>
+        <div class="vu-bar-seg g"></div>
+        <div class="vu-bar-seg y"></div>
+        <div class="vu-bar-seg y"></div>
+        <div class="vu-bar-seg r"></div>
+      </div>
+    </div>
+
+    <!-- Spinning Cassette Reels -->
+    <div class="cassette-reels" id="cassetteReels">
+      <div class="reel"></div>
+      <div class="reel"></div>
+    </div>
+
+    <!-- Floating Atmosphere Dust/Haze -->
+    <canvas id="hazeCanvas" class="haze-canvas"></canvas>
+
+    <!-- Optional Watermark/Live Tag (hidden if clean requested) -->
+    <div class="studio-live-tag" id="studioLiveBadge" style="display: none;">
+      <span class="live-dot"></span>
+      <span id="studioTitleText">AKMOV MEDIA // STUDIO 3D</span>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    /* ============================================================
+       CROMA STUDIO - ANIMATIONS & REAL-TIME CONTROLLER
+       ============================================================ */
+
+    // ── 1. CRT TV ANIMATION ENGINE ──
+    const crtCanvas = document.getElementById('crtCanvas');
+    const crtCtx = crtCanvas.getContext('2d');
+    let crtMode = 'cartoon'; // 'cartoon' | 'static' | 'akmov' | 'test'
+    let animFrameId = null;
+    let tvTick = 0;
+
+    // Cartoon Character Bouncing / Retro Animation
+    let charX = 40;
+    let charY = 60;
+    let charDx = 1.2;
+    let charDy = 0.8;
+
+    function renderCRT() {
+      tvTick++;
+      const w = crtCanvas.width;
+      const h = crtCanvas.height;
+
+      if (crtMode === 'static') {
+        // Pure TV static noise
+        const imgData = crtCtx.createImageData(w, h);
+        const data = imgData.data;
+        for (let i = 0; i < data.length; i += 4) {
+          const val = Math.random() * 255;
+          data[i] = val;     // R
+          data[i + 1] = val; // G
+          data[i + 2] = val; // B
+          data[i + 3] = 255; // Alpha
+        }
+        crtCtx.putImageData(imgData, 0, 0);
+      } else if (crtMode === 'akmov') {
+        // Retro Neon AKMOV Visualizer
+        crtCtx.fillStyle = '#050906';
+        crtCtx.fillRect(0, 0, w, h);
+
+        // Grid
+        crtCtx.strokeStyle = 'rgba(0, 255, 102, 0.2)';
+        crtCtx.lineWidth = 1;
+        for (let x = 0; x < w; x += 16) {
+          crtCtx.beginPath();
+          crtCtx.moveTo(x, 0);
+          crtCtx.lineTo(x, h);
+          crtCtx.stroke();
+        }
+
+        // Bouncing Sine Wave
+        crtCtx.strokeStyle = '#00ff66';
+        crtCtx.shadowColor = '#00ff66';
+        crtCtx.shadowBlur = 6;
+        crtCtx.beginPath();
+        for (let x = 0; x < w; x++) {
+          const y = h / 2 + Math.sin((x + tvTick * 4) * 0.08) * 22;
+          if (x === 0) crtCtx.moveTo(x, y);
+          else crtCtx.lineTo(x, y);
+        }
+        crtCtx.stroke();
+        crtCtx.shadowBlur = 0;
+
+        // Logo Text
+        crtCtx.fillStyle = '#ffffff';
+        crtCtx.font = 'bold 12px monospace';
+        crtCtx.textAlign = 'center';
+        crtCtx.fillText('AKMOV 2026', w / 2, 28);
+
+      } else if (crtMode === 'test') {
+        // SMPTE Color Bars
+        const colors = ['#ffffff', '#ffff00', '#00ffff', '#00ff00', '#ff00ff', '#ff0000', '#0000ff'];
+        const barW = w / colors.length;
+        for (let i = 0; i < colors.length; i++) {
+          crtCtx.fillStyle = colors[i];
+          crtCtx.fillRect(i * barW, 0, barW, h * 0.75);
+        }
+        crtCtx.fillStyle = '#111';
+        crtCtx.fillRect(0, h * 0.75, w, h * 0.25);
+        crtCtx.fillStyle = '#00ff66';
+        crtCtx.font = '9px monospace';
+        crtCtx.fillText('REC CH-04', 10, h - 8);
+      } else {
+        // Default: Retro 90s Cartoon Lo-fi Animation
+        crtCtx.fillStyle = '#1e293b';
+        crtCtx.fillRect(0, 0, w, h);
+
+        // Retro sky gradient
+        const grad = crtCtx.createLinearGradient(0, 0, 0, h);
+        grad.addColorStop(0, '#f59e0b');
+        grad.addColorStop(0.5, '#ec4899');
+        grad.addColorStop(1, '#6366f1');
+        crtCtx.fillStyle = grad;
+        crtCtx.fillRect(0, 0, w, h);
+
+        // Sun
+        crtCtx.fillStyle = '#fef08a';
+        crtCtx.beginPath();
+        crtCtx.arc(w / 2, h / 2 + 10, 30, 0, Math.PI * 2);
+        crtCtx.fill();
+
+        // Retro mountains
+        crtCtx.fillStyle = '#312e81';
+        crtCtx.beginPath();
+        crtCtx.moveTo(0, h);
+        crtCtx.lineTo(40, h / 2 + 15);
+        crtCtx.lineTo(90, h);
+        crtCtx.lineTo(130, h / 2 + 25);
+        crtCtx.lineTo(w, h);
+        crtCtx.fill();
+
+        // Bouncing Character
+        charX += charDx;
+        charY += charDy;
+        if (charX < 15 || charX > w - 15) charDx = -charDx;
+        if (charY < 15 || charY > h - 15) charDy = -charDy;
+
+        // Draw pixel figure
+        crtCtx.fillStyle = '#00ff66';
+        crtCtx.shadowColor = '#00ff66';
+        crtCtx.shadowBlur = 4;
+        crtCtx.fillRect(charX - 8, charY - 8, 16, 16);
+
+        // Face
+        crtCtx.fillStyle = '#000000';
+        crtCtx.fillRect(charX - 4, charY - 4, 3, 3);
+        crtCtx.fillRect(charX + 2, charY - 4, 3, 3);
+        crtCtx.fillRect(charX - 3, charY + 2, 7, 2);
+        crtCtx.shadowBlur = 0;
+      }
+
+      // Subtle Scanline Glitch
+      if (Math.random() < 0.05) {
+        const glitchY = Math.random() * h;
+        crtCtx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+        crtCtx.fillRect(0, glitchY, w, 3);
+      }
+
+      animFrameId = requestAnimationFrame(renderCRT);
+    }
+
+    renderCRT();
+
+    // ── 2. BOOMBOX VU METER ANIMATION ──
+    const vuLeftSegs = Array.from(document.querySelectorAll('#vuLeft .vu-bar-seg'));
+    const vuRightSegs = Array.from(document.querySelectorAll('#vuRight .vu-bar-seg'));
+
+    setInterval(() => {
+      // Simulate audio bounce
+      const lLevel = Math.floor(Math.random() * (vuLeftSegs.length + 1));
+      const rLevel = Math.floor(Math.random() * (vuRightSegs.length + 1));
+
+      vuLeftSegs.forEach((seg, idx) => {
+        if (idx < lLevel) seg.classList.add('active');
+        else seg.classList.remove('active');
+      });
+
+      vuRightSegs.forEach((seg, idx) => {
+        if (idx < rLevel) seg.classList.add('active');
+        else seg.classList.remove('active');
+      });
+    }, 110);
+
+    // ── 3. ATMOSPHERIC DUST / HAZE PARTICLES ──
+    const hazeCanvas = document.getElementById('hazeCanvas');
+    const hazeCtx = hazeCanvas.getContext('2d');
+    let particles = [];
+
+    function resizeHaze() {
+      hazeCanvas.width = window.innerWidth;
+      hazeCanvas.height = window.innerHeight;
+      initParticles();
+    }
+
+    function initParticles() {
+      particles = [];
+      const count = 45;
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * hazeCanvas.width,
+          y: Math.random() * hazeCanvas.height,
+          radius: Math.random() * 2 + 0.8,
+          alpha: Math.random() * 0.4 + 0.1,
+          vx: (Math.random() - 0.5) * 0.25,
+          vy: -Math.random() * 0.35 - 0.05
+        });
+      }
+    }
+
+    function drawHaze() {
+      hazeCtx.clearRect(0, 0, hazeCanvas.width, hazeCanvas.height);
+
+      for (let p of particles) {
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.y < 0) p.y = hazeCanvas.height;
+        if (p.x < 0) p.x = hazeCanvas.width;
+        if (p.x > hazeCanvas.width) p.x = 0;
+
+        hazeCtx.fillStyle = `rgba(255, 255, 255, ${p.alpha})`;
+        hazeCtx.beginPath();
+        hazeCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        hazeCtx.fill();
+      }
+
+      requestAnimationFrame(drawHaze);
+    }
+
+    window.addEventListener('resize', resizeHaze);
+    resizeHaze();
+    drawHaze();
+
+    // ── 4. BROADCAST CHANNEL & REAL-TIME SYNC ──
+    const syncChannel = new BroadcastChannel('akmov_overlay_channel');
+
+    function applyStudioSettings(settings) {
+      if (!settings) return;
+
+      // Neon Tube Toggle
+      const neonEl = document.getElementById('neonTubeEl');
+      const ambientEl = document.getElementById('neonAmbientEl');
+      if (settings.neonLight === false) {
+        if (neonEl) neonEl.style.display = 'none';
+        if (ambientEl) ambientEl.style.display = 'none';
+      } else {
+        if (neonEl) neonEl.style.display = 'block';
+        if (ambientEl) ambientEl.style.display = 'block';
+      }
+
+      // TV Mode
+      if (settings.tvMode) {
+        crtMode = settings.tvMode;
+      }
+
+      // String Lights
+      const lightsLayer = document.getElementById('stringLightsLayer');
+      if (lightsLayer) {
+        lightsLayer.style.display = (settings.stringLights === false) ? 'none' : 'block';
+      }
+
+      // Haze / Smoke
+      if (hazeCanvas) {
+        hazeCanvas.style.display = (settings.smoke === false) ? 'none' : 'block';
+      }
+
+      // Live Badge
+      const badge = document.getElementById('studioLiveBadge');
+      if (badge && settings.showBadge !== undefined) {
+        badge.style.display = settings.showBadge ? 'flex' : 'none';
+      }
+    }
+
+    syncChannel.onmessage = (e) => {
+      if (e.data && e.data.type === 'croma_studio_update') {
+        applyStudioSettings(e.data.settings);
+      }
+    };
+
+    // Load initial cached settings if any
+    try {
+      const saved = localStorage.getItem('akmov_croma_studio_config');
+      if (saved) applyStudioSettings(JSON.parse(saved));
+    } catch (e) {}
+  </script>
+</body>
+</html>

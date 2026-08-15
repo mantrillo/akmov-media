@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Croma Estudio Completo (Fondo + Mesón) - AKMOV Media</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body, html {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: #000;
+      user-select: none;
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    .full-studio-wrap {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: #060907;
+      overflow: hidden;
+    }
+
+    /* IFRAMES for layers */
+    .studio-layer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .layer-bg {
+      z-index: 1;
+    }
+
+    .layer-camera-slot {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      padding-bottom: 120px;
+      pointer-events: none;
+    }
+
+    .layer-desk {
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    /* Quick Guide / Help Bar in browser preview (hidden on stream) */
+    .preview-helper-bar {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(5, 12, 8, 0.9);
+      border: 1px solid rgba(0, 255, 102, 0.4);
+      border-radius: 6px;
+      padding: 8px 16px;
+      z-index: 100;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      backdrop-filter: blur(8px);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="full-studio-wrap">
+    <!-- Layer 1: Background -->
+    <iframe src="scene-croma-fondo.html" class="studio-layer layer-bg"></iframe>
+
+    <!-- Layer 3: Foreground Desk -->
+    <iframe src="scene-croma-meson.html" class="studio-layer layer-desk"></iframe>
+
+    <!-- Streamer Preview HUD (Fades out) -->
+    <div class="preview-helper-bar" id="helperBar">
+      <span style="color: #00ff66; font-weight: bold;">[ESTUDIO CROMA 3D VISTA COMPLETA]</span>
+      <span>Fondo + Mesón Activo</span>
+      <button onclick="document.getElementById('helperBar').style.display='none'" style="background:transparent; border:none; color:#888; cursor:pointer; font-weight:bold;">✕</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
