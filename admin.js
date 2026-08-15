@@ -88,10 +88,57 @@ const confirmSlot     = document.getElementById('confirmSlot');
 const toastWrap       = document.getElementById('toastWrap');
 const logoutBtn       = document.getElementById('logoutBtn');
 
-// ─── LOGIN ────────────────────────────────────────────────────
+// ─── LOGIN & ROLES PERMISSIONS ───────────────────────────────
+function applyUserPermissions() {
+  const email = sessionStorage.getItem('akmov_user_email') || CONFIG.ADMIN_EMAIL;
+  const role = sessionStorage.getItem('akmov_user_role') || 'superadmin';
+  let allowedTabs = ['pauta'];
+  try {
+    const raw = sessionStorage.getItem('akmov_user_tabs');
+    if (raw) allowedTabs = JSON.parse(raw);
+  } catch(e) {}
+
+  // Update Topbar User Badge
+  const topbarInfo = document.getElementById('topbarUserInfo');
+  const roleBadge = document.getElementById('userRoleBadge');
+  const emailBadge = document.getElementById('userEmailBadge');
+  if (topbarInfo && roleBadge && emailBadge) {
+    topbarInfo.style.display = 'flex';
+    roleBadge.textContent = role.toUpperCase();
+    roleBadge.className = `user-role-badge ${role.toLowerCase()}`;
+    emailBadge.textContent = email;
+  }
+
+  // Update Navigation Tabs Visibility
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  let currentActiveAllowed = false;
+
+  tabBtns.forEach(btn => {
+    const tabKey = btn.getAttribute('data-tab');
+    if (allowedTabs.includes(tabKey)) {
+      btn.style.display = 'inline-block';
+      if (btn.classList.contains('active')) {
+        currentActiveAllowed = true;
+      }
+    } else {
+      btn.style.display = 'none';
+      btn.classList.remove('active');
+    }
+  });
+
+  // If active tab is not allowed, switch to the first allowed tab (e.g. pauta)
+  if (!currentActiveAllowed) {
+    const firstAllowed = Array.from(tabBtns).find(btn => allowedTabs.includes(btn.getAttribute('data-tab')));
+    if (firstAllowed) {
+      firstAllowed.click();
+    }
+  }
+}
+
 function showPanel() {
   loginGate.classList.add('hidden');
   adminPanel.classList.remove('hidden');
+  applyUserPermissions();
   initPanel();
 }
 
@@ -119,6 +166,9 @@ loginForm.addEventListener('submit', async (e) => {
   }
 
   let authenticated = false;
+  let userEmail = enteredEmail;
+  let userRole = 'superadmin';
+  let userTabs = ['stream-control', 'overlays', 'pauta', 'vod-config', 'users'];
   let errorMsg = 'Verifica tus credenciales';
 
   if (supabaseClient) {
@@ -129,7 +179,16 @@ loginForm.addEventListener('submit', async (e) => {
       });
       if (!error && data.user) {
         authenticated = true;
-        console.log("Autenticado con Supabase Auth");
+        userEmail = data.user.email;
+        const meta = data.user.user_metadata || {};
+        
+        // Match with registered users registry
+        const regUsers = getRegisteredUsers();
+        const cached = regUsers.find(u => u.email.toLowerCase() === userEmail.toLowerCase());
+
+        userRole = meta.role || (cached ? cached.role : (userEmail.toLowerCase() === CONFIG.ADMIN_EMAIL.toLowerCase() ? 'superadmin' : 'locutor'));
+        userTabs = meta.allowed_tabs || (cached ? cached.allowed_tabs : (userRole === 'superadmin' ? ['stream-control', 'overlays', 'pauta', 'vod-config', 'users'] : ['pauta']));
+        console.log(`Autenticado con Supabase Auth (${userEmail}) - Rol: ${userRole}`);
       } else if (error) {
         console.warn("Fallo de Supabase Auth, intentando fallback local:", error.message);
         errorMsg = error.message;
@@ -141,8 +200,11 @@ loginForm.addEventListener('submit', async (e) => {
 
   // Fallback Local
   if (!authenticated) {
-    if (enteredEmail === CONFIG.ADMIN_EMAIL && enteredPass === CONFIG.ADMIN_PASSWORD) {
+    if (enteredEmail.toLowerCase() === CONFIG.ADMIN_EMAIL.toLowerCase() && enteredPass === CONFIG.ADMIN_PASSWORD) {
       authenticated = true;
+      userEmail = CONFIG.ADMIN_EMAIL;
+      userRole = 'superadmin';
+      userTabs = ['stream-control', 'overlays', 'pauta', 'vod-config', 'users'];
       console.log("Autenticado con fallback local");
     }
   }
@@ -156,6 +218,9 @@ loginForm.addEventListener('submit', async (e) => {
   if (authenticated) {
     loginError.classList.add('hidden');
     sessionStorage.setItem('akmov_admin', 'true');
+    sessionStorage.setItem('akmov_user_email', userEmail);
+    sessionStorage.setItem('akmov_user_role', userRole);
+    sessionStorage.setItem('akmov_user_tabs', JSON.stringify(userTabs));
     sessionStorage.setItem('akmov_panel_session', '1'); // Para bypass del iframe de overlays
     adminPassEl.value = '';
     showPanel();
@@ -171,6 +236,13 @@ function showError(msg) {
 
 logoutBtn.addEventListener('click', () => {
   sessionStorage.removeItem('akmov_admin');
+  sessionStorage.removeItem('akmov_user_email');
+  sessionStorage.removeItem('akmov_user_role');
+  sessionStorage.removeItem('akmov_user_tabs');
+  sessionStorage.removeItem('akmov_panel_session');
+  if (supabaseClient) {
+    supabaseClient.auth.signOut().catch(() => {});
+  }
   stopPolling();
   showGate();
 });
@@ -614,12 +686,222 @@ document.getElementById('btnSaveYoutubeChannels')?.addEventListener('click', asy
   }
 });
 
+// ─── USER ROLES & REGISTRY MANAGEMENT ──────────────────────────
+const USERS_STORAGE_KEY = 'akmov_users_registry';
+
+function getRegisteredUsers() {
+  try {
+    const stored = localStorage.getItem(USERS_STORAGE_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch (e) {}
+  
+  // Default seeded users
+  const defaults = [
+    {
+      email: CONFIG.ADMIN_EMAIL,
+      role: 'superadmin',
+      allowed_tabs: ['stream-control', 'overlays', 'pauta', 'vod-config', 'users'],
+      created_at: new Date().toISOString()
+    }
+  ];
+  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(defaults));
+  return defaults;
+}
+
+function saveRegisteredUsers(users) {
+  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+}
+
+window.handleRolePresetChange = function(role) {
+  const chkStream = document.getElementById('perm-stream-control');
+  const chkOverlays = document.getElementById('perm-overlays');
+  const chkPauta = document.getElementById('perm-pauta');
+  const chkVod = document.getElementById('perm-vod-config');
+  const chkUsers = document.getElementById('perm-users');
+
+  if (!chkStream) return;
+
+  if (role === 'locutor') {
+    chkStream.checked = false;
+    chkOverlays.checked = false;
+    chkPauta.checked = true;
+    chkVod.checked = false;
+    chkUsers.checked = false;
+  } else if (role === 'productor') {
+    chkStream.checked = false;
+    chkOverlays.checked = true;
+    chkPauta.checked = true;
+    chkVod.checked = false;
+    chkUsers.checked = false;
+  } else if (role === 'operador') {
+    chkStream.checked = true;
+    chkOverlays.checked = true;
+    chkPauta.checked = true;
+    chkVod.checked = false;
+    chkUsers.checked = false;
+  } else if (role === 'superadmin') {
+    chkStream.checked = true;
+    chkOverlays.checked = true;
+    chkPauta.checked = true;
+    chkVod.checked = true;
+    chkUsers.checked = true;
+  }
+};
+
+window.renderUsersTable = function() {
+  const tbody = document.getElementById('usersTableBody');
+  if (!tbody) return;
+
+  const users = getRegisteredUsers();
+  tbody.innerHTML = '';
+
+  const tabLabels = {
+    'stream-control': '⚡ Emisión',
+    'overlays': '🎨 Overlays',
+    'pauta': '📜 Pauta',
+    'vod-config': '📺 VOD',
+    'users': '👥 Usuarios'
+  };
+
+  users.forEach((user) => {
+    const tr = document.createElement('tr');
+    
+    let tabsHtml = '';
+    (user.allowed_tabs || []).forEach(tab => {
+      tabsHtml += `<span class="tag-perm active">${tabLabels[tab] || tab}</span>`;
+    });
+
+    const isCurrentAdmin = user.email.toLowerCase() === CONFIG.ADMIN_EMAIL.toLowerCase();
+
+    tr.innerHTML = `
+      <td>
+        <div style="font-weight: 700; color: #fff;">${user.email}</div>
+        <div style="font-size: 0.7rem; color: var(--text-muted);">${new Date(user.created_at || Date.now()).toLocaleDateString('es-CL')}</div>
+      </td>
+      <td>
+        <span class="user-role-badge ${user.role}">${user.role.toUpperCase()}</span>
+      </td>
+      <td>
+        <div>${tabsHtml}</div>
+      </td>
+      <td style="text-align: right;">
+        ${isCurrentAdmin ? '<span style="color: var(--text-muted); font-size: 0.75rem;">(Principal)</span>' : `
+          <button class="action-btn btn-stop" onclick="deleteUser('${user.email}')" style="padding: 4px 10px; font-size: 0.72rem; display: inline-flex; width: auto; background: var(--red); color: #fff; cursor: pointer; border: none;">
+            ELIMINAR
+          </button>
+        `}
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+};
+
+window.deleteUser = function(email) {
+  if (!confirm(`¿Estás seguro de eliminar al usuario ${email}?`)) return;
+
+  const users = getRegisteredUsers().filter(u => u.email.toLowerCase() !== email.toLowerCase());
+  saveRegisteredUsers(users);
+  toast(`Usuario ${email} eliminado`, 'info');
+  renderUsersTable();
+};
+
+document.getElementById('newUserForm')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('newUserEmail').value.trim();
+  const pass = document.getElementById('newUserPass').value.trim();
+  const role = document.getElementById('newUserRoleSelect').value;
+
+  const allowed_tabs = [];
+  if (document.getElementById('perm-stream-control').checked) allowed_tabs.push('stream-control');
+  if (document.getElementById('perm-overlays').checked) allowed_tabs.push('overlays');
+  if (document.getElementById('perm-pauta').checked) allowed_tabs.push('pauta');
+  if (document.getElementById('perm-vod-config').checked) allowed_tabs.push('vod-config');
+  if (document.getElementById('perm-users').checked) allowed_tabs.push('users');
+
+  if (!email || !pass) {
+    toast('Ingresa correo y contraseña', 'error');
+    return;
+  }
+  if (pass.length < 6) {
+    toast('La contraseña debe tener mínimo 6 caracteres', 'error');
+    return;
+  }
+  if (allowed_tabs.length === 0) {
+    toast('Debes seleccionar al menos un permiso de pestaña', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('btnCreateUser');
+  if (btn) btn.disabled = true;
+
+  try {
+    // 1. Intentar registrar en Supabase Auth
+    if (supabaseClient) {
+      const { data, error } = await supabaseClient.auth.signUp({
+        email: email,
+        password: pass,
+        options: {
+          data: {
+            role: role,
+            allowed_tabs: allowed_tabs
+          }
+        }
+      });
+
+      if (error) {
+        console.warn("Supabase SignUp warning:", error.message);
+      }
+    }
+
+    // 2. Guardar en registro local
+    const users = getRegisteredUsers();
+    const existingIndex = users.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
+    const newUserObj = {
+      email,
+      role,
+      allowed_tabs,
+      created_at: new Date().toISOString()
+    };
+
+    if (existingIndex >= 0) {
+      users[existingIndex] = newUserObj;
+    } else {
+      users.push(newUserObj);
+    }
+    saveRegisteredUsers(users);
+
+    toast(`Usuario ${email} registrado con éxito (${role.toUpperCase()})`, 'success');
+    document.getElementById('newUserForm').reset();
+    handleRolePresetChange('locutor');
+    renderUsersTable();
+
+  } catch (err) {
+    console.error("Error creating user:", err);
+    toast('Error al registrar usuario: ' + err.message, 'error');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+});
+
 // ─── INIT PANEL ──────────────────────────────────────────────
 async function initPanel() {
-  await loadSchedule();
-  renderSchedule();
-  await loadYoutubeChannels();
-  startPolling();
+  const allowedTabs = JSON.parse(sessionStorage.getItem('akmov_user_tabs') || '["pauta"]');
+
+  if (allowedTabs.includes('stream-control')) {
+    await loadSchedule();
+    renderSchedule();
+    startPolling();
+  } else {
+    stopPolling();
+  }
+
+  if (allowedTabs.includes('vod-config')) {
+    await loadYoutubeChannels();
+  }
+
+  if (allowedTabs.includes('users')) {
+    renderUsersTable();
+  }
 }
 
 // ─── KEYBOARD SHORTCUTS ──────────────────────────────────────
