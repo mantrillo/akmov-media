@@ -727,27 +727,32 @@ document.getElementById('btnSaveYoutubeChannels')?.addEventListener('click', asy
   }
 });
 
-// ─── USER ROLES & REGISTRY MANAGEMENT ──────────────────────────
+// ─── USER ROLES & REGISTRY MANAGEMENT (SUPABASE PERSISTENCE) ──
 const USERS_STORAGE_KEY = 'akmov_users_registry';
 let registeredUsers = [];
 
 async function fetchRegisteredUsers() {
-  // 1. Try fetching from server backend API
-  try {
-    const res = await fetch(CONFIG.API_BASE + '/api/users');
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) {
+  // 1. Query Supabase Database table
+  if (supabaseClient) {
+    try {
+      const { data, error } = await supabaseClient
+        .from('akmov_users_permissions')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (!error && Array.isArray(data) && data.length > 0) {
         registeredUsers = data;
         localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(data));
         return registeredUsers;
+      } else if (error) {
+        console.warn("Supabase query akmov_users_permissions note:", error.message);
       }
+    } catch (err) {
+      console.warn("Supabase DB error:", err);
     }
-  } catch (err) {
-    console.warn("Could not fetch users from backend API:", err);
   }
 
-  // 2. Fallback to localStorage
+  // 2. Fallback to localStorage cache
   try {
     const stored = localStorage.getItem(USERS_STORAGE_KEY);
     if (stored) {
@@ -756,7 +761,7 @@ async function fetchRegisteredUsers() {
     }
   } catch (e) {}
 
-  // 3. Default seed
+  // 3. Default seeded superadmin
   registeredUsers = [
     {
       email: CONFIG.ADMIN_EMAIL,
@@ -765,7 +770,6 @@ async function fetchRegisteredUsers() {
       created_at: new Date().toISOString()
     }
   ];
-  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(registeredUsers));
   return registeredUsers;
 }
 
@@ -872,12 +876,15 @@ window.renderUsersTable = async function() {
 window.deleteUser = async function(email) {
   if (!confirm(`¿Estás seguro de eliminar al usuario ${email}?`)) return;
 
-  try {
-    await fetch(CONFIG.API_BASE + `/api/users/${encodeURIComponent(email)}`, {
-      method: 'DELETE'
-    });
-  } catch (err) {
-    console.warn("Error deleting on server:", err);
+  if (supabaseClient) {
+    try {
+      await supabaseClient
+        .from('akmov_users_permissions')
+        .delete()
+        .eq('email', email);
+    } catch (err) {
+      console.warn("Error deleting in Supabase:", err);
+    }
   }
 
   registeredUsers = registeredUsers.filter(u => u.email.toLowerCase() !== email.toLowerCase());
@@ -916,12 +923,12 @@ document.getElementById('newUserForm')?.addEventListener('submit', async (e) => 
   if (btn) btn.disabled = true;
 
   try {
-    // 1. Intentar registrar en Supabase Auth
     if (supabaseClient) {
       const redirectUrl = window.location.origin.includes('localhost')
         ? 'https://akmovmedia.com/_ctrl_ak9x2.html'
         : `${window.location.origin}${window.location.pathname}`;
 
+      // 1. Crear en Supabase Auth
       const { data, error } = await supabaseClient.auth.signUp({
         email: email,
         password: pass,
@@ -937,26 +944,41 @@ document.getElementById('newUserForm')?.addEventListener('submit', async (e) => 
       if (error) {
         console.warn("Supabase SignUp warning:", error.message);
       }
-    }
 
-    // 2. Persistir en Backend Server API
-    try {
-      await fetch(CONFIG.API_BASE + '/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, role, allowed_tabs })
-      });
-    } catch (apiErr) {
-      console.warn("Could not save to backend API:", apiErr);
+      // 2. Persistir en la tabla Supabase akmov_users_permissions
+      try {
+        await supabaseClient.from('akmov_users_permissions').upsert({
+          email: email,
+          role: role,
+          allowed_tabs: allowed_tabs,
+          created_at: new Date().toISOString()
+        }, { onConflict: 'email' });
+      } catch (dbErr) {
+        console.warn("Supabase upsert error:", dbErr);
+      }
     }
 
     // 3. Actualizar memoria y cache local
-    await fetchRegisteredUsers();
+    const users = getRegisteredUsers();
+    const existingIndex = users.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
+    const newUserObj = {
+      email,
+      role,
+      allowed_tabs,
+      created_at: new Date().toISOString()
+    };
+    if (existingIndex >= 0) {
+      users[existingIndex] = newUserObj;
+    } else {
+      users.push(newUserObj);
+    }
+    registeredUsers = users;
+    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
 
     toast(`Usuario ${email} registrado con éxito (${role.toUpperCase()})`, 'success');
     document.getElementById('newUserForm').reset();
     handleRolePresetChange('locutor');
-    renderUsersTable();
+    await renderUsersTable();
 
   } catch (err) {
     console.error("Error creating user:", err);
