@@ -729,15 +729,35 @@ document.getElementById('btnSaveYoutubeChannels')?.addEventListener('click', asy
 
 // ─── USER ROLES & REGISTRY MANAGEMENT ──────────────────────────
 const USERS_STORAGE_KEY = 'akmov_users_registry';
+let registeredUsers = [];
 
-function getRegisteredUsers() {
+async function fetchRegisteredUsers() {
+  // 1. Try fetching from server backend API
+  try {
+    const res = await fetch(CONFIG.API_BASE + '/api/users');
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        registeredUsers = data;
+        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(data));
+        return registeredUsers;
+      }
+    }
+  } catch (err) {
+    console.warn("Could not fetch users from backend API:", err);
+  }
+
+  // 2. Fallback to localStorage
   try {
     const stored = localStorage.getItem(USERS_STORAGE_KEY);
-    if (stored) return JSON.parse(stored);
+    if (stored) {
+      registeredUsers = JSON.parse(stored);
+      return registeredUsers;
+    }
   } catch (e) {}
-  
-  // Default seeded users
-  const defaults = [
+
+  // 3. Default seed
+  registeredUsers = [
     {
       email: CONFIG.ADMIN_EMAIL,
       role: 'superadmin',
@@ -745,12 +765,24 @@ function getRegisteredUsers() {
       created_at: new Date().toISOString()
     }
   ];
-  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(defaults));
-  return defaults;
+  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(registeredUsers));
+  return registeredUsers;
 }
 
-function saveRegisteredUsers(users) {
-  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+function getRegisteredUsers() {
+  if (registeredUsers && registeredUsers.length > 0) return registeredUsers;
+  try {
+    const stored = localStorage.getItem(USERS_STORAGE_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch (e) {}
+  return [
+    {
+      email: CONFIG.ADMIN_EMAIL,
+      role: 'superadmin',
+      allowed_tabs: ['stream-control', 'overlays', 'pauta', 'vod-config', 'users'],
+      created_at: new Date().toISOString()
+    }
+  ];
 }
 
 window.handleRolePresetChange = function(role) {
@@ -789,11 +821,11 @@ window.handleRolePresetChange = function(role) {
   }
 };
 
-window.renderUsersTable = function() {
+window.renderUsersTable = async function() {
   const tbody = document.getElementById('usersTableBody');
   if (!tbody) return;
 
-  const users = getRegisteredUsers();
+  const users = await fetchRegisteredUsers();
   tbody.innerHTML = '';
 
   const tabLabels = {
@@ -837,11 +869,19 @@ window.renderUsersTable = function() {
   });
 };
 
-window.deleteUser = function(email) {
+window.deleteUser = async function(email) {
   if (!confirm(`¿Estás seguro de eliminar al usuario ${email}?`)) return;
 
-  const users = getRegisteredUsers().filter(u => u.email.toLowerCase() !== email.toLowerCase());
-  saveRegisteredUsers(users);
+  try {
+    await fetch(CONFIG.API_BASE + `/api/users/${encodeURIComponent(email)}`, {
+      method: 'DELETE'
+    });
+  } catch (err) {
+    console.warn("Error deleting on server:", err);
+  }
+
+  registeredUsers = registeredUsers.filter(u => u.email.toLowerCase() !== email.toLowerCase());
+  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(registeredUsers));
   toast(`Usuario ${email} eliminado`, 'info');
   renderUsersTable();
 };
@@ -899,22 +939,19 @@ document.getElementById('newUserForm')?.addEventListener('submit', async (e) => 
       }
     }
 
-    // 2. Guardar en registro local
-    const users = getRegisteredUsers();
-    const existingIndex = users.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
-    const newUserObj = {
-      email,
-      role,
-      allowed_tabs,
-      created_at: new Date().toISOString()
-    };
-
-    if (existingIndex >= 0) {
-      users[existingIndex] = newUserObj;
-    } else {
-      users.push(newUserObj);
+    // 2. Persistir en Backend Server API
+    try {
+      await fetch(CONFIG.API_BASE + '/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, role, allowed_tabs })
+      });
+    } catch (apiErr) {
+      console.warn("Could not save to backend API:", apiErr);
     }
-    saveRegisteredUsers(users);
+
+    // 3. Actualizar memoria y cache local
+    await fetchRegisteredUsers();
 
     toast(`Usuario ${email} registrado con éxito (${role.toUpperCase()})`, 'success');
     document.getElementById('newUserForm').reset();
@@ -946,7 +983,7 @@ async function initPanel() {
   }
 
   if (allowedTabs.includes('users')) {
-    renderUsersTable();
+    await renderUsersTable();
   }
 }
 
