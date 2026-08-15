@@ -509,8 +509,8 @@ tabButtons.forEach(btn => {
     // Dynamically set iframe src to local relative paths (same domain as web server)
     if (targetTab === 'overlays') {
       const overlaysIframe = document.getElementById('overlaysIframe');
-      if (overlaysIframe && !overlaysIframe.src.includes('streamers.html')) {
-        overlaysIframe.src = './streamers.html?auth=true';
+      if (overlaysIframe && !overlaysIframe.src.includes('overlay-akmov/streamer.html')) {
+        overlaysIframe.src = './overlay-akmov/streamer.html';
       }
       sessionStorage.setItem('akmov_panel_session', '1');
     } else if (targetTab === 'pauta') {
