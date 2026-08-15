@@ -696,9 +696,51 @@
       .block-card {
         padding: 14px 12px;
       }
-      .btn {
-        padding: 10px 14px;
-        font-size: 0.8rem;
+    /* ── IFRAME EMBED COMPACT MODE ── */
+    body.in-iframe .topbar {
+      height: 50px;
+      padding: 0 16px;
+      background: rgba(5, 5, 5, 0.95);
+      border-bottom: 1px solid var(--gray-border);
+    }
+    body.in-iframe .topbar-logo {
+      font-size: 1.1rem;
+      letter-spacing: 1.5px;
+    }
+    body.in-iframe .sync-status {
+      display: none;
+    }
+    body.in-iframe .mode-tab,
+    body.in-iframe .btn {
+      padding: 6px 12px;
+      font-size: 0.72rem;
+    }
+    body.in-iframe .view-container {
+      padding: 20px 16px;
+    }
+    @media (max-width: 768px) {
+      body.in-iframe .topbar {
+        height: auto;
+        padding: 8px 10px;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      body.in-iframe .topbar-logo {
+        display: none;
+      }
+      body.in-iframe .topbar-actions {
+        width: 100%;
+        gap: 6px;
+      }
+      body.in-iframe .topbar-actions .mode-tab,
+      body.in-iframe .topbar-actions .btn {
+        flex: 1 1 calc(50% - 4px);
+        padding: 8px 6px;
+        font-size: 0.68rem;
+      }
+      body.in-iframe .view-container {
+        padding: 10px 8px;
       }
     }
   </style>
@@ -879,6 +921,10 @@
   </main>
 
   <script>
+    if (window.self !== window.top) {
+      document.body.classList.add('in-iframe');
+    }
+
     // BroadcastChannel initialized for real-time synchronization between windows/tabs
     const syncChannel = new BroadcastChannel('akmov_pauta_sync');
 
