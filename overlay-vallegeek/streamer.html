@@ -600,10 +600,41 @@
           </div>
         </div>
 
-        <!-- TAB 5: CHAT -->
+        <!-- TAB 5: CHAT & OWNCAST LIVE -->
         <div id="tab-chat" class="tab-content">
+          <!-- Chat Simulation Switch -->
           <div class="control-card">
-            <div class="card-title">🚀 Enviar Mensaje de Prueba al Chat</div>
+            <div class="card-title">🤖 Simulación de Mensajes de Prueba</div>
+            <div class="social-row" style="margin-bottom: 8px;">
+              <label class="toggle-switch">
+                <input type="checkbox" id="cfg-chat-simulation" onchange="toggleChatSimulation(this.checked)">
+                <span class="slider"></span>
+              </label>
+              <span style="font-weight: 700; font-size: 12px; color: #fff;">Generar Mensajes de Prueba Automáticos</span>
+            </div>
+            <div style="font-size: 11px; color: #94a3b8; line-height: 1.4;">
+              Envía mensajes periódicos automáticos con temáticas geek y gaming para previsualizar el chat en tiempo real.
+            </div>
+          </div>
+
+          <!-- Owncast Status Card -->
+          <div class="control-card">
+            <div class="card-title">📡 Conexión Owncast Chat en Vivo</div>
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.5); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 8px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="geek-live-dot"></span>
+                <span style="font-size: 11px; font-weight: 700;">Owncast SSE / Webhook Activo</span>
+              </div>
+              <span style="font-size: 10px; color: var(--accent); font-weight: 800;">EN LÍNEA</span>
+            </div>
+            <div style="font-size: 10.5px; color: #94a3b8;">
+              Los mensajes escritos por los espectadores en el reproductor de Owncast se muestran en pantalla al instante.
+            </div>
+          </div>
+
+          <!-- Manual Message Input -->
+          <div class="control-card">
+            <div class="card-title">🚀 Enviar Mensaje Manual</div>
             <div class="input-group">
               <label class="input-label">Usuario / Emisor</label>
               <input type="text" id="chat-sender-input" class="input-field" value="VALLE GEEK">
@@ -611,7 +642,7 @@
             <div class="input-group">
               <label class="input-label">Mensaje</label>
               <div style="display: flex; gap: 8px;">
-                <input type="text" id="chat-msg-input" class="input-field" style="flex:1;" placeholder="¡Bienvenidos a Valle Geek!">
+                <input type="text" id="chat-msg-input" class="input-field" style="flex:1;" placeholder="Escribe un mensaje de prueba...">
                 <button class="btn-action" onclick="sendTestChatMessage()">Enviar</button>
               </div>
             </div>
@@ -955,6 +986,14 @@
     function resetTimerLive() { window.valleGeekApp.resetTimer(); updatePreviewFrameLive(); }
     function quickSetTimer(mins) { window.valleGeekApp.resetTimer(mins); updatePreviewFrameLive(); }
 
+    function toggleChatSimulation(enabled) {
+      const chatCfg = window.valleGeekApp.config.chat || { enabled: true };
+      chatCfg.simulation = enabled;
+      window.valleGeekApp.saveConfig({ chat: chatCfg });
+      updatePreviewFrameLive();
+      showToast(enabled ? "Simulación de chat activada" : "Simulación de chat desactivada");
+    }
+
     function sendTestChatMessage() {
       const u = document.getElementById('chat-sender-input').value || 'VALLE GEEK';
       const t = document.getElementById('chat-msg-input').value;
@@ -969,6 +1008,10 @@
         const el = document.getElementById(id);
         if (el && document.activeElement !== el) el.value = v !== undefined ? v : def;
       };
+
+      if (cfg.chat && document.getElementById('cfg-chat-simulation')) {
+        document.getElementById('cfg-chat-simulation').checked = !!cfg.chat.simulation;
+      }
 
       setVal('cfg-streamer-name', cfg.streamerName, 'VALLE GEEK');
       setVal('cfg-subtitle', cfg.subtitle, 'CULTURA POP • GAMING • COMUNIDAD');

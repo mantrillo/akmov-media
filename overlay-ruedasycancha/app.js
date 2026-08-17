@@ -41,6 +41,13 @@
       twitch: { enabled: true, handle: 'ruedasycancha' },
       kick: { enabled: false, handle: 'ruedasycancha' }
     },
+    chat: {
+      enabled: true,
+      simulation: false,
+      apiBase: 'https://api.akmovmedia.com',
+      webhookUrl: 'https://api.akmovmedia.com/owncast-webhook',
+      streamUrl: 'https://stream.akmovmedia.com'
+    },
     theme: {
       neonPrimary: '#00b4d8',
       neonSecondary: '#ff6b00'
@@ -58,12 +65,15 @@
       this.initChannel();
       this.initUrlOverrides();
       this.applyThemeToCSS();
+      this.initChatSimulator();
+      this.connectLiveChatSources();
 
       window.addEventListener('storage', (e) => {
         if (e.key === STORAGE_KEY && e.newValue) {
           try {
             this.config = JSON.parse(e.newValue);
             this.applyThemeToCSS();
+            this.initChatSimulator();
             this.notifyListeners();
           } catch (err) {}
         }
@@ -73,6 +83,7 @@
         if (e.data && e.data.type === 'CONFIG_UPDATE' && e.data.config) {
           this.config = { ...this.config, ...e.data.config };
           this.applyThemeToCSS();
+          this.initChatSimulator();
           this.notifyListeners();
         }
       });
@@ -97,6 +108,7 @@
       }
 
       this.applyThemeToCSS();
+      this.initChatSimulator();
       this.notifyListeners();
     }
 
@@ -145,11 +157,124 @@
       });
     }
 
-    sendChatMessage(user, text) {
+    sendChatMessage(user, text, isSimulated = false) {
+      if (!user || !text) return;
+      if (isSimulated && (!this.config?.chat?.enabled || this.config?.chat?.simulation !== true)) {
+        return;
+      }
       if (this.channel) {
-        this.channel.postMessage({ type: 'CHAT_MESSAGE', user, text });
+        this.channel.postMessage({ type: 'CHAT_MESSAGE', user, text, isSimulated });
       }
       this.notifyChatListeners(user, text);
+    }
+
+    initChatSimulator() {
+      if (this.chatSimInterval) {
+        clearInterval(this.chatSimInterval);
+        this.chatSimInterval = null;
+      }
+
+      const sampleUsers = ['Skater_Huasco', 'BMX_Vallenar', 'Rally_Freirina', 'GolazoValle', 'Basket_Alto', 'Tuerca_Atacama', 'PasionDeportiva', 'DeportesHuasco', 'RuedasFan', 'Marcial_Valle'];
+      const sampleMsgs = [
+        '¡Tremendo trucazo en el skatepark de Vallenar! 🛹',
+        '¿A qué hora empieza la final del campeonato?',
+        '¡Aguante Ruedas & Cancha en vivo! ⚽',
+        'Ese salto en BMX estuvo brutal 🔥',
+        'Saludos a todo el equipo desde Huasco Puerto',
+        '¡Gran cobertura del rally regional!',
+        'Se viene partidazo este domingo en la cancha',
+        '¡Excelente transmisión deportiva cabros!'
+      ];
+
+      this.chatSimInterval = setInterval(() => {
+        if (this.config?.chat?.enabled && this.config?.chat?.simulation === true) {
+          const u = sampleUsers[Math.floor(Math.random() * sampleUsers.length)];
+          const m = sampleMsgs[Math.floor(Math.random() * sampleMsgs.length)];
+          this.sendChatMessage(u, m, true);
+        }
+      }, 4200);
+    }
+
+    parseOwncastMessage(data) {
+      if (!data) return null;
+      let username = 'Usuario';
+      let messageText = '';
+
+      if (data.eventData) {
+        if (data.eventData.user) {
+          username = data.eventData.user.displayName || data.eventData.user.name || data.eventData.user.id || 'Usuario';
+        }
+        messageText = data.eventData.body || data.eventData.rawBody || data.eventData.message || '';
+      } else {
+        if (data.user && typeof data.user === 'object') {
+          username = data.user.displayName || data.user.name || 'Usuario';
+        } else if (typeof data.user === 'string') {
+          username = data.user;
+        } else if (data.username) {
+          username = data.username;
+        } else if (data.displayName) {
+          username = data.displayName;
+        }
+        messageText = data.body || data.text || data.message || data.rawBody || '';
+      }
+
+      if (!messageText) return null;
+      const cleanText = messageText.replace(/<[^>]*>?/gm, '').trim();
+      if (!cleanText) return null;
+      return { user: username, text: cleanText };
+    }
+
+    async connectLiveChatSources() {
+      const chatCfg = this.config?.chat;
+      if (!chatCfg || !chatCfg.enabled) return;
+
+      const apiBase = chatCfg.apiBase || 'https://api.akmovmedia.com';
+      const webhookUrl = chatCfg.webhookUrl || `${apiBase}/owncast-webhook`;
+
+      // 1. SSE from API
+      if (typeof EventSource !== 'undefined') {
+        const sseEndpoints = [
+          `${webhookUrl}/events`,
+          `${apiBase}/owncast-webhook/events`,
+          `${apiBase}/alerts/stream`,
+          `${apiBase}/chat/stream`,
+          `${apiBase}/events`
+        ];
+
+        for (const endpoint of sseEndpoints) {
+          try {
+            const es = new EventSource(endpoint);
+            es.onmessage = (event) => {
+              try {
+                const data = JSON.parse(event.data);
+                const parsed = this.parseOwncastMessage(data);
+                if (parsed) {
+                  this.sendChatMessage(parsed.user, parsed.text);
+                }
+              } catch (e) {}
+            };
+            es.onerror = () => { es.close(); };
+            break;
+          } catch (e) {}
+        }
+      }
+
+      // 2. Direct Owncast WebSocket
+      try {
+        if (chatCfg.streamUrl && typeof WebSocket !== 'undefined') {
+          const wsUrl = chatCfg.streamUrl.replace(/^http/, 'ws') + '/ws';
+          const ws = new WebSocket(wsUrl);
+          ws.onmessage = (event) => {
+            try {
+              const data = JSON.parse(event.data);
+              const parsed = this.parseOwncastMessage(data);
+              if (parsed) {
+                this.sendChatMessage(parsed.user, parsed.text);
+              }
+            } catch (e) {}
+          };
+        }
+      } catch (e) {}
     }
 
     applyThemeToCSS() {
