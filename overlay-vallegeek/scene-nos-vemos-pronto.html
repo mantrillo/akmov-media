@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Valle Geek — Nos Vemos Pronto (16:9)</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      width: 1920px;
+      height: 1080px;
+      background: transparent;
+    }
+  </style>
+</head>
+<body class="horizontal-canvas">
+  <div class="vallegeek-bg-layer"></div>
+  <div class="vallegeek-overlay-tint"></div>
+  <canvas id="bg-canvas" class="overlay-canvas-bg"></canvas>
+
+  <div class="geek-frame-16x9"></div>
+
+  <!-- Hero Central de Despedida -->
+  <div style="position: absolute; top: 48%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; text-align: center; z-index: 20; width: 100%;">
+    <div id="streamer-logo" class="vallegeek-hero-logo"></div>
+
+    <div id="status-ending" style="font-family: var(--font-display); font-size: 48px; font-weight: 900; letter-spacing: 6px; color: var(--neon-secondary); margin-top: 18px; text-shadow: 0 0 25px rgba(255, 123, 0, 0.8);">
+      ¡NOS VEMOS PRONTO!
+    </div>
+
+    <div id="streamer-subtitle" style="font-family: var(--font-display); font-size: 22px; font-weight: 700; letter-spacing: 5px; color: #fff; margin-top: 8px;">
+      GRACIAS POR ACOMPAÑARNOS EN VALLE GEEK
+    </div>
+  </div>
+
+  <!-- Chat Inferior Izquierdo -->
+  <div class="geek-chat-box" style="bottom: 50px; left: 60px; width: 440px; height: 240px;">
+    <div class="geek-chat-header">
+      <span class="geek-live-dot"></span>
+      <span>CHAT</span>
+    </div>
+    <div class="geek-chat-list" id="chat-list"></div>
+  </div>
+
+  <!-- Redes Sociales Inferior Derecha -->
+  <div style="position: absolute; bottom: 50px; right: 60px; z-index: 20;" id="social-bar"></div>
+
+  <script src="app.js"></script>
+  <script>
+    window.valleGeekApp.setupStarParticles('bg-canvas');
+
+    const logoEl = document.getElementById('streamer-logo');
+    const statusEndingEl = document.getElementById('status-ending');
+    const subtitleEl = document.getElementById('streamer-subtitle');
+    const socialBarEl = document.getElementById('social-bar');
+    const chatListEl = document.getElementById('chat-list');
+
+    window.valleGeekApp.onChatMessage((user, text) => {
+      if (!chatListEl) return;
+      const msg = document.createElement('div');
+      msg.className = 'geek-chat-msg';
+      msg.innerHTML = `<div class="user">${user}</div><div class="text">${text}</div>`;
+      chatListEl.appendChild(msg);
+
+      while (chatListEl.children.length > 4) {
+        chatListEl.removeChild(chatListEl.firstChild);
+      }
+    });
+
+    window.valleGeekApp.subscribe((cfg) => {
+      window.valleGeekApp.renderHeroLogo(logoEl);
+      if (cfg.statusEnding) statusEndingEl.innerText = cfg.statusEnding;
+      if (cfg.subtitle) subtitleEl.innerText = `GRACIAS POR ACOMPAÑARNOS • ${cfg.subtitle}`;
+      window.valleGeekApp.renderSocialBar(socialBarEl);
+    });
+  </script>
+</body>
+</html>

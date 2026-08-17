@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Valle Geek — Vertical: Ya Comenzamos (9:16)</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      width: 1080px;
+      height: 1920px;
+      background: transparent;
+    }
+  </style>
+</head>
+<body class="vertical-canvas">
+  <div class="vallegeek-bg-layer"></div>
+  <div class="vallegeek-overlay-tint"></div>
+  <canvas id="bg-canvas" class="overlay-canvas-bg"></canvas>
+
+  <div class="v-geek-frame"></div>
+
+  <!-- Header Superior Vertical -->
+  <div class="v-geek-header">
+    <div class="geek-badge">
+      <span class="geek-live-dot"></span>
+      <span>VALLE GEEK LIVE</span>
+    </div>
+  </div>
+
+  <!-- Cinta Ticker Superior -->
+  <div class="geek-ticker-ribbon" style="top: 110px; width: 980px;">
+    <div class="geek-ticker-content" id="ticker-content" style="font-size: 14px;">
+      <span>VALLE GEEK</span>
+      <span>CULTURA POP</span>
+      <span>GAMING</span>
+      <span>VALLENAR • HUASCO • FREIRINA • ALTO DEL CARMEN</span>
+      <span>VALLE GEEK</span>
+      <span>CULTURA POP</span>
+      <span>GAMING</span>
+      <span>VALLENAR • HUASCO • FREIRINA • ALTO DEL CARMEN</span>
+    </div>
+  </div>
+
+  <!-- Hero Central Vertical: Logo + Reloj -->
+  <div class="v-geek-hero">
+    <div id="streamer-logo" class="vallegeek-hero-logo"></div>
+
+    <div id="streamer-subtitle" style="font-family: var(--font-display); font-size: 24px; font-weight: 800; letter-spacing: 5px; color: #fff; margin-top: 20px; text-shadow: 0 0 15px rgba(0, 229, 255, 0.7);">
+      CULTURA POP • GAMING • COMUNIDAD
+    </div>
+
+    <!-- Cuenta Regresiva -->
+    <div class="geek-timer-box" style="margin-top: 30px; padding: 14px 44px;">
+      <span class="geek-timer-label" id="status-text" style="font-size: 16px;">INICIAMOS EN</span>
+      <span class="geek-timer-digits" id="timer-digits" style="font-size: 64px;">05:00</span>
+    </div>
+  </div>
+
+  <!-- Floating Chat Section Vertical -->
+  <div class="v-geek-chat-container">
+    <div class="geek-chat-header">
+      <span class="geek-live-dot"></span>
+      <span>CHAT DE LA COMUNIDAD</span>
+    </div>
+    <div class="geek-chat-list" id="chat-list"></div>
+  </div>
+
+  <!-- Barra de Redes Sociales Inferior -->
+  <div class="v-geek-social-footer" id="social-bar"></div>
+
+  <script src="app.js"></script>
+  <script>
+    window.valleGeekApp.setupStarParticles('bg-canvas');
+
+    const logoEl = document.getElementById('streamer-logo');
+    const subtitleEl = document.getElementById('streamer-subtitle');
+    const statusTextEl = document.getElementById('status-text');
+    const timerDigitsEl = document.getElementById('timer-digits');
+    const tickerContentEl = document.getElementById('ticker-content');
+    const socialBarEl = document.getElementById('social-bar');
+    const chatListEl = document.getElementById('chat-list');
+
+    window.valleGeekApp.onChatMessage((user, text) => {
+      if (!chatListEl) return;
+      const msg = document.createElement('div');
+      msg.className = 'geek-chat-msg';
+      msg.innerHTML = `<div class="user">${user}</div><div class="text">${text}</div>`;
+      chatListEl.appendChild(msg);
+
+      while (chatListEl.children.length > 4) {
+        chatListEl.removeChild(chatListEl.firstChild);
+      }
+    });
+
+    window.valleGeekApp.subscribe((cfg) => {
+      window.valleGeekApp.renderHeroLogo(logoEl);
+      if (cfg.subtitle) subtitleEl.innerText = cfg.subtitle;
+      if (cfg.statusStarting) statusTextEl.innerText = cfg.statusStarting;
+
+      if (cfg.tickerText) {
+        tickerContentEl.innerHTML = `<span>${cfg.tickerText}</span><span>${cfg.tickerText}</span>`;
+      }
+
+      if (cfg.timer) {
+        timerDigitsEl.innerText = window.valleGeekApp.formatTimer(cfg.timer.remainingSeconds);
+      }
+
+      window.valleGeekApp.renderSocialBar(socialBarEl);
+    });
+
+    // Auto-start timer on OBS load
+    function autoStartCountdown() {
+      if (window.valleGeekApp && window.valleGeekApp.config) {
+        if (!window.valleGeekApp.config.timer.isRunning) {
+          window.valleGeekApp.startTimer();
+        }
+      }
+    }
+
+    if (window.obsstudio) {
+      window.addEventListener('obsSourceVisibleChanged', (e) => {
+        if (e.detail && e.detail.visible) autoStartCountdown();
+      });
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) autoStartCountdown();
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(autoStartCountdown, 800);
+    });
+  </script>
+</body>
+</html>

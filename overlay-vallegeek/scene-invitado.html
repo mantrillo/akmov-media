@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Valle Geek — Invitado / Dúo (16:9)</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      width: 1920px;
+      height: 1080px;
+      background: transparent;
+    }
+  </style>
+</head>
+<body class="horizontal-canvas">
+  <div class="vallegeek-bg-layer"></div>
+  <div class="vallegeek-overlay-tint"></div>
+  <canvas id="bg-canvas" class="overlay-canvas-bg"></canvas>
+
+  <div class="geek-frame-16x9"></div>
+
+  <!-- Header Superior -->
+  <div style="position: absolute; top: 35px; left: 80px; right: 80px; display: flex; justify-content: space-between; align-items: center; z-index: 20;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <div id="streamer-logo" class="vallegeek-hero-logo" style="max-height: 60px;"></div>
+      <div class="geek-badge">
+        <span class="geek-live-dot"></span>
+        <span>ENTREVISTA & DÚO</span>
+      </div>
+    </div>
+    <div id="social-bar"></div>
+  </div>
+
+  <!-- Cámara 1: Anfitrión (Izquierda) -->
+  <div class="geek-cam-box cam-duo-1">
+    <div class="geek-cam-tag">
+      <span class="geek-live-dot"></span>
+      <span id="host-name-label">ANFITRIÓN</span>
+    </div>
+  </div>
+
+  <!-- Cámara 2: Invitado (Derecha) -->
+  <div class="geek-cam-box cam-duo-2">
+    <div class="geek-cam-tag orange">
+      <span class="geek-live-dot" style="background:var(--neon-secondary);"></span>
+      <span id="guest-name-label">INVITADO</span>
+    </div>
+  </div>
+
+  <!-- Chat Inferior Centrado -->
+  <div class="geek-chat-box" style="bottom: 45px; left: 50%; transform: translateX(-50%); width: 840px; height: 210px;">
+    <div class="geek-chat-header">
+      <span class="geek-live-dot"></span>
+      <span>CHAT DE LA COMUNIDAD</span>
+    </div>
+    <div class="geek-chat-list" id="chat-list"></div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    window.valleGeekApp.setupStarParticles('bg-canvas');
+
+    const logoEl = document.getElementById('streamer-logo');
+    const hostLabelEl = document.getElementById('host-name-label');
+    const guestLabelEl = document.getElementById('guest-name-label');
+    const socialBarEl = document.getElementById('social-bar');
+    const chatListEl = document.getElementById('chat-list');
+
+    window.valleGeekApp.onChatMessage((user, text) => {
+      if (!chatListEl) return;
+      const msg = document.createElement('div');
+      msg.className = 'geek-chat-msg';
+      msg.innerHTML = `<div class="user">${user}</div><div class="text">${text}</div>`;
+      chatListEl.appendChild(msg);
+
+      while (chatListEl.children.length > 3) {
+        chatListEl.removeChild(chatListEl.firstChild);
+      }
+    });
+
+    window.valleGeekApp.subscribe((cfg) => {
+      window.valleGeekApp.renderHeroLogo(logoEl);
+      hostLabelEl.innerText = cfg.hostName || cfg.streamerName || 'ANFITRIÓN';
+      guestLabelEl.innerText = cfg.guestName || 'INVITADO';
+      window.valleGeekApp.renderSocialBar(socialBarEl);
+    });
+  </script>
+</body>
+</html>
