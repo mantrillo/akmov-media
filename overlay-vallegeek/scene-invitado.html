@@ -80,7 +80,7 @@
     });
 
     window.valleGeekApp.subscribe((cfg) => {
-      window.valleGeekApp.renderHeroLogo(logoEl);
+      window.valleGeekApp.renderHeroLogo(logoEl, { isHeader: true, maxHeight: 60, width: 280 });
       hostLabelEl.innerText = cfg.hostName || cfg.streamerName || 'ANFITRIÓN';
       guestLabelEl.innerText = cfg.guestName || 'INVITADO';
       window.valleGeekApp.renderSocialBar(socialBarEl);

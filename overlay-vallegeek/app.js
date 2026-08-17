@@ -19,10 +19,10 @@
     hostName: 'VALLE GEEK',
     guestName: 'INVITADO',
     logoType: 'image',
-    logoImageUrl: 'assets/logo.png',
+    logoImageUrl: 'assets/logo-horizontal.png',
     logoImageBase64: '',
-    logoImageWidth: 440,
-    logoImageMaxHeight: 380,
+    logoImageWidth: 560,
+    logoImageMaxHeight: 240,
     camTitles: {
       cam1: 'CAM 1 - PRINCIPAL',
       cam2: 'CAM 2 - GAMEPLAY',
@@ -197,30 +197,34 @@
       } : null;
     }
 
-    // Hero Logo Renderer
-    renderHeroLogo(containerEl) {
+    // Hero / Header Logo Renderer
+    renderHeroLogo(containerEl, customOpts = {}) {
       if (!containerEl) return;
       containerEl.innerHTML = '';
 
-      const width = this.config.logoImageWidth || 440;
-      const maxHeight = this.config.logoImageMaxHeight || 380;
-      const imgSrc = this.config.logoImageBase64 || this.config.logoImageUrl || 'assets/logo.png';
+      const isHeader = customOpts.isHeader || containerEl.classList.contains('header-logo') || containerEl.style.maxHeight !== '' || containerEl.closest('.geek-frame-16x9, header, .v-geek-header');
+      const width = customOpts.width || (isHeader ? 300 : (this.config.logoImageWidth || 560));
+      const maxHeight = customOpts.maxHeight || (isHeader ? 60 : (this.config.logoImageMaxHeight || 240));
+      const imgSrc = this.config.logoImageBase64 || this.config.logoImageUrl || 'assets/logo-horizontal.png';
 
       if (this.config.logoType === 'image' && imgSrc) {
         const img = document.createElement('img');
         img.src = imgSrc;
         img.alt = this.config.streamerName || 'Valle Geek';
-        img.style.width = `${width}px`;
-        img.style.maxWidth = '90vw';
+        img.style.maxWidth = `${width}px`;
         img.style.maxHeight = `${maxHeight}px`;
+        img.style.width = 'auto';
         img.style.height = 'auto';
         img.style.objectFit = 'contain';
         img.style.display = 'block';
         img.style.margin = '0 auto';
-        img.style.filter = 'drop-shadow(0 0 25px rgba(0, 229, 255, 0.45)) drop-shadow(0 0 40px rgba(255, 123, 0, 0.3))';
+        img.style.filter = isHeader
+          ? 'drop-shadow(0 0 15px rgba(0, 229, 255, 0.45)) drop-shadow(0 0 25px rgba(255, 123, 0, 0.3))'
+          : 'drop-shadow(0 0 25px rgba(0, 229, 255, 0.45)) drop-shadow(0 0 40px rgba(255, 123, 0, 0.3))';
         containerEl.appendChild(img);
       } else {
-        containerEl.innerHTML = `<span style="font-family: var(--font-display); font-size: 72px; font-weight: 900; color: #fff; letter-spacing: 4px; text-shadow: 0 0 20px var(--neon-primary);">${this.config.streamerName || 'VALLE GEEK'}</span>`;
+        const fontSize = isHeader ? '22px' : '64px';
+        containerEl.innerHTML = `<span style="font-family: var(--font-display); font-size: ${fontSize}; font-weight: 900; color: #fff; letter-spacing: 3px; text-shadow: 0 0 20px var(--neon-primary);">${this.config.streamerName || 'VALLE GEEK'}</span>`;
       }
     }
 

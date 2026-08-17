@@ -94,7 +94,7 @@
     });
 
     window.valleGeekApp.subscribe((cfg) => {
-      window.valleGeekApp.renderHeroLogo(logoEl);
+      window.valleGeekApp.renderHeroLogo(logoEl, { isHeader: true, maxHeight: 60, width: 280 });
       if (cfg.camTitles && cfg.camTitles.cam1) {
         camTitleEl.innerText = cfg.camTitles.cam1;
       }

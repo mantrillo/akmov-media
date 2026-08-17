@@ -433,11 +433,11 @@
 
               <div class="input-group" style="margin-top: 4px;">
                 <label class="input-label">O ingresa URL directa de la imagen</label>
-                <input type="text" id="cfg-logo-url" class="input-field" value="assets/logo.png" placeholder="assets/logo.png" oninput="updateLogoUrl(this.value)">
+                <input type="text" id="cfg-logo-url" class="input-field" value="assets/logo-horizontal.png" placeholder="assets/logo-horizontal.png" oninput="updateLogoUrl(this.value)">
               </div>
 
               <div id="logo-preview-container" style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 6px;">
-                <img id="logo-preview-img" src="assets/logo.png" alt="Preview" style="max-height: 48px; object-fit: contain;">
+                <img id="logo-preview-img" src="assets/logo-horizontal.png" alt="Preview" style="max-height: 48px; object-fit: contain;">
                 <button class="btn-action btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="resetDefaultLogo()">Restaurar Original</button>
               </div>
 
@@ -445,28 +445,28 @@
               <div class="input-group">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                   <label class="input-label" style="margin:0;">Ancho Máximo del Logo</label>
-                  <span id="logo-width-val" style="font-size: 12px; font-weight: 700; color: var(--accent);">440px</span>
+                  <span id="logo-width-val" style="font-size: 12px; font-weight: 700; color: var(--accent);">560px</span>
                 </div>
-                <input type="range" id="cfg-logo-width" min="100" max="1000" step="10" value="440" style="accent-color: var(--accent); cursor: pointer;" oninput="updateLogoWidth(this.value)">
+                <input type="range" id="cfg-logo-width" min="100" max="1000" step="10" value="560" style="accent-color: var(--accent); cursor: pointer;" oninput="updateLogoWidth(this.value)">
               </div>
 
               <!-- Height Slider -->
               <div class="input-group">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                   <label class="input-label" style="margin:0;">Alto Máximo del Logo</label>
-                  <span id="logo-height-val" style="font-size: 12px; font-weight: 700; color: var(--accent);">380px</span>
+                  <span id="logo-height-val" style="font-size: 12px; font-weight: 700; color: var(--accent);">240px</span>
                 </div>
-                <input type="range" id="cfg-logo-height" min="80" max="800" step="10" value="380" style="accent-color: var(--accent); cursor: pointer;" oninput="updateLogoHeight(this.value)">
+                <input type="range" id="cfg-logo-height" min="60" max="600" step="10" value="240" style="accent-color: var(--accent); cursor: pointer;" oninput="updateLogoHeight(this.value)">
               </div>
 
               <!-- Presets -->
               <div class="input-group">
-                <label class="input-label">Presets Rápidos de Tamaño</label>
+                <label class="input-label">Presets Rápidos de Tamaño Horizontal</label>
                 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 4px;">
-                  <button class="quick-time-btn" onclick="quickSetLogoSize(280, 240)">280px</button>
-                  <button class="quick-time-btn" onclick="quickSetLogoSize(440, 380)">440px</button>
-                  <button class="quick-time-btn" onclick="quickSetLogoSize(580, 480)">580px</button>
-                  <button class="quick-time-btn" onclick="quickSetLogoSize(750, 600)">750px</button>
+                  <button class="quick-time-btn" onclick="quickSetLogoSize(380, 160)">380px</button>
+                  <button class="quick-time-btn" onclick="quickSetLogoSize(560, 240)">560px</button>
+                  <button class="quick-time-btn" onclick="quickSetLogoSize(720, 300)">720px</button>
+                  <button class="quick-time-btn" onclick="quickSetLogoSize(900, 380)">900px</button>
                 </div>
               </div>
             </div>
@@ -842,17 +842,19 @@
     }
 
     function resetDefaultLogo() {
-      document.getElementById('logo-preview-img').src = 'assets/logo.png';
+      document.getElementById('logo-preview-img').src = 'assets/logo-horizontal.png';
       document.getElementById('logo-preview-container').style.display = 'flex';
-      document.getElementById('cfg-logo-url').value = 'assets/logo.png';
+      document.getElementById('cfg-logo-url').value = 'assets/logo-horizontal.png';
 
       window.valleGeekApp.saveConfig({
         logoImageBase64: '',
-        logoImageUrl: 'assets/logo.png',
+        logoImageUrl: 'assets/logo-horizontal.png',
+        logoImageWidth: 560,
+        logoImageMaxHeight: 240,
         logoType: 'image'
       });
       updatePreviewFrameLive();
-      showToast("Logo oficial restaurado");
+      showToast("Logo horizontal oficial restaurado");
     }
 
     function updateLogoWidth(val) {
