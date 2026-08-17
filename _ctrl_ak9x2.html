@@ -83,6 +83,7 @@
     <div class="admin-tabs" id="adminTabsNav">
       <button class="tab-btn active" data-tab="stream-control">CONTROL DE EMISIÓN</button>
       <button class="tab-btn" data-tab="overlays">OVERLAYS SUITE</button>
+      <button class="tab-btn" data-tab="overlays-vertical">OVERLAYS VERTICAL (9:16)</button>
       <button class="tab-btn" data-tab="pauta">PAUTA & ESTUDIO</button>
       <button class="tab-btn" data-tab="vod-config">YOUTUBE VOD</button>
       <button class="tab-btn" data-tab="users">USUARIOS & ROLES</button>
@@ -295,6 +296,11 @@
       <iframe src="" class="admin-iframe" id="overlaysIframe" style="width: 100%; height: calc(100vh - 140px); border: none; background: #000;"></iframe>
     </div>
 
+    <!-- TAB: OVERLAYS VERTICAL -->
+    <div class="tab-content" id="tab-overlays-vertical">
+      <iframe src="" class="admin-iframe" id="overlaysVerticalIframe" style="width: 100%; height: calc(100vh - 140px); border: none; background: #000;"></iframe>
+    </div>
+
     <!-- TAB: PAUTA -->
     <div class="tab-content" id="tab-pauta">
       <iframe src="" class="admin-iframe" id="pautaIframe" style="width: 100%; height: calc(100vh - 140px); border: none; background: #000;"></iframe>
@@ -384,6 +390,10 @@
                   <label class="perm-checkbox-item">
                     <input type="checkbox" id="perm-overlays">
                     <span>🎨 Overlays Suite & Escenas</span>
+                  </label>
+                  <label class="perm-checkbox-item">
+                    <input type="checkbox" id="perm-overlays-vertical" checked>
+                    <span>📱 Overlays Vertical 9:16 (Aitum / TikTok)</span>
                   </label>
                   <label class="perm-checkbox-item">
                     <input type="checkbox" id="perm-pauta" checked>

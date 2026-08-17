@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vertical: Escritorio / Pantalla (9:16)</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      width: 1080px;
+      height: 1920px;
+      background: transparent;
+    }
+  </style>
+</head>
+<body class="vertical-canvas">
+  <div class="v-cyber-frame"></div>
+
+  <!-- Header Superior -->
+  <div class="v-header-branding">
+    <div class="v-live-badge">
+      <span class="live-dot"></span>
+      <span>PANTALLA EN VIVO</span>
+    </div>
+  </div>
+
+  <!-- Marco de Pantalla Central -->
+  <div class="v-cam-box" style="top: 150px; height: 1600px; background: transparent; border: 2px solid var(--border-neon);">
+    <div class="v-cam-label">
+      <span class="live-indicator-dot"></span>
+      <span>CAPTURA DE ESCRITORIO</span>
+    </div>
+  </div>
+
+  <!-- Barra de Redes Sociales Inferior -->
+  <div class="v-social-footer" id="social-bar" style="bottom: 35px;"></div>
+
+  <script src="app.js"></script>
+  <script>
+    window.overlayApp.setupBackground('scene-v-escritorio.html');
+    const socialBarEl = document.getElementById('social-bar');
+
+    window.overlayApp.subscribe((config) => {
+      window.overlayApp.renderSocialBar(socialBarEl);
+    });
+  </script>
+</body>
+</html>

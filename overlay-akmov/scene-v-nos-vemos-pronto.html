@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vertical: Nos Vemos Pronto (9:16)</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      width: 1080px;
+      height: 1920px;
+    }
+  </style>
+</head>
+<body class="vertical-canvas">
+  <div class="scene-solid-bg"></div>
+  <div class="tech-ambient-lines"></div>
+  <div class="tech-radial-glow"></div>
+  <canvas id="bg-canvas" class="overlay-canvas-bg"></canvas>
+
+  <div class="v-cyber-frame"></div>
+
+  <!-- Center Hero Ending Vertical -->
+  <div class="v-center-hero">
+    <div id="status-ending-title" class="streamer-status-title" style="font-size: 72px;">¡NOS VEMOS PRONTO!</div>
+    <div id="ending-streamer-name" class="streamer-subtitle" style="font-size: 24px; letter-spacing: 4px; margin-top: 18px;">GRACIAS POR ACOMPAÑARNOS HOY</div>
+  </div>
+
+  <!-- Floating Chat Section Vertical -->
+  <div class="v-chat-container" style="bottom: 120px; height: 350px;">
+    <div class="v-chat-header">
+      <span class="live-dot" style="width:7px;height:7px;background:var(--neon-primary);border-radius:50%;"></span>
+      <span>CHAT FINAL</span>
+    </div>
+    <div class="v-chat-list" id="frameless-chat-list"></div>
+  </div>
+
+  <!-- Barra de Redes Sociales Inferior -->
+  <div class="v-social-footer" id="social-bar"></div>
+
+  <script src="app.js"></script>
+  <script>
+    window.overlayApp.setupBackground('scene-v-nos-vemos-pronto.html');
+
+    const titleEl = document.getElementById('status-ending-title');
+    const subtitleEl = document.getElementById('ending-streamer-name');
+    const socialBarEl = document.getElementById('social-bar');
+    const framelessChatList = document.getElementById('frameless-chat-list');
+
+    window.overlayApp.onChatMessage((user, text) => {
+      if (!framelessChatList) return;
+      const msg = document.createElement('div');
+      msg.className = 'v-chat-msg';
+      msg.innerHTML = `
+        <div class="user">${user}</div>
+        <div class="text">${text}</div>
+      `;
+      framelessChatList.appendChild(msg);
+
+      while (framelessChatList.children.length > 5) {
+        framelessChatList.removeChild(framelessChatList.firstChild);
+      }
+    });
+
+    function renderGlitchLetters(text) {
+      titleEl.innerHTML = '';
+      const chars = text.split('');
+      chars.forEach((char, index) => {
+        const span = document.createElement('span');
+        if (char === ' ') {
+          span.className = 'glitch-char space';
+          span.innerHTML = '&nbsp;';
+        } else {
+          span.className = 'glitch-char';
+          span.innerText = char;
+        }
+        span.style.animationDelay = `${index * 0.045}s, ${1.5 + Math.random() * 2}s`;
+        titleEl.appendChild(span);
+      });
+    }
+
+    let lastText = '';
+    window.overlayApp.subscribe((config) => {
+      const text = config.statusEnding !== undefined ? config.statusEnding : '¡NOS VEMOS PRONTO!';
+      if (text !== lastText) {
+        lastText = text;
+        renderGlitchLetters(text);
+      }
+      const name = config.streamerName !== undefined ? config.streamerName : 'AKMOVMEDIA';
+      subtitleEl.innerText = name.trim() ? `${name} • GRACIAS POR EL APOYO` : 'GRACIAS POR EL APOYO';
+      window.overlayApp.renderSocialBar(socialBarEl);
+    });
+  </script>
+</body>
+</html>

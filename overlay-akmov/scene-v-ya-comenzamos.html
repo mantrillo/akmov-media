@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vertical: Ya Comenzamos (9:16)</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      width: 1080px;
+      height: 1920px;
+    }
+  </style>
+</head>
+<body class="vertical-canvas">
+  <!-- Ambient & Particle Background -->
+  <div class="scene-solid-bg"></div>
+  <div class="tech-ambient-lines"></div>
+  <div class="tech-radial-glow"></div>
+  <canvas id="bg-canvas" class="overlay-canvas-bg"></canvas>
+
+  <div class="v-cyber-frame"></div>
+
+  <!-- Ticker Ribbon Superior con texto animado infinito -->
+  <div class="ticker-ribbon-wrapper" style="top: 40px;">
+    <div class="ticker-ribbon">
+      <div id="ticker-track" class="ticker-track"></div>
+    </div>
+  </div>
+
+  <!-- Center Hero Branding Vertical -->
+  <div class="v-center-hero">
+    <div id="streamer-logo" class="streamer-logo-text">AKMOV<span class="dot">.</span></div>
+    <div id="streamer-subtitle" class="streamer-subtitle">EN BREVE EN VIVO</div>
+
+    <!-- Live Countdown Timer (Digital 7-Segment Clock) -->
+    <div id="timer-box" class="timer-box">
+      <span class="timer-label">INICIAMOS EN</span>
+      <div class="digital-clock-wrapper">
+        <span class="timer-digits-ghost">88:88</span>
+        <span id="timer-display" class="timer-digits">05:00</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Chat Section Vertical -->
+  <div class="v-chat-container" id="v-chat-container">
+    <div class="v-chat-header">
+      <span class="live-dot" style="width:7px;height:7px;background:var(--neon-primary);border-radius:50%;"></span>
+      <span>CHAT EN VIVO</span>
+    </div>
+    <div class="v-chat-list" id="frameless-chat-list"></div>
+  </div>
+
+  <!-- Barra de Redes Sociales Inferior -->
+  <div class="v-social-footer" id="social-bar"></div>
+
+  <script src="app.js"></script>
+  <script>
+    window.overlayApp.setupBackground('scene-v-ya-comenzamos.html');
+
+    const logoEl = document.getElementById('streamer-logo');
+    const subtitleEl = document.getElementById('streamer-subtitle');
+    const tickerTrackEl = document.getElementById('ticker-track');
+    const socialBarEl = document.getElementById('social-bar');
+    const timerDisplayEl = document.getElementById('timer-display');
+    const framelessChatList = document.getElementById('frameless-chat-list');
+
+    // Chat Appender
+    window.overlayApp.onChatMessage((user, text) => {
+      if (!framelessChatList) return;
+      const msg = document.createElement('div');
+      msg.className = 'v-chat-msg';
+      msg.innerHTML = `
+        <div class="user">${user}</div>
+        <div class="text">${text}</div>
+      `;
+      framelessChatList.appendChild(msg);
+
+      while (framelessChatList.children.length > 5) {
+        framelessChatList.removeChild(framelessChatList.firstChild);
+      }
+    });
+
+    // Timer Display & Subscription
+    window.overlayApp.subscribe((config) => {
+      window.overlayApp.renderHeroLogo(logoEl);
+      const sub = config.statusStarting !== undefined ? config.statusStarting : 'YA COMENZAMOS';
+      subtitleEl.innerText = sub;
+      subtitleEl.style.display = sub.trim() ? 'block' : 'none';
+      
+      window.overlayApp.renderTicker(tickerTrackEl, config.tickerText !== undefined ? config.tickerText : config.statusStarting);
+      window.overlayApp.renderSocialBar(socialBarEl);
+      timerDisplayEl.innerText = window.overlayApp.formatTimer(config.timer.remainingSeconds);
+    });
+
+    // Auto-arranque de cuenta regresiva para OBS / Aitum
+    function autoStartCountdown() {
+      const cfg = window.overlayApp.config;
+      if (!cfg || !cfg.timer) return;
+      if (!cfg.timer.isRunning || cfg.timer.remainingSeconds <= 0) {
+        const duration = cfg.timer.durationMinutes || 5;
+        window.overlayApp.startTimer(duration);
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', autoStartCountdown);
+    } else {
+      autoStartCountdown();
+    }
+
+    window.addEventListener('obsSourceVisibleChanged', (event) => {
+      if (event && event.detail && event.detail.visible) {
+        autoStartCountdown();
+      }
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        autoStartCountdown();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -618,6 +618,12 @@ tabButtons.forEach(btn => {
         overlaysIframe.src = './overlay-akmov/streamer.html';
       }
       sessionStorage.setItem('akmov_panel_session', '1');
+    } else if (targetTab === 'overlays-vertical') {
+      const overlaysVerticalIframe = document.getElementById('overlaysVerticalIframe');
+      if (overlaysVerticalIframe && !overlaysVerticalIframe.src.includes('overlay-akmov/streamer-vertical.html')) {
+        overlaysVerticalIframe.src = './overlay-akmov/streamer-vertical.html';
+      }
+      sessionStorage.setItem('akmov_panel_session', '1');
     } else if (targetTab === 'pauta') {
       const pautaIframe = document.getElementById('pautaIframe');
       if (pautaIframe && !pautaIframe.src.includes('pauta_studio.html')) {
