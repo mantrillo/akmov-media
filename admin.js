@@ -92,10 +92,17 @@ const logoutBtn       = document.getElementById('logoutBtn');
 function applyUserPermissions() {
   const email = sessionStorage.getItem('akmov_user_email') || CONFIG.ADMIN_EMAIL;
   const role = sessionStorage.getItem('akmov_user_role') || 'superadmin';
-  let allowedTabs = ['pauta'];
+  let allowedTabs = ['stream-control', 'overlays', 'overlays-vertical', 'pauta', 'vod-config', 'users'];
   try {
     const raw = sessionStorage.getItem('akmov_user_tabs');
-    if (raw) allowedTabs = JSON.parse(raw);
+    if (raw) {
+      allowedTabs = JSON.parse(raw);
+      // Auto-actualizar sesiones existentes y superadmins para incluir overlays-vertical
+      if ((role === 'superadmin' || email.toLowerCase() === CONFIG.ADMIN_EMAIL.toLowerCase() || allowedTabs.includes('overlays')) && !allowedTabs.includes('overlays-vertical')) {
+        allowedTabs.push('overlays-vertical');
+        sessionStorage.setItem('akmov_user_tabs', JSON.stringify(allowedTabs));
+      }
+    }
   } catch(e) {}
 
   // Update Topbar User Badge
@@ -161,7 +168,7 @@ if (supabaseClient) {
       const regUsers = getRegisteredUsers();
       const cached = regUsers.find(u => u.email.toLowerCase() === userEmail.toLowerCase());
       const userRole = meta.role || (cached ? cached.role : (userEmail.toLowerCase() === CONFIG.ADMIN_EMAIL.toLowerCase() ? 'superadmin' : 'locutor'));
-      const userTabs = meta.allowed_tabs || (cached ? cached.allowed_tabs : (userRole === 'superadmin' ? ['stream-control', 'overlays', 'pauta', 'vod-config', 'users'] : ['pauta']));
+      const userTabs = meta.allowed_tabs || (cached ? cached.allowed_tabs : (userRole === 'superadmin' ? ['stream-control', 'overlays', 'overlays-vertical', 'pauta', 'vod-config', 'users'] : ['pauta']));
 
       sessionStorage.setItem('akmov_admin', 'true');
       sessionStorage.setItem('akmov_user_email', userEmail);
@@ -179,7 +186,7 @@ if (supabaseClient) {
       const regUsers = getRegisteredUsers();
       const cached = regUsers.find(u => u.email.toLowerCase() === userEmail.toLowerCase());
       const userRole = meta.role || (cached ? cached.role : (userEmail.toLowerCase() === CONFIG.ADMIN_EMAIL.toLowerCase() ? 'superadmin' : 'locutor'));
-      const userTabs = meta.allowed_tabs || (cached ? cached.allowed_tabs : (userRole === 'superadmin' ? ['stream-control', 'overlays', 'pauta', 'vod-config', 'users'] : ['pauta']));
+      const userTabs = meta.allowed_tabs || (cached ? cached.allowed_tabs : (userRole === 'superadmin' ? ['stream-control', 'overlays', 'overlays-vertical', 'pauta', 'vod-config', 'users'] : ['pauta']));
 
       sessionStorage.setItem('akmov_admin', 'true');
       sessionStorage.setItem('akmov_user_email', userEmail);
@@ -207,7 +214,7 @@ loginForm.addEventListener('submit', async (e) => {
   let authenticated = false;
   let userEmail = enteredEmail;
   let userRole = 'superadmin';
-  let userTabs = ['stream-control', 'overlays', 'pauta', 'vod-config', 'users'];
+  let userTabs = ['stream-control', 'overlays', 'overlays-vertical', 'pauta', 'vod-config', 'users'];
   let errorMsg = 'Verifica tus credenciales';
 
   if (supabaseClient) {
@@ -226,7 +233,7 @@ loginForm.addEventListener('submit', async (e) => {
         const cached = regUsers.find(u => u.email.toLowerCase() === userEmail.toLowerCase());
 
         userRole = meta.role || (cached ? cached.role : (userEmail.toLowerCase() === CONFIG.ADMIN_EMAIL.toLowerCase() ? 'superadmin' : 'locutor'));
-        userTabs = meta.allowed_tabs || (cached ? cached.allowed_tabs : (userRole === 'superadmin' ? ['stream-control', 'overlays', 'pauta', 'vod-config', 'users'] : ['pauta']));
+        userTabs = meta.allowed_tabs || (cached ? cached.allowed_tabs : (userRole === 'superadmin' ? ['stream-control', 'overlays', 'overlays-vertical', 'pauta', 'vod-config', 'users'] : ['pauta']));
         console.log(`Autenticado con Supabase Auth (${userEmail}) - Rol: ${userRole}`);
       } else if (error) {
         console.warn("Fallo de Supabase Auth, intentando fallback local:", error.message);
@@ -243,7 +250,7 @@ loginForm.addEventListener('submit', async (e) => {
       authenticated = true;
       userEmail = CONFIG.ADMIN_EMAIL;
       userRole = 'superadmin';
-      userTabs = ['stream-control', 'overlays', 'pauta', 'vod-config', 'users'];
+      userTabs = ['stream-control', 'overlays', 'overlays-vertical', 'pauta', 'vod-config', 'users'];
       console.log("Autenticado con fallback local");
     }
   }
@@ -798,6 +805,7 @@ function getRegisteredUsers() {
 window.handleRolePresetChange = function(role) {
   const chkStream = document.getElementById('perm-stream-control');
   const chkOverlays = document.getElementById('perm-overlays');
+  const chkOverlaysV = document.getElementById('perm-overlays-vertical');
   const chkPauta = document.getElementById('perm-pauta');
   const chkVod = document.getElementById('perm-vod-config');
   const chkUsers = document.getElementById('perm-users');
@@ -807,24 +815,28 @@ window.handleRolePresetChange = function(role) {
   if (role === 'locutor') {
     chkStream.checked = false;
     chkOverlays.checked = false;
+    if (chkOverlaysV) chkOverlaysV.checked = false;
     chkPauta.checked = true;
     chkVod.checked = false;
     chkUsers.checked = false;
   } else if (role === 'productor') {
     chkStream.checked = false;
     chkOverlays.checked = true;
+    if (chkOverlaysV) chkOverlaysV.checked = true;
     chkPauta.checked = true;
     chkVod.checked = false;
     chkUsers.checked = false;
   } else if (role === 'operador') {
     chkStream.checked = true;
     chkOverlays.checked = true;
+    if (chkOverlaysV) chkOverlaysV.checked = true;
     chkPauta.checked = true;
     chkVod.checked = false;
     chkUsers.checked = false;
   } else if (role === 'superadmin') {
     chkStream.checked = true;
     chkOverlays.checked = true;
+    if (chkOverlaysV) chkOverlaysV.checked = true;
     chkPauta.checked = true;
     chkVod.checked = true;
     chkUsers.checked = true;
@@ -841,6 +853,7 @@ window.renderUsersTable = async function() {
   const tabLabels = {
     'stream-control': '⚡ Emisión',
     'overlays': '🎨 Overlays',
+    'overlays-vertical': '📱 Overlays 9:16',
     'pauta': '📜 Pauta',
     'vod-config': '📺 VOD',
     'users': '👥 Usuarios'
@@ -908,6 +921,7 @@ document.getElementById('newUserForm')?.addEventListener('submit', async (e) => 
   const allowed_tabs = [];
   if (document.getElementById('perm-stream-control').checked) allowed_tabs.push('stream-control');
   if (document.getElementById('perm-overlays').checked) allowed_tabs.push('overlays');
+  if (document.getElementById('perm-overlays-vertical')?.checked) allowed_tabs.push('overlays-vertical');
   if (document.getElementById('perm-pauta').checked) allowed_tabs.push('pauta');
   if (document.getElementById('perm-vod-config').checked) allowed_tabs.push('vod-config');
   if (document.getElementById('perm-users').checked) allowed_tabs.push('users');
