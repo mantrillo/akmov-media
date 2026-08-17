@@ -83,6 +83,7 @@
       }
     });
 
+    // Timer Display y sincronización
     window.overlayApp.subscribe((config) => {
       // Text / Image Logo updates
       window.overlayApp.renderHeroLogo(logoEl);
@@ -98,6 +99,39 @@
 
       // Timer
       timerDisplayEl.innerText = window.overlayApp.formatTimer(config.timer.remainingSeconds);
+    });
+
+    // Auto-iniciar la cuenta regresiva automáticamente al cargar o activarse en OBS
+    function autoStartCountdown() {
+      const cfg = window.overlayApp.config;
+      if (!cfg || !cfg.timer) return;
+      
+      // Si el temporizador no está corriendo o ya llegó a 0, iniciarlo inmediatamente
+      if (!cfg.timer.isRunning || cfg.timer.remainingSeconds <= 0) {
+        const duration = cfg.timer.durationMinutes || 5;
+        window.overlayApp.startTimer(duration);
+      }
+    }
+
+    // Iniciar inmediatamente cuando el documento esté listo
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', autoStartCountdown);
+    } else {
+      autoStartCountdown();
+    }
+
+    // Evento nativo de OBS Studio cuando la fuente o escena se vuelve visible/activa
+    window.addEventListener('obsSourceVisibleChanged', (event) => {
+      if (event && event.detail && event.detail.visible) {
+        autoStartCountdown();
+      }
+    });
+
+    // Evento de cambio de visibilidad estándar del navegador
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        autoStartCountdown();
+      }
     });
   </script>
 </body>

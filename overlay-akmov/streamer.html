@@ -1024,9 +1024,33 @@
               <button class="btn-action btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="removeUploadedLogo()">Eliminar Logo</button>
             </div>
 
+            <!-- Width Slider -->
             <div class="input-group">
-              <label class="input-label">Tamaño / Ancho del Logo: <span id="logo-width-val">320px</span></label>
-              <input type="range" id="cfg-logo-width" min="140" max="600" step="10" value="320" style="accent-color: var(--accent); cursor: pointer;" oninput="updateLogoWidth(this.value)">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label class="input-label" style="margin: 0;">Ancho Máximo del Logo</label>
+                <span id="logo-width-val" style="font-size: 12px; font-weight: 700; color: var(--accent);">380px</span>
+              </div>
+              <input type="range" id="cfg-logo-width" min="80" max="1000" step="10" value="380" style="accent-color: var(--accent); cursor: pointer;" oninput="updateLogoWidth(this.value)">
+            </div>
+
+            <!-- Height Slider -->
+            <div class="input-group">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label class="input-label" style="margin: 0;">Alto Máximo del Logo</label>
+                <span id="logo-height-val" style="font-size: 12px; font-weight: 700; color: var(--accent);">340px</span>
+              </div>
+              <input type="range" id="cfg-logo-height" min="60" max="800" step="10" value="340" style="accent-color: var(--accent); cursor: pointer;" oninput="updateLogoHeight(this.value)">
+            </div>
+
+            <!-- Quick Size Presets -->
+            <div class="input-group">
+              <label class="input-label">Presets Rápidos de Tamaño</label>
+              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 4px;">
+                <button class="quick-time-btn" onclick="quickSetLogoSize(240, 200)">240px</button>
+                <button class="quick-time-btn" onclick="quickSetLogoSize(380, 320)">380px</button>
+                <button class="quick-time-btn" onclick="quickSetLogoSize(550, 420)">550px</button>
+                <button class="quick-time-btn" onclick="quickSetLogoSize(750, 520)">750px</button>
+              </div>
             </div>
           </div>
         </div>
@@ -1568,10 +1592,24 @@
       reader.onload = function(e) {
         const rawDataUrl = e.target.result;
         
-        // Optimize image with canvas to max 600px dimension for fast loading and portable URL
+        // Vectorial SVG direct preservation
+        if (file.type === 'image/svg+xml' || file.name.toLowerCase().endsWith('.svg')) {
+          document.getElementById('logo-preview-img').src = rawDataUrl;
+          document.getElementById('logo-preview-container').style.display = 'flex';
+
+          window.overlayApp.saveConfig({
+            logoType: 'image',
+            logoImageBase64: rawDataUrl,
+            logoImageUrl: ''
+          });
+          showToast("Logo vectorial SVG cargado con éxito");
+          return;
+        }
+
+        // Optimize image with canvas up to 1600px dimension for ultra crisp display
         const img = new Image();
         img.onload = function() {
-          const maxDim = 600;
+          const maxDim = 1600;
           let w = img.width;
           let h = img.height;
           if (w > maxDim || h > maxDim) {
@@ -1598,7 +1636,7 @@
             logoImageBase64: optimizedBase64,
             logoImageUrl: ''
           });
-          showToast("Logo cargado y optimizado con éxito");
+          showToast("Logo cargado y sincronizado con éxito");
         };
         img.src = rawDataUrl;
       };
@@ -1634,9 +1672,29 @@
     }
 
     function updateLogoWidth(val) {
-      document.getElementById('logo-width-val').innerText = `${val}px`;
+      const v = parseInt(val, 10);
+      document.getElementById('logo-width-val').innerText = `${v}px`;
       window.overlayApp.saveConfig({
-        logoImageWidth: parseInt(val, 10)
+        logoImageWidth: v
+      });
+    }
+
+    function updateLogoHeight(val) {
+      const v = parseInt(val, 10);
+      document.getElementById('logo-height-val').innerText = `${v}px`;
+      window.overlayApp.saveConfig({
+        logoImageMaxHeight: v
+      });
+    }
+
+    function quickSetLogoSize(w, h) {
+      document.getElementById('cfg-logo-width').value = w;
+      document.getElementById('logo-width-val').innerText = `${w}px`;
+      document.getElementById('cfg-logo-height').value = h;
+      document.getElementById('logo-height-val').innerText = `${h}px`;
+      window.overlayApp.saveConfig({
+        logoImageWidth: w,
+        logoImageMaxHeight: h
       });
     }
 
@@ -1739,6 +1797,11 @@
       if (cfg.logoImageWidth && document.activeElement !== document.getElementById('cfg-logo-width')) {
         document.getElementById('cfg-logo-width').value = cfg.logoImageWidth;
         document.getElementById('logo-width-val').innerText = `${cfg.logoImageWidth}px`;
+      }
+
+      if (cfg.logoImageMaxHeight && document.activeElement !== document.getElementById('cfg-logo-height')) {
+        document.getElementById('cfg-logo-height').value = cfg.logoImageMaxHeight;
+        document.getElementById('logo-height-val').innerText = `${cfg.logoImageMaxHeight}px`;
       }
 
       if (cfg.socials) {

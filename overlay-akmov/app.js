@@ -18,7 +18,8 @@ const DEFAULT_CONFIG = {
   logoType: "text", // "text" | "image"
   logoImageBase64: "",
   logoImageUrl: "",
-  logoImageWidth: 320,
+  logoImageWidth: 380,
+  logoImageMaxHeight: 340,
 
   // Scene Specific Names
   hostName: "AKMOVMEDIA",
@@ -176,6 +177,24 @@ class OverlayEngine {
         if (params.has('cam4')) urlConfig.camTitles.cam4 = params.get('cam4');
       }
 
+      if (params.has('timer')) {
+        const m = parseInt(params.get('timer'), 10);
+        if (!isNaN(m) && m > 0) {
+          if (!urlConfig.timer) urlConfig.timer = {};
+          urlConfig.timer.durationMinutes = m;
+          urlConfig.timer.remainingSeconds = m * 60;
+        }
+      }
+
+      if (params.has('minutes')) {
+        const m = parseInt(params.get('minutes'), 10);
+        if (!isNaN(m) && m > 0) {
+          if (!urlConfig.timer) urlConfig.timer = {};
+          urlConfig.timer.durationMinutes = m;
+          urlConfig.timer.remainingSeconds = m * 60;
+        }
+      }
+
       if (params.has('chatsim')) {
         if (!urlConfig.chat) urlConfig.chat = {};
         const cs = params.get('chatsim');
@@ -191,6 +210,7 @@ class OverlayEngine {
       if (params.has('logotype')) urlConfig.logoType = params.get('logotype');
       if (params.has('logourl')) urlConfig.logoImageUrl = params.get('logourl');
       if (params.has('logowidth')) urlConfig.logoImageWidth = parseInt(params.get('logowidth'), 10);
+      if (params.has('logoheight')) urlConfig.logoImageMaxHeight = parseInt(params.get('logoheight'), 10);
 
       return Object.keys(urlConfig).length > 0 ? urlConfig : null;
     } catch (err) {
@@ -217,6 +237,7 @@ class OverlayEngine {
     if (cfg.logoType) base.searchParams.set('logotype', cfg.logoType);
     if (cfg.logoImageUrl) base.searchParams.set('logourl', cfg.logoImageUrl);
     if (cfg.logoImageWidth) base.searchParams.set('logowidth', cfg.logoImageWidth);
+    if (cfg.logoImageMaxHeight) base.searchParams.set('logoheight', cfg.logoImageMaxHeight);
 
     if (cfg.chat) {
       base.searchParams.set('chat', cfg.chat.enabled !== false ? '1' : '0');
@@ -683,8 +704,10 @@ class OverlayEngine {
     if (minutes !== undefined) {
       this.config.timer.durationMinutes = minutes;
       this.config.timer.remainingSeconds = minutes * 60;
+    } else if (!this.config.timer.remainingSeconds || this.config.timer.remainingSeconds <= 0) {
+      this.config.timer.remainingSeconds = (this.config.timer.durationMinutes || 5) * 60;
     }
-    const duration = this.config.timer.remainingSeconds || (this.config.timer.durationMinutes * 60);
+    const duration = this.config.timer.remainingSeconds;
     this.config.timer.targetTimestamp = Date.now() + (duration * 1000);
     this.config.timer.isRunning = true;
     this.saveConfig(this.config);
@@ -725,9 +748,10 @@ class OverlayEngine {
     const logoSrc = config.logoImageBase64 || config.logoImageUrl;
 
     if (config.logoType === 'image' && logoSrc) {
-      const width = config.logoImageWidth || 320;
+      const width = config.logoImageWidth || 380;
+      const maxHeight = config.logoImageMaxHeight || 340;
       containerEl.className = 'streamer-logo-img-wrapper';
-      containerEl.innerHTML = `<img src="${logoSrc}" alt="Logo" class="streamer-logo-img" style="max-width: ${width}px; max-height: 240px; width: 100%; height: auto; object-fit: contain; filter: drop-shadow(0 0 25px rgba(var(--neon-primary-rgb), 0.75)) drop-shadow(0 4px 15px rgba(0, 0, 0, 0.8)); display: block; margin: 0 auto;">`;
+      containerEl.innerHTML = `<img src="${logoSrc}" alt="Logo" class="streamer-logo-img" style="max-width: ${width}px; max-height: ${maxHeight}px; width: auto; height: auto; object-fit: contain; filter: drop-shadow(0 0 25px rgba(var(--neon-primary-rgb), 0.75)) drop-shadow(0 4px 15px rgba(0, 0, 0, 0.8)); display: block; margin: 0 auto;">`;
     } else {
       containerEl.className = 'streamer-logo-text';
       const name = config.streamerName !== undefined ? config.streamerName : "AKMOVMEDIA";
