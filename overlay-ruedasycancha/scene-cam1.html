@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ruedas & Cancha — Cámara 1 (Rótulo)</title>
+  <link rel="stylesheet" href="styles.css">
+  <style> body { width: 1920px; height: 1080px; background: transparent; } </style>
+</head>
+<body class="horizontal-canvas">
+  <div class="sports-cam-tag" style="top: 40px; left: 40px; font-size: 16px; padding: 8px 20px;">
+    <span class="sports-live-dot"></span>
+    <span id="cam-label">CAM 1 - ESTUDIO</span>
+  </div>
+  <script src="app.js"></script>
+  <script>
+    window.ruedasEngine.subscribe((cfg) => {
+      if (cfg.camTitles && cfg.camTitles.cam1) {
+        document.getElementById('cam-label').innerText = cfg.camTitles.cam1;
+      }
+    });
+  </script>
+</body>
+</html>

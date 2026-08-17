@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ruedas & Cancha — Vertical: Nos Vemos Pronto (9:16)</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      width: 1080px;
+      height: 1920px;
+      background: transparent;
+    }
+  </style>
+</head>
+<body class="vertical-canvas">
+  <div class="sports-bg-layer"></div>
+  <div class="sports-overlay-tint"></div>
+
+  <div class="v-sports-frame"></div>
+
+  <!-- Hero Central Vertical -->
+  <div class="v-sports-hero">
+    <div id="streamer-logo" class="sports-hero-logo"></div>
+
+    <div id="status-ending" style="font-family: var(--font-display); font-size: 52px; font-weight: 900; letter-spacing: 5px; color: var(--neon-secondary); margin-top: 24px; text-shadow: 0 0 25px rgba(255, 107, 0, 0.8);">
+      ¡NOS VEMOS EN LA PRÓXIMA FECHA!
+    </div>
+
+    <div id="streamer-subtitle" style="font-family: var(--font-display); font-size: 20px; font-weight: 700; letter-spacing: 4px; color: #fff; margin-top: 10px;">
+      GRACIAS POR ACOMPAÑARNOS EN RUEDAS & CANCHA
+    </div>
+  </div>
+
+  <!-- Chat Flotante Inferior -->
+  <div class="v-sports-chat-container">
+    <div class="sports-chat-header">
+      <span class="sports-live-dot"></span>
+      <span>CHAT</span>
+    </div>
+    <div class="sports-chat-list" id="chat-list"></div>
+  </div>
+
+  <!-- Redes Sociales Inferior -->
+  <div class="v-sports-social-footer" id="social-bar"></div>
+
+  <script src="app.js"></script>
+  <script>
+    const logoEl = document.getElementById('streamer-logo');
+    const statusEndingEl = document.getElementById('status-ending');
+    const subtitleEl = document.getElementById('streamer-subtitle');
+    const socialBarEl = document.getElementById('social-bar');
+    const chatListEl = document.getElementById('chat-list');
+
+    window.ruedasEngine.onChatMessage((user, text) => {
+      if (!chatListEl) return;
+      const msg = document.createElement('div');
+      msg.className = 'sports-chat-msg';
+      msg.innerHTML = `<div class="user">${user}</div><div class="text">${text}</div>`;
+      chatListEl.appendChild(msg);
+
+      while (chatListEl.children.length > 4) {
+        chatListEl.removeChild(chatListEl.firstChild);
+      }
+    });
+
+    window.ruedasEngine.subscribe((cfg) => {
+      window.ruedasEngine.renderHeroLogo(logoEl, { maxHeight: 380, width: 440 });
+      if (cfg.statusEnding) statusEndingEl.innerText = cfg.statusEnding;
+      if (cfg.subtitle) subtitleEl.innerText = `GRACIAS POR ACOMPAÑARNOS • ${cfg.subtitle}`;
+      window.ruedasEngine.renderSocialBar(socialBarEl);
+    });
+  </script>
+</body>
+</html>

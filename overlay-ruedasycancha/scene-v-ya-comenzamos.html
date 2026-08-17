@@ -3,64 +3,70 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ruedas & Cancha — Ya Comenzamos (16:9)</title>
+  <title>Ruedas & Cancha — Vertical: Ya Comenzamos (9:16)</title>
   <link rel="stylesheet" href="styles.css">
   <style>
     body {
-      width: 1920px;
-      height: 1080px;
+      width: 1080px;
+      height: 1920px;
       background: transparent;
     }
   </style>
 </head>
-<body class="horizontal-canvas">
+<body class="vertical-canvas">
   <div class="sports-bg-layer"></div>
   <div class="sports-overlay-tint"></div>
 
-  <div class="sports-frame-16x9"></div>
+  <div class="v-sports-frame"></div>
+
+  <!-- Header Superior Vertical -->
+  <div class="v-sports-header">
+    <div class="sports-badge">
+      <span class="sports-live-dot"></span>
+      <span>RUEDAS & CANCHA LIVE</span>
+    </div>
+  </div>
 
   <!-- Cinta Ticker Superior -->
-  <div class="sports-ticker-ribbon">
-    <div class="sports-ticker-content" id="ticker-content">
+  <div class="sports-ticker-ribbon" style="top: 110px; width: 980px;">
+    <div class="sports-ticker-content" id="ticker-content" style="font-size: 14px;">
       <span>RUEDAS & CANCHA</span>
       <span>DEPORTES URBANOS</span>
-      <span>MOTORES & RALLY</span>
-      <span>FÚTBOL & BASKET</span>
+      <span>SKATE • BMX • FÚTBOL</span>
       <span>VALLENAR • HUASCO • FREIRINA • ALTO DEL CARMEN</span>
       <span>RUEDAS & CANCHA</span>
       <span>DEPORTES URBANOS</span>
-      <span>MOTORES & RALLY</span>
-      <span>FÚTBOL & BASKET</span>
+      <span>SKATE • BMX • FÚTBOL</span>
       <span>VALLENAR • HUASCO • FREIRINA • ALTO DEL CARMEN</span>
     </div>
   </div>
 
-  <!-- Hero Central: Logo Emblema Circular + Subtítulo + Cuenta Regresiva -->
-  <div style="position: absolute; top: 48%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; text-align: center; z-index: 20; width: 100%;">
+  <!-- Hero Central Vertical: Logo Emblema + Reloj -->
+  <div class="v-sports-hero">
     <div id="streamer-logo" class="sports-hero-logo"></div>
 
-    <div id="streamer-subtitle" style="font-family: var(--font-display); font-size: 26px; font-weight: 800; letter-spacing: 6px; color: #fff; margin-top: 14px; text-shadow: 0 0 15px rgba(0, 180, 216, 0.7);">
+    <div id="streamer-subtitle" style="font-family: var(--font-display); font-size: 24px; font-weight: 800; letter-spacing: 5px; color: #fff; margin-top: 20px; text-shadow: 0 0 15px rgba(0, 180, 216, 0.7);">
       DEPORTES URBANOS • MOTORES • VALLE DEL HUASCO
     </div>
 
     <!-- Cuenta Regresiva -->
-    <div class="sports-timer-box">
-      <span class="sports-timer-label" id="status-text">INICIAMOS EN</span>
-      <span class="sports-timer-digits" id="timer-digits">05:00</span>
+    <div class="sports-timer-box" style="margin-top: 30px; padding: 14px 44px;">
+      <span class="sports-timer-label" id="status-text" style="font-size: 16px;">INICIAMOS EN</span>
+      <span class="sports-timer-digits" id="timer-digits" style="font-size: 64px;">05:00</span>
     </div>
   </div>
 
-  <!-- Chat Flotante Inferior Izquierdo -->
-  <div class="sports-chat-box" style="bottom: 50px; left: 60px; width: 440px; height: 260px;">
+  <!-- Floating Chat Section Vertical -->
+  <div class="v-sports-chat-container">
     <div class="sports-chat-header">
       <span class="sports-live-dot"></span>
-      <span>CHAT EN VIVO</span>
+      <span>CHAT DE LA COMUNIDAD</span>
     </div>
     <div class="sports-chat-list" id="chat-list"></div>
   </div>
 
-  <!-- Redes Sociales Inferior Derecha -->
-  <div style="position: absolute; bottom: 50px; right: 60px; z-index: 20;" id="social-bar"></div>
+  <!-- Barra de Redes Sociales Inferior -->
+  <div class="v-sports-social-footer" id="social-bar"></div>
 
   <script src="app.js"></script>
   <script>
@@ -79,7 +85,7 @@
       msg.innerHTML = `<div class="user">${user}</div><div class="text">${text}</div>`;
       chatListEl.appendChild(msg);
 
-      while (chatListEl.children.length > 5) {
+      while (chatListEl.children.length > 4) {
         chatListEl.removeChild(chatListEl.firstChild);
       }
     });

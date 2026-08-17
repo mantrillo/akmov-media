@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ruedas & Cancha — Vertical: Reacción / Jugadas (9:16)</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      width: 1080px;
+      height: 1920px;
+      background: transparent;
+    }
+  </style>
+</head>
+<body class="vertical-canvas">
+  <div class="sports-bg-layer"></div>
+  <div class="sports-overlay-tint"></div>
+
+  <div class="v-sports-frame"></div>
+
+  <!-- Header Superior -->
+  <div class="v-sports-header">
+    <div class="sports-badge orange">
+      <span class="sports-live-dot" style="background:var(--neon-secondary);"></span>
+      <span>JUGADAS & REACCIÓN</span>
+    </div>
+  </div>
+
+  <!-- Facecam Superior -->
+  <div class="v-sports-cam-box top-cam">
+    <div class="sports-cam-tag">
+      <span class="sports-live-dot"></span>
+      <span id="cam-title">COMENTARISTA</span>
+    </div>
+  </div>
+
+  <!-- Captura Partido / Skate Inferior -->
+  <div class="v-sports-cam-box mid-screen">
+    <div class="sports-cam-tag orange">
+      <span class="sports-live-dot" style="background:var(--neon-secondary);"></span>
+      <span>TRANSMISIÓN</span>
+    </div>
+  </div>
+
+  <!-- Chat Flotante Inferior -->
+  <div class="v-sports-chat-container">
+    <div class="sports-chat-header">
+      <span class="sports-live-dot"></span>
+      <span>CHAT</span>
+    </div>
+    <div class="sports-chat-list" id="chat-list"></div>
+  </div>
+
+  <!-- Redes Sociales -->
+  <div class="v-sports-social-footer" id="social-bar"></div>
+
+  <script src="app.js"></script>
+  <script>
+    const camTitleEl = document.getElementById('cam-title');
+    const socialBarEl = document.getElementById('social-bar');
+    const chatListEl = document.getElementById('chat-list');
+
+    window.ruedasEngine.onChatMessage((user, text) => {
+      if (!chatListEl) return;
+      const msg = document.createElement('div');
+      msg.className = 'sports-chat-msg';
+      msg.innerHTML = `<div class="user">${user}</div><div class="text">${text}</div>`;
+      chatListEl.appendChild(msg);
+
+      while (chatListEl.children.length > 4) {
+        chatListEl.removeChild(chatListEl.firstChild);
+      }
+    });
+
+    window.ruedasEngine.subscribe((cfg) => {
+      if (cfg.camTitles && cfg.camTitles.cam1) {
+        camTitleEl.innerText = cfg.camTitles.cam1;
+      }
+      window.ruedasEngine.renderSocialBar(socialBarEl);
+    });
+  </script>
+</body>
+</html>

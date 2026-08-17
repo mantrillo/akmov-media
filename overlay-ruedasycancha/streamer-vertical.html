@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ruedas & Cancha — Panel de Control de Overlays (16:9)</title>
+  <title>Ruedas & Cancha — Panel de Overlays Vertical (9:16)</title>
   <link rel="stylesheet" href="styles.css">
   <style>
     :root {
@@ -29,7 +29,7 @@
     }
 
     .brand-title { font-family: var(--font-display); font-size: 16px; font-weight: 900; letter-spacing: 2px; color: #fff; display: flex; align-items: center; gap: 10px; }
-    .brand-badge { background: rgba(0, 180, 216, 0.15); border: 1px solid var(--accent); color: var(--accent); font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 800; }
+    .brand-badge-v { background: rgba(255, 107, 0, 0.15); border: 1px solid var(--accent-orange); color: var(--accent-orange); font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 800; }
 
     .main-layout { flex: 1; display: grid; grid-template-columns: 500px 1fr; overflow: hidden; }
     .controls-panel { background: var(--panel-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; overflow: hidden; }
@@ -66,9 +66,9 @@
     .scene-select-btn { background: rgba(0, 0, 0, 0.6); border: 1px solid var(--border-color); color: #94a3b8; font-family: var(--font-display); font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 4px; cursor: pointer; transition: all 0.2s; }
     .scene-select-btn.active { background: rgba(0, 180, 216, 0.2); border-color: var(--accent); color: #fff; box-shadow: 0 0 10px rgba(0, 180, 216, 0.3); }
 
-    .preview-viewport-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden; background: radial-gradient(circle at 50% 50%, #101624 0%, #030508 100%); border: 1px solid var(--border-color); border-radius: 8px; }
-    .scaler-box { width: 1920px; height: 1080px; transform-origin: center center; position: absolute; box-shadow: 0 0 40px rgba(0, 0, 0, 0.9); border: 1px solid rgba(0, 180, 216, 0.3); }
-    .preview-iframe { width: 1920px; height: 1080px; border: none; display: block; background: transparent; }
+    .v-preview-viewport-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden; background: radial-gradient(circle at 50% 50%, #101624 0%, #030508 100%); border: 1px solid var(--border-color); border-radius: 8px; }
+    .v-scaler-box { width: 1080px; height: 1920px; transform-origin: center center; position: absolute; box-shadow: 0 0 40px rgba(0, 0, 0, 0.9); border: 1px solid rgba(0, 180, 216, 0.3); }
+    .v-preview-iframe { width: 1080px; height: 1920px; border: none; display: block; background: transparent; }
 
     .logo-mode-switcher { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 12px; }
     .logo-mode-btn { padding: 8px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); color: #8da2c0; font-size: 11px; font-weight: 700; border-radius: 4px; cursor: pointer; }
@@ -90,12 +90,11 @@
   </style>
 </head>
 <body class="streamer-dashboard">
-  <!-- TOP NAV -->
   <header class="top-nav">
     <div class="brand-title">
       <img src="assets/logo-horizontal.png" alt="Ruedas & Cancha" style="height: 30px; object-fit: contain;">
       <span>RUEDAS & CANCHA OVERLAY SUITE</span>
-      <span class="brand-badge">DEPORTES 16:9</span>
+      <span class="brand-badge-v">VERTICAL 9:16</span>
     </div>
 
     <!-- Suite Switcher Menu -->
@@ -109,28 +108,24 @@
     </div>
 
     <div style="display: flex; gap: 10px; align-items: center;">
-      <span style="font-size: 11px; color: #94a3b8;">VALLE DEL HUASCO • <b>1920 x 1080</b></span>
+      <span style="font-size: 11px; color: #94a3b8;">AITUM / TIKTOK LIVE • <b>1080 x 1920</b></span>
       <button class="btn-action" style="padding: 6px 12px; font-size: 11px;" onclick="copyCurrentPreviewUrl()">📋 Copiar URL para OBS</button>
     </div>
   </header>
 
-  <!-- MAIN DUAL GRID -->
   <main class="main-layout">
-    <!-- CONTROLS PANEL (LEFT) -->
     <section class="controls-panel">
-      <!-- Tabs Navigation -->
       <div class="controls-tabs-nav">
-        <button class="tab-btn active" onclick="switchTab('tab-branding')">IDENTIDAD</button>
-        <button class="tab-btn" onclick="switchTab('tab-names')">NOMBRES & CAMS</button>
-        <button class="tab-btn" onclick="switchTab('tab-timer')">TEMPORIZADOR</button>
-        <button class="tab-btn" onclick="switchTab('tab-socials')">REDES</button>
-        <button class="tab-btn" onclick="switchTab('tab-chat')">CHAT</button>
-        <button class="tab-btn" onclick="switchTab('tab-theme')">COLORES</button>
+        <button class="tab-btn active" onclick="switchTab('tab-v-branding')">IDENTIDAD</button>
+        <button class="tab-btn" onclick="switchTab('tab-v-names')">NOMBRES & CAMS</button>
+        <button class="tab-btn" onclick="switchTab('tab-v-timer')">TEMPORIZADOR</button>
+        <button class="tab-btn" onclick="switchTab('tab-v-socials')">REDES</button>
+        <button class="tab-btn" onclick="switchTab('tab-v-chat')">CHAT</button>
+        <button class="tab-btn" onclick="switchTab('tab-v-theme')">COLORES</button>
       </div>
 
       <div class="tab-content-area">
-        <!-- TAB 1: IDENTIDAD & LOGO -->
-        <div id="tab-branding" class="tab-content active">
+        <div id="tab-v-branding" class="tab-content active">
           <div class="control-card">
             <div class="card-title">⚽ Logotipo Oficial Ruedas & Cancha</div>
             
@@ -140,7 +135,6 @@
               <button id="btn-mode-text" class="logo-mode-btn" onclick="setRuedasLogoPreset('text')">Solo Texto</button>
             </div>
 
-            <!-- Mode: IMAGE -->
             <div id="section-logo-image" style="display: flex; flex-direction: column; gap: 10px;">
               <input type="file" id="logo-file-input" accept="image/png, image/jpeg, image/svg+xml, image/webp" style="display: none;" onchange="handleLogoUpload(event)">
               
@@ -158,7 +152,6 @@
                 <button class="btn-action btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="resetDefaultLogo()">Restaurar Original</button>
               </div>
 
-              <!-- Width Slider -->
               <div class="input-group">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                   <label class="input-label" style="margin:0;">Ancho Máximo del Logo</label>
@@ -167,7 +160,6 @@
                 <input type="range" id="cfg-logo-width" min="100" max="1000" step="10" value="540" style="accent-color: var(--accent); cursor: pointer;" oninput="updateLogoWidth(this.value)">
               </div>
 
-              <!-- Height Slider -->
               <div class="input-group">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                   <label class="input-label" style="margin:0;">Alto Máximo del Logo</label>
@@ -176,30 +168,27 @@
                 <input type="range" id="cfg-logo-height" min="60" max="600" step="10" value="220" style="accent-color: var(--accent); cursor: pointer;" oninput="updateLogoHeight(this.value)">
               </div>
 
-              <!-- Presets -->
               <div class="input-group">
                 <label class="input-label">Presets Rápidos de Tamaño</label>
                 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 4px;">
-                  <button class="quick-time-btn" onclick="quickSetLogoSize(380, 160)">380px</button>
+                  <button class="quick-time-btn" onclick="quickSetLogoSize(280, 240)">280px</button>
+                  <button class="quick-time-btn" onclick="quickSetLogoSize(440, 380)">440px</button>
                   <button class="quick-time-btn" onclick="quickSetLogoSize(540, 220)">540px</button>
                   <button class="quick-time-btn" onclick="quickSetLogoSize(720, 300)">720px</button>
-                  <button class="quick-time-btn" onclick="quickSetLogoSize(900, 380)">900px</button>
                 </div>
               </div>
             </div>
 
-            <!-- Mode: TEXT -->
             <div id="section-logo-text" class="input-group" style="display: none;">
               <label class="input-label">Nombre del Canal / Programa</label>
               <input type="text" id="cfg-streamer-name" class="input-field" value="RUEDAS & CANCHA" placeholder="RUEDAS & CANCHA" oninput="updateStreamerName(this.value)">
             </div>
           </div>
 
-          <!-- Scene Texts -->
           <div class="control-card">
             <div class="card-title">📝 Textos de Escenas</div>
             <div class="input-group">
-              <label class="input-label">Texto Ticker Superior (Scroll Infinito)</label>
+              <label class="input-label">Texto Ticker Superior</label>
               <input type="text" id="cfg-ticker-text" class="input-field" value="RUEDAS & CANCHA • SKATE • BMX • FÚTBOL • BASKETBALL • ARTES MARCIALES • VALLENAR • HUASCO • FREIRINA • ALTO DEL CARMEN" oninput="updateTickerText(this.value)">
             </div>
             <div class="input-group">
@@ -217,8 +206,7 @@
           </div>
         </div>
 
-        <!-- TAB 2: NOMBRES DE ESCENAS & CAMS -->
-        <div id="tab-names" class="tab-content">
+        <div id="tab-v-names" class="tab-content">
           <div class="control-card">
             <div class="card-title">👥 Nombres Escena Dúo / Relatores</div>
             <div class="two-col-grid">
@@ -256,8 +244,7 @@
           </div>
         </div>
 
-        <!-- TAB 3: TIMER -->
-        <div id="tab-timer" class="tab-content">
+        <div id="tab-v-timer" class="tab-content">
           <div class="control-card">
             <div class="card-title">⏱️ Cuenta Regresiva de Largada</div>
             <div style="text-align: center; margin: 10px 0;">
@@ -277,8 +264,7 @@
           </div>
         </div>
 
-        <!-- TAB 4: SOCIALS -->
-        <div id="tab-socials" class="tab-content">
+        <div id="tab-v-socials" class="tab-content">
           <div class="control-card">
             <div class="card-title">🌐 Redes Sociales (Barra Inferior)</div>
             
@@ -305,17 +291,10 @@
               <span style="font-size: 11px; font-weight: 700; width: 75px;">Twitch</span>
               <input type="text" id="social-tw-handle" class="input-field" style="flex:1;" value="ruedasycancha" oninput="updateSocials()">
             </div>
-
-            <div class="social-row">
-              <label class="toggle-switch"><input type="checkbox" id="social-kick-toggle" onchange="updateSocials()"><span class="slider"></span></label>
-              <span style="font-size: 11px; font-weight: 700; width: 75px;">Kick</span>
-              <input type="text" id="social-kick-handle" class="input-field" style="flex:1;" value="ruedasycancha" oninput="updateSocials()">
-            </div>
           </div>
         </div>
 
-        <!-- TAB 5: CHAT -->
-        <div id="tab-chat" class="tab-content">
+        <div id="tab-v-chat" class="tab-content">
           <div class="control-card">
             <div class="card-title">🚀 Enviar Mensaje de Prueba al Chat</div>
             <div class="input-group">
@@ -332,8 +311,7 @@
           </div>
         </div>
 
-        <!-- TAB 6: COLORES DEPORTIVOS -->
-        <div id="tab-theme" class="tab-content">
+        <div id="tab-v-theme" class="tab-content">
           <div class="control-card">
             <div class="card-title">⚡ Paleta de Colores de Transmisión</div>
             <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;">
@@ -351,13 +329,12 @@
     <section class="preview-section">
       <div class="preview-toolbar">
         <div class="scene-selector-bar">
-          <button class="scene-select-btn active" onclick="loadPreviewScene('scene-ya-comenzamos.html', this)">⏱️ 1. Inicio</button>
-          <button class="scene-select-btn" onclick="loadPreviewScene('scene-camara-chat.html', this)">📹 2. Cámara + Chat</button>
-          <button class="scene-select-btn" onclick="loadPreviewScene('scene-reaccion.html', this)">⚽ 3. Transmisión</button>
-          <button class="scene-select-btn" onclick="loadPreviewScene('scene-reaccion-dual.html', this)">👥 4. Relatores Dual</button>
-          <button class="scene-select-btn" onclick="loadPreviewScene('scene-invitado.html', this)">🎙️ 5. Entrevista Panel</button>
-          <button class="scene-select-btn" onclick="loadPreviewScene('scene-nos-vemos-pronto.html', this)">👋 6. Despedida</button>
-          <button class="scene-select-btn" onclick="loadPreviewScene('scene-escritorio.html', this)">🖥️ 7. Escritorio</button>
+          <button class="scene-select-btn active" onclick="loadPreviewScene('scene-v-ya-comenzamos.html', this)">⏱️ 1. Inicio</button>
+          <button class="scene-select-btn" onclick="loadPreviewScene('scene-v-camara-chat.html', this)">📹 2. Cámara + Chat</button>
+          <button class="scene-select-btn" onclick="loadPreviewScene('scene-v-reaccion.html', this)">⚽ 3. Transmisión</button>
+          <button class="scene-select-btn" onclick="loadPreviewScene('scene-v-invitado.html', this)">🎙️ 4. Panel</button>
+          <button class="scene-select-btn" onclick="loadPreviewScene('scene-v-nos-vemos-pronto.html', this)">👋 5. Despedida</button>
+          <button class="scene-select-btn" onclick="loadPreviewScene('scene-v-escritorio.html', this)">🖥️ 6. Escritorio</button>
         </div>
         <div style="display: flex; gap: 8px;">
           <button class="btn-action" style="padding: 6px 12px; font-size: 11px;" onclick="copyCurrentPreviewUrl()">📋 Copiar URL</button>
@@ -365,10 +342,10 @@
         </div>
       </div>
 
-      <!-- AUTO-SCALING 16:9 VIEWPORT -->
-      <div class="preview-viewport-wrapper" id="preview-wrapper">
-        <div class="scaler-box" id="scale-box">
-          <iframe id="preview-frame" class="preview-iframe" src="scene-ya-comenzamos.html"></iframe>
+      <!-- AUTO-SCALING 9:16 VIEWPORT -->
+      <div class="v-preview-viewport-wrapper" id="v-preview-wrapper">
+        <div class="v-scaler-box" id="v-scale-box">
+          <iframe id="preview-frame" class="v-preview-iframe" src="scene-v-ya-comenzamos.html"></iframe>
         </div>
       </div>
     </section>
@@ -386,37 +363,37 @@
       document.getElementById(tabId).classList.add('active');
     }
 
-    function scalePreview() {
-      const wrapper = document.getElementById('preview-wrapper');
-      const scaleBox = document.getElementById('scale-box');
+    function scaleVerticalPreview() {
+      const wrapper = document.getElementById('v-preview-wrapper');
+      const scaleBox = document.getElementById('v-scale-box');
       if (!wrapper || !scaleBox) return;
-      const availW = Math.max(100, wrapper.clientWidth - 24);
-      const availH = Math.max(100, wrapper.clientHeight - 24);
-      const scale = Math.min(availW / 1920, availH / 1080);
-      scaleBox.style.transform = `scale(${scale || 0.45})`;
+      const availW = Math.max(80, wrapper.clientWidth - 24);
+      const availH = Math.max(80, wrapper.clientHeight - 24);
+      const scale = Math.min(availW / 1080, availH / 1920);
+      scaleBox.style.transform = `scale(${scale || 0.32})`;
     }
 
-    window.addEventListener('resize', scalePreview);
-    setTimeout(scalePreview, 60);
+    window.addEventListener('resize', scaleVerticalPreview);
+    setTimeout(scaleVerticalPreview, 60);
 
-    let currentSceneFile = 'scene-ya-comenzamos.html';
+    let currentSceneFile = 'scene-v-ya-comenzamos.html';
     function loadPreviewScene(sceneUrl, btnEl) {
       currentSceneFile = sceneUrl;
       document.querySelectorAll('.scene-select-btn').forEach(b => b.classList.remove('active'));
       if (btnEl) btnEl.classList.add('active');
       document.getElementById('preview-frame').src = sceneUrl;
-      setTimeout(scalePreview, 60);
+      setTimeout(scaleVerticalPreview, 60);
     }
 
     function openFullscreenPreview() {
-      const url = window.ruedasEngine.getExportableUrl(currentSceneFile || 'scene-ya-comenzamos.html');
-      window.open(url, '_blank', 'width=1920,height=1080');
+      const url = window.ruedasEngine.getExportableUrl(currentSceneFile || 'scene-v-ya-comenzamos.html');
+      window.open(url, '_blank', 'width=1080,height=1920');
     }
 
     function copyCurrentPreviewUrl() {
-      const url = window.ruedasEngine.getExportableUrl(currentSceneFile || 'scene-ya-comenzamos.html');
+      const url = window.ruedasEngine.getExportableUrl(currentSceneFile || 'scene-v-ya-comenzamos.html');
       navigator.clipboard.writeText(url).then(() => {
-        showToast("URL Ruedas & Cancha copiada para OBS (1920x1080)");
+        showToast("URL Vertical Ruedas & Cancha copiada para OBS / Aitum (1080x1920)");
       });
     }
 
@@ -565,11 +542,11 @@
 
     function handleSuiteSwitch(suite) {
       if (suite === 'akmov') {
-        window.location.href = '../overlay-akmov/streamer.html';
+        window.location.href = '../overlay-akmov/streamer-vertical.html';
       } else if (suite === 'vallegeek') {
-        window.location.href = '../overlay-vallegeek/streamer.html';
+        window.location.href = '../overlay-vallegeek/streamer-vertical.html';
       } else {
-        window.location.href = './streamer.html';
+        window.location.href = './streamer-vertical.html';
       }
     }
 

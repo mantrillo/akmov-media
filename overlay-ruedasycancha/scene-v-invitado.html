@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ruedas & Cancha — Vertical: Panel / Entrevista (9:16)</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      width: 1080px;
+      height: 1920px;
+      background: transparent;
+    }
+  </style>
+</head>
+<body class="vertical-canvas">
+  <div class="sports-bg-layer"></div>
+  <div class="sports-overlay-tint"></div>
+
+  <div class="v-sports-frame"></div>
+
+  <!-- Header Superior -->
+  <div class="v-sports-header">
+    <div class="sports-badge">
+      <span class="sports-live-dot"></span>
+      <span>PANEL DEPORTIVO</span>
+    </div>
+  </div>
+
+  <!-- Cámara 1: Conductor (Arriba) -->
+  <div class="v-sports-cam-box duo-host">
+    <div class="sports-cam-tag">
+      <span class="sports-live-dot"></span>
+      <span id="host-name-label">CONDUCTOR</span>
+    </div>
+  </div>
+
+  <!-- Cámara 2: Invitado (Abajo) -->
+  <div class="v-sports-cam-box duo-guest">
+    <div class="sports-cam-tag orange">
+      <span class="sports-live-dot" style="background:var(--neon-secondary);"></span>
+      <span id="guest-name-label">INVITADO</span>
+    </div>
+  </div>
+
+  <!-- Chat Flotante Inferior -->
+  <div class="v-sports-chat-container" style="bottom: 95px; height: 230px;">
+    <div class="sports-chat-header">
+      <span class="sports-live-dot"></span>
+      <span>CHAT</span>
+    </div>
+    <div class="sports-chat-list" id="chat-list"></div>
+  </div>
+
+  <!-- Barra de Redes Sociales Inferior -->
+  <div class="v-sports-social-footer" id="social-bar"></div>
+
+  <script src="app.js"></script>
+  <script>
+    const hostLabelEl = document.getElementById('host-name-label');
+    const guestLabelEl = document.getElementById('guest-name-label');
+    const socialBarEl = document.getElementById('social-bar');
+    const chatListEl = document.getElementById('chat-list');
+
+    window.ruedasEngine.onChatMessage((user, text) => {
+      if (!chatListEl) return;
+      const msg = document.createElement('div');
+      msg.className = 'sports-chat-msg';
+      msg.innerHTML = `<div class="user">${user}</div><div class="text">${text}</div>`;
+      chatListEl.appendChild(msg);
+
+      while (chatListEl.children.length > 3) {
+        chatListEl.removeChild(chatListEl.firstChild);
+      }
+    });
+
+    window.ruedasEngine.subscribe((cfg) => {
+      hostLabelEl.innerText = cfg.hostName || cfg.streamerName || 'CONDUCTOR';
+      guestLabelEl.innerText = cfg.guestName || 'INVITADO';
+      window.ruedasEngine.renderSocialBar(socialBarEl);
+    });
+  </script>
+</body>
+</html>
