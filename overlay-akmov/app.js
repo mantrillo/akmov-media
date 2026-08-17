@@ -751,7 +751,7 @@ class OverlayEngine {
       const width = config.logoImageWidth || 380;
       const maxHeight = config.logoImageMaxHeight || 340;
       containerEl.className = 'streamer-logo-img-wrapper';
-      containerEl.innerHTML = `<img src="${logoSrc}" alt="Logo" class="streamer-logo-img" style="max-width: ${width}px; max-height: ${maxHeight}px; width: auto; height: auto; object-fit: contain; filter: drop-shadow(0 0 25px rgba(var(--neon-primary-rgb), 0.75)) drop-shadow(0 4px 15px rgba(0, 0, 0, 0.8)); display: block; margin: 0 auto;">`;
+      containerEl.innerHTML = `<img src="${logoSrc}" alt="Logo" class="streamer-logo-img" style="width: ${width}px; max-width: 90vw; max-height: ${maxHeight}px; height: auto; object-fit: contain; filter: drop-shadow(0 0 25px rgba(var(--neon-primary-rgb), 0.75)) drop-shadow(0 4px 15px rgba(0, 0, 0, 0.8)); display: block; margin: 0 auto;">`;
     } else {
       containerEl.className = 'streamer-logo-text';
       const name = config.streamerName !== undefined ? config.streamerName : "AKMOVMEDIA";

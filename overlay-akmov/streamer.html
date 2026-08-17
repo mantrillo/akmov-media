@@ -1582,6 +1582,7 @@
       }
 
       window.overlayApp.saveConfig({ logoType: mode });
+      updatePreviewFrameLive();
     }
 
     function handleLogoUpload(event) {
@@ -1602,6 +1603,7 @@
             logoImageBase64: rawDataUrl,
             logoImageUrl: ''
           });
+          updatePreviewFrameLive();
           showToast("Logo vectorial SVG cargado con éxito");
           return;
         }
@@ -1636,6 +1638,7 @@
             logoImageBase64: optimizedBase64,
             logoImageUrl: ''
           });
+          updatePreviewFrameLive();
           showToast("Logo cargado y sincronizado con éxito");
         };
         img.src = rawDataUrl;
@@ -1653,6 +1656,7 @@
         logoType: 'image',
         logoImageUrl: cleanUrl
       });
+      updatePreviewFrameLive();
     }
 
     function removeUploadedLogo() {
@@ -1668,7 +1672,28 @@
         logoType: 'text'
       });
       setLogoMode('text');
+      updatePreviewFrameLive();
       showToast("Logo eliminado, usando texto");
+    }
+
+    function updatePreviewFrameLive() {
+      const iframe = document.getElementById('preview-frame');
+      if (iframe && iframe.contentWindow) {
+        try {
+          iframe.contentWindow.postMessage({
+            type: 'CONFIG_UPDATE',
+            config: window.overlayApp.config
+          }, '*');
+
+          const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+          if (iframeDoc) {
+            const logoEl = iframeDoc.getElementById('streamer-logo');
+            if (logoEl && window.overlayApp) {
+              window.overlayApp.renderHeroLogo(logoEl);
+            }
+          }
+        } catch (e) {}
+      }
     }
 
     function updateLogoWidth(val) {
@@ -1677,6 +1702,7 @@
       window.overlayApp.saveConfig({
         logoImageWidth: v
       });
+      updatePreviewFrameLive();
     }
 
     function updateLogoHeight(val) {
@@ -1685,6 +1711,7 @@
       window.overlayApp.saveConfig({
         logoImageMaxHeight: v
       });
+      updatePreviewFrameLive();
     }
 
     function quickSetLogoSize(w, h) {
@@ -1696,6 +1723,7 @@
         logoImageWidth: w,
         logoImageMaxHeight: h
       });
+      updatePreviewFrameLive();
     }
 
     // Bind UI Elements
