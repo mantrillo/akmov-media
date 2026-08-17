@@ -498,8 +498,74 @@
     </div>
   </div>
 
+  <!-- EDIT USER / ROLE MODAL -->
+  <div class="modal-bg hidden" id="editUserModal">
+    <div class="modal-box" style="max-width: 580px;">
+      <h3 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="var(--neon)"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+        <span>EDITAR USUARIO & PERMISOS</span>
+      </h3>
+      <div class="modal-fields">
+        <div class="field-group">
+          <label class="field-label">CORREO ELECTRÓNICO</label>
+          <input type="email" id="editUserEmail" class="field-input" readonly style="opacity: 0.8; cursor: not-allowed; background: rgba(0,0,0,0.4);">
+        </div>
+        <div class="field-row" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 12px;">
+          <div class="field-group">
+            <label class="field-label">ROL ASIGNADO</label>
+            <select id="editUserRole" class="field-input" onchange="handleEditRolePresetChange(this.value)">
+              <option value="locutor">Locutor (Solo Pauta & Estudio)</option>
+              <option value="productor">Productor (Pauta + Overlays)</option>
+              <option value="operador">Operador (Emisión + Pauta)</option>
+              <option value="superadmin">Superadmin (Acceso Total)</option>
+              <option value="custom">Personalizado (Manual)</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">NUEVA CONTRASEÑA (OPCIONAL)</label>
+            <input type="password" id="editUserPass" class="field-input" placeholder="Dejar en blanco para no cambiar">
+          </div>
+        </div>
+        
+        <div>
+          <label class="field-label" style="margin-bottom: 8px; display: block;">PERMISOS Y PESTAÑAS HABILITADAS:</label>
+          <div class="permissions-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <label class="perm-checkbox-item">
+              <input type="checkbox" id="edit-perm-stream-control">
+              <span>⚡ Control de Emisión</span>
+            </label>
+            <label class="perm-checkbox-item">
+              <input type="checkbox" id="edit-perm-overlays">
+              <span>🎨 Overlays Suite</span>
+            </label>
+            <label class="perm-checkbox-item">
+              <input type="checkbox" id="edit-perm-overlays-vertical">
+              <span>📱 Overlays Vertical 9:16</span>
+            </label>
+            <label class="perm-checkbox-item">
+              <input type="checkbox" id="edit-perm-pauta">
+              <span>📜 Pauta & Estudio</span>
+            </label>
+            <label class="perm-checkbox-item">
+              <input type="checkbox" id="edit-perm-vod-config">
+              <span>📺 YouTube VOD</span>
+            </label>
+            <label class="perm-checkbox-item">
+              <input type="checkbox" id="edit-perm-users">
+              <span>👥 Gestión de Usuarios</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions" style="margin-top: 20px;">
+        <button class="modal-cancel" id="cancelEditUser" onclick="closeEditUserModal()">CANCELAR</button>
+        <button class="modal-confirm" id="confirmEditUser" onclick="saveUserEdit()">GUARDAR CAMBIOS</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
-  <script src="admin.js?v=1.6"></script>
+  <script src="admin.js?v=1.7"></script>
 </body>
 </html>

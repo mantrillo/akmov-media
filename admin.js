@@ -880,16 +880,161 @@ window.renderUsersTable = async function() {
       <td>
         <div>${tabsHtml}</div>
       </td>
-      <td style="text-align: right;">
-        ${isCurrentAdmin ? '<span style="color: var(--text-muted); font-size: 0.75rem;">(Principal)</span>' : `
+      <td style="text-align: right; white-space: nowrap;">
+        <button class="action-btn" onclick="openEditUserModal('${user.email}')" style="padding: 4px 10px; font-size: 0.72rem; display: inline-flex; width: auto; background: var(--bg-card); border: 1px solid var(--neon); color: var(--neon); cursor: pointer; margin-right: 6px;">
+          ✏️ EDITAR
+        </button>
+        ${!isCurrentAdmin ? `
           <button class="action-btn btn-stop" onclick="deleteUser('${user.email}')" style="padding: 4px 10px; font-size: 0.72rem; display: inline-flex; width: auto; background: var(--red); color: #fff; cursor: pointer; border: none;">
             ELIMINAR
           </button>
-        `}
+        ` : ''}
       </td>
     `;
     tbody.appendChild(tr);
   });
+};
+
+window.openEditUserModal = function(email) {
+  const users = getRegisteredUsers();
+  let user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+  
+  if (!user && email.toLowerCase() === CONFIG.ADMIN_EMAIL.toLowerCase()) {
+    user = {
+      email: CONFIG.ADMIN_EMAIL,
+      role: 'superadmin',
+      allowed_tabs: ['stream-control', 'overlays', 'overlays-vertical', 'pauta', 'vod-config', 'users']
+    };
+  }
+
+  if (!user) return;
+
+  document.getElementById('editUserEmail').value = user.email;
+  document.getElementById('editUserRole').value = user.role || 'locutor';
+  document.getElementById('editUserPass').value = '';
+
+  const tabs = user.allowed_tabs || [];
+  document.getElementById('edit-perm-stream-control').checked = tabs.includes('stream-control');
+  document.getElementById('edit-perm-overlays').checked = tabs.includes('overlays');
+  document.getElementById('edit-perm-overlays-vertical').checked = tabs.includes('overlays-vertical');
+  document.getElementById('edit-perm-pauta').checked = tabs.includes('pauta');
+  document.getElementById('edit-perm-vod-config').checked = tabs.includes('vod-config');
+  document.getElementById('edit-perm-users').checked = tabs.includes('users');
+
+  document.getElementById('editUserModal').classList.remove('hidden');
+};
+
+window.closeEditUserModal = function() {
+  document.getElementById('editUserModal').classList.add('hidden');
+};
+
+window.handleEditRolePresetChange = function(role) {
+  const chkStream = document.getElementById('edit-perm-stream-control');
+  const chkOverlays = document.getElementById('edit-perm-overlays');
+  const chkOverlaysV = document.getElementById('edit-perm-overlays-vertical');
+  const chkPauta = document.getElementById('edit-perm-pauta');
+  const chkVod = document.getElementById('edit-perm-vod-config');
+  const chkUsers = document.getElementById('edit-perm-users');
+
+  if (!chkStream) return;
+
+  if (role === 'locutor') {
+    chkStream.checked = false;
+    chkOverlays.checked = false;
+    if (chkOverlaysV) chkOverlaysV.checked = false;
+    chkPauta.checked = true;
+    chkVod.checked = false;
+    chkUsers.checked = false;
+  } else if (role === 'productor') {
+    chkStream.checked = false;
+    chkOverlays.checked = true;
+    if (chkOverlaysV) chkOverlaysV.checked = true;
+    chkPauta.checked = true;
+    chkVod.checked = false;
+    chkUsers.checked = false;
+  } else if (role === 'operador') {
+    chkStream.checked = true;
+    chkOverlays.checked = true;
+    if (chkOverlaysV) chkOverlaysV.checked = true;
+    chkPauta.checked = true;
+    chkVod.checked = false;
+    chkUsers.checked = false;
+  } else if (role === 'superadmin') {
+    chkStream.checked = true;
+    chkOverlays.checked = true;
+    if (chkOverlaysV) chkOverlaysV.checked = true;
+    chkPauta.checked = true;
+    chkVod.checked = true;
+    chkUsers.checked = true;
+  }
+};
+
+window.saveUserEdit = async function() {
+  const email = document.getElementById('editUserEmail').value.trim();
+  const role = document.getElementById('editUserRole').value;
+  const newPass = document.getElementById('editUserPass').value.trim();
+
+  const allowed_tabs = [];
+  if (document.getElementById('edit-perm-stream-control').checked) allowed_tabs.push('stream-control');
+  if (document.getElementById('edit-perm-overlays').checked) allowed_tabs.push('overlays');
+  if (document.getElementById('edit-perm-overlays-vertical').checked) allowed_tabs.push('overlays-vertical');
+  if (document.getElementById('edit-perm-pauta').checked) allowed_tabs.push('pauta');
+  if (document.getElementById('edit-perm-vod-config').checked) allowed_tabs.push('vod-config');
+  if (document.getElementById('edit-perm-users').checked) allowed_tabs.push('users');
+
+  if (allowed_tabs.length === 0) {
+    toast('Debes seleccionar al menos una pestaña permitida', 'error');
+    return;
+  }
+
+  // Update in Supabase DB if enabled
+  if (supabaseClient) {
+    try {
+      await supabaseClient
+        .from('akmov_users_permissions')
+        .upsert({
+          email: email,
+          role: role,
+          allowed_tabs: allowed_tabs,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'email' });
+    } catch (err) {
+      console.warn("Supabase upsert permissions note:", err);
+    }
+  }
+
+  // Update in local registry
+  let users = getRegisteredUsers();
+  const idx = users.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
+  if (idx >= 0) {
+    users[idx].role = role;
+    users[idx].allowed_tabs = allowed_tabs;
+    users[idx].updated_at = new Date().toISOString();
+  } else {
+    users.push({
+      email: email,
+      role: role,
+      allowed_tabs: allowed_tabs,
+      created_at: new Date().toISOString()
+    });
+  }
+
+  registeredUsers = users;
+  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+
+  // If the edited user is the current active session user, update permissions immediately in live UI!
+  const currentSessionEmail = sessionStorage.getItem('akmov_user_email') || '';
+  if (currentSessionEmail.toLowerCase() === email.toLowerCase()) {
+    sessionStorage.setItem('akmov_user_role', role);
+    sessionStorage.setItem('akmov_user_tabs', JSON.stringify(allowed_tabs));
+    applyUserPermissions();
+    toast(`Tus permisos y rol (${role.toUpperCase()}) se han actualizado al instante`, 'success');
+  } else {
+    toast(`Usuario ${email} actualizado con éxito (${role.toUpperCase()})`, 'success');
+  }
+
+  closeEditUserModal();
+  await renderUsersTable();
 };
 
 window.deleteUser = async function(email) {
