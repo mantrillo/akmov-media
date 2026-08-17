@@ -381,6 +381,17 @@
       <span>VALLE GEEK OVERLAY SUITE</span>
       <span class="brand-badge-v">VERTICAL 9:16</span>
     </div>
+
+    <!-- Suite Switcher Menu -->
+    <div class="suite-switcher-wrap" style="display: flex; align-items: center; gap: 10px;">
+      <span style="font-size: 11px; font-weight: 800; color: #8da2c0; letter-spacing: 1px; text-transform: uppercase;">SELECCIONAR PROGRAMA:</span>
+      <select id="suiteSelector" class="suite-select-dropdown" style="background: rgba(0,0,0,0.8); border: 1.5px solid var(--accent); color: #fff; font-family: var(--font-display); font-size: 13px; font-weight: 800; letter-spacing: 1px; padding: 6px 14px; border-radius: 6px; cursor: pointer; outline: none; box-shadow: 0 0 12px rgba(0, 229, 255, 0.25);" onchange="handleSuiteSwitch(this.value)">
+        <option value="akmov">⚡ AKMOV MEDIA (General)</option>
+        <option value="vallegeek" selected>🎮 VALLE GEEK (Gaming & Pop)</option>
+        <option value="ruedasycancha">🏎️ RUEDAS Y CANCHA (Deportes & Motores)</option>
+      </select>
+    </div>
+
     <div style="display: flex; gap: 10px; align-items: center;">
       <span style="font-size: 11px; color: #94a3b8;">AITUM / TIKTOK LIVE • <b>1080 x 1920</b></span>
       <button class="btn-action" style="padding: 6px 12px; font-size: 11px;" onclick="copyCurrentPreviewUrl()">📋 Copiar URL para OBS</button>
@@ -1029,6 +1040,16 @@
         }
       }
     });
+
+    function handleSuiteSwitch(suite) {
+      if (suite === 'akmov') {
+        window.location.href = '../overlay-akmov/streamer-vertical.html';
+      } else if (suite === 'ruedasycancha') {
+        window.location.href = '../overlay-ruedasycancha/streamer-vertical.html';
+      } else {
+        window.location.href = './streamer-vertical.html';
+      }
+    }
   </script>
 </body>
 </html>

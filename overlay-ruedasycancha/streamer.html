@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ruedas y Cancha — Panel de Control de Overlays (16:9)</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    :root {
+      --panel-bg: #08090c;
+      --card-bg: #0e1017;
+      --border-color: rgba(255, 0, 60, 0.25);
+      --accent: #ff003c;
+      --accent-yellow: #ffe600;
+    }
+
+    body.streamer-dashboard {
+      background-color: var(--panel-bg);
+      color: #f1f5f9;
+      font-family: var(--font-sans);
+      margin: 0; padding: 0; height: 100vh;
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+
+    .top-nav {
+      height: 56px; background: #0c0e14; border-bottom: 1px solid var(--border-color);
+      display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
+      z-index: 50; flex-shrink: 0;
+    }
+
+    .brand-title { font-family: var(--font-display); font-size: 16px; font-weight: 900; letter-spacing: 2px; color: #fff; display: flex; align-items: center; gap: 10px; }
+    .brand-badge { background: rgba(255, 0, 60, 0.15); border: 1px solid var(--accent); color: var(--accent); font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 800; }
+
+    .main-layout { flex: 1; display: grid; grid-template-columns: 500px 1fr; overflow: hidden; }
+    .controls-panel { background: var(--panel-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; overflow: hidden; }
+    .controls-tabs-nav { display: flex; background: #0c0e14; border-bottom: 1px solid var(--border-color); overflow-x: auto; flex-shrink: 0; }
+
+    .tab-btn {
+      padding: 12px 14px; background: transparent; border: none; color: #8da2c0;
+      font-family: var(--font-display); font-size: 11px; font-weight: 700; letter-spacing: 1px;
+      cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s;
+    }
+    .tab-btn:hover { color: #fff; }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(255, 0, 60, 0.08); }
+
+    .tab-content-area { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+    .tab-content { display: none; flex-direction: column; gap: 14px; }
+    .tab-content.active { display: flex; }
+
+    .control-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px; }
+    .card-title { font-family: var(--font-display); font-size: 12px; font-weight: 800; letter-spacing: 1.5px; color: var(--accent); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; text-transform: uppercase; }
+
+    .input-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+    .input-group:last-child { margin-bottom: 0; }
+    .input-label { font-size: 11px; font-weight: 700; color: #94a3b8; }
+    .input-field { background: rgba(0, 0, 0, 0.6); border: 1px solid var(--border-color); color: #fff; padding: 8px 10px; border-radius: 4px; font-size: 12px; font-family: var(--font-sans); outline: none; transition: border-color 0.2s; }
+    .input-field:focus { border-color: var(--accent); }
+
+    .btn-action { background: var(--accent); color: #fff; font-family: var(--font-display); font-size: 12px; font-weight: 800; letter-spacing: 1px; padding: 8px 16px; border-radius: 4px; border: none; cursor: pointer; transition: all 0.2s; }
+    .btn-action:hover { box-shadow: 0 0 15px var(--accent); transform: translateY(-1px); }
+    .btn-secondary { background: rgba(255, 255, 255, 0.08); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2); }
+
+    .preview-section { background: #04050a; display: flex; flex-direction: column; padding: 16px; overflow: hidden; }
+    .preview-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-shrink: 0; }
+    .scene-selector-bar { display: flex; gap: 6px; flex-wrap: wrap; }
+    .scene-select-btn { background: rgba(0, 0, 0, 0.6); border: 1px solid var(--border-color); color: #94a3b8; font-family: var(--font-display); font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 4px; cursor: pointer; transition: all 0.2s; }
+    .scene-select-btn.active { background: rgba(255, 0, 60, 0.2); border-color: var(--accent); color: #fff; box-shadow: 0 0 10px rgba(255, 0, 60, 0.3); }
+
+    .preview-viewport-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden; background: radial-gradient(circle at 50% 50%, #171b26 0%, #04050a 100%); border: 1px solid var(--border-color); border-radius: 8px; }
+    .scaler-box { width: 1920px; height: 1080px; transform-origin: center center; position: absolute; box-shadow: 0 0 40px rgba(0, 0, 0, 0.9); border: 1px solid rgba(255, 0, 60, 0.3); }
+    .preview-iframe { width: 1920px; height: 1080px; border: none; display: block; background: transparent; }
+
+    .quick-time-btn { background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); color: var(--accent); font-size: 11px; font-weight: 700; padding: 6px; border-radius: 4px; cursor: pointer; transition: all 0.2s; }
+    .quick-time-btn:hover { background: rgba(255, 0, 60, 0.2); }
+    .two-col-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    .toast-notify { position: fixed; bottom: 24px; right: 24px; background: var(--accent); color: #fff; padding: 12px 20px; border-radius: 6px; font-family: var(--font-display); font-weight: 800; font-size: 13px; box-shadow: 0 0 20px var(--accent); opacity: 0; transform: translateY(15px); transition: all 0.3s ease; z-index: 1000; pointer-events: none; }
+    .toast-notify.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body class="streamer-dashboard">
+  <header class="top-nav">
+    <div class="brand-title">
+      <span>🏎️ RUEDAS Y CANCHA</span>
+      <span class="brand-badge">DEPORTES 16:9</span>
+    </div>
+
+    <!-- Suite Switcher Menu -->
+    <div class="suite-switcher-wrap" style="display: flex; align-items: center; gap: 10px;">
+      <span style="font-size: 11px; font-weight: 800; color: #8da2c0; letter-spacing: 1px; text-transform: uppercase;">SELECCIONAR PROGRAMA:</span>
+      <select id="suiteSelector" class="suite-select-dropdown" style="background: rgba(0,0,0,0.8); border: 1.5px solid var(--accent); color: #fff; font-family: var(--font-display); font-size: 13px; font-weight: 800; letter-spacing: 1px; padding: 6px 14px; border-radius: 6px; cursor: pointer; outline: none; box-shadow: 0 0 12px rgba(255, 0, 60, 0.25);" onchange="handleSuiteSwitch(this.value)">
+        <option value="akmov">⚡ AKMOV MEDIA (General)</option>
+        <option value="vallegeek">🎮 VALLE GEEK (Gaming & Pop)</option>
+        <option value="ruedasycancha" selected>🏎️ RUEDAS Y CANCHA (Deportes & Motores)</option>
+      </select>
+    </div>
+
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <span style="font-size: 11px; color: #94a3b8;">VALLE DEL HUASCO • <b>1920 x 1080</b></span>
+      <button class="btn-action" style="padding: 6px 12px; font-size: 11px;" onclick="copyCurrentPreviewUrl()">📋 Copiar URL para OBS</button>
+    </div>
+  </header>
+
+  <main class="main-layout">
+    <section class="controls-panel">
+      <div class="controls-tabs-nav">
+        <button class="tab-btn active" onclick="switchTab('tab-branding')">IDENTIDAD</button>
+        <button class="tab-btn" onclick="switchTab('tab-names')">NOMBRES & CAMS</button>
+        <button class="tab-btn" onclick="switchTab('tab-timer')">TEMPORIZADOR</button>
+      </div>
+
+      <div class="tab-content-area">
+        <div id="tab-branding" class="tab-content active">
+          <div class="control-card">
+            <div class="card-title">🏁 Identidad del Programa</div>
+            <div class="input-group">
+              <label class="input-label">Nombre del Programa</label>
+              <input type="text" id="cfg-streamer-name" class="input-field" value="RUEDAS Y CANCHA" oninput="window.ruedasEngine.saveConfig({streamerName: this.value})">
+            </div>
+            <div class="input-group">
+              <label class="input-label">Subtítulo</label>
+              <input type="text" id="cfg-subtitle" class="input-field" value="DEPORTES • MOTORES • VALLE DEL HUASCO" oninput="window.ruedasEngine.saveConfig({subtitle: this.value})">
+            </div>
+            <div class="input-group">
+              <label class="input-label">Texto Ticker</label>
+              <input type="text" id="cfg-ticker-text" class="input-field" value="RUEDAS Y CANCHA • PASIÓN TUERCA • RALLY • FÚTBOL • VALLENAR • HUASCO • FREIRINA • ALTO DEL CARMEN" oninput="window.ruedasEngine.saveConfig({tickerText: this.value})">
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-names" class="tab-content">
+          <div class="control-card">
+            <div class="card-title">👥 Conductores / Comentaristas</div>
+            <div class="two-col-grid">
+              <div class="input-group">
+                <label class="input-label">Conductor Principal</label>
+                <input type="text" id="cfg-host-name" class="input-field" value="RUEDAS Y CANCHA" oninput="window.ruedasEngine.saveConfig({hostName: this.value})">
+              </div>
+              <div class="input-group">
+                <label class="input-label">Invitado / Comentarista</label>
+                <input type="text" id="cfg-guest-name" class="input-field" value="INVITADO ESPECIAL" oninput="window.ruedasEngine.saveConfig({guestName: this.value})">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-timer" class="tab-content">
+          <div class="control-card">
+            <div class="card-title">⏱️ Cuenta Regresiva de Largada</div>
+            <div style="text-align: center; margin: 10px 0;">
+              <div id="cfg-timer-display" style="font-family: 'JetBrains Mono', monospace; font-size: 48px; font-weight: 900; color: var(--accent); letter-spacing: 4px;">05:00</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
+              <button class="btn-action" onclick="window.ruedasEngine.startTimer()">▶ Iniciar</button>
+              <button class="btn-action btn-secondary" onclick="window.ruedasEngine.pauseTimer()">⏸ Pausar</button>
+              <button class="btn-action btn-secondary" onclick="window.ruedasEngine.resetTimer()">↺ Reset</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="preview-section">
+      <div class="preview-toolbar">
+        <div class="scene-selector-bar">
+          <button class="scene-select-btn active">⏱️ Inicio (Largada)</button>
+        </div>
+        <button class="btn-action" style="padding: 6px 12px; font-size: 11px;" onclick="copyCurrentPreviewUrl()">📋 Copiar URL</button>
+      </div>
+      <div class="preview-viewport-wrapper" id="preview-wrapper">
+        <div class="scaler-box" id="scale-box">
+          <iframe id="preview-frame" class="preview-iframe" src="scene-ya-comenzamos.html"></iframe>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast-notify">Enlace copiado al portapapeles</div>
+
+  <script src="app.js"></script>
+  <script>
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick').includes(tabId));
+      if (activeBtn) activeBtn.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    function scalePreview() {
+      const wrapper = document.getElementById('preview-wrapper');
+      const scaleBox = document.getElementById('scale-box');
+      if (!wrapper || !scaleBox) return;
+      const scale = Math.min((wrapper.clientWidth - 24) / 1920, (wrapper.clientHeight - 24) / 1080);
+      scaleBox.style.transform = `scale(${scale || 0.45})`;
+    }
+    window.addEventListener('resize', scalePreview);
+    setTimeout(scalePreview, 60);
+
+    function copyCurrentPreviewUrl() {
+      const url = window.ruedasEngine.getExportableUrl('scene-ya-comenzamos.html');
+      navigator.clipboard.writeText(url).then(() => {
+        const t = document.getElementById('toast');
+        t.innerText = "URL Ruedas y Cancha copiada para OBS";
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2500);
+      });
+    }
+
+    function handleSuiteSwitch(suite) {
+      if (suite === 'akmov') {
+        window.location.href = '../overlay-akmov/streamer.html';
+      } else if (suite === 'vallegeek') {
+        window.location.href = '../overlay-vallegeek/streamer.html';
+      } else {
+        window.location.href = './streamer.html';
+      }
+    }
+  </script>
+</body>
+</html>
