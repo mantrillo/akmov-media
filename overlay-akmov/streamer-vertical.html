@@ -62,7 +62,7 @@
     .main-layout {
       flex: 1;
       display: grid;
-      grid-template-columns: 460px 1fr;
+      grid-template-columns: 500px 1fr;
       overflow: hidden;
     }
 
@@ -83,7 +83,7 @@
     }
 
     .tab-btn {
-      padding: 10px 14px;
+      padding: 12px 14px;
       background: transparent;
       border: none;
       color: #79a888;
@@ -150,7 +150,7 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
 
     .input-group:last-child {
@@ -270,6 +270,7 @@
       transform-origin: center center;
       position: absolute;
       box-shadow: 0 0 40px rgba(0, 0, 0, 0.9);
+      border: 1px solid rgba(0, 255, 102, 0.3);
     }
 
     .v-preview-iframe {
@@ -314,10 +315,17 @@
       padding: 6px;
       border-radius: 4px;
       cursor: pointer;
+      transition: all 0.2s;
     }
 
     .quick-time-btn:hover {
       background: rgba(0,255,102,0.2);
+    }
+
+    .two-col-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
     }
 
     .social-row {
@@ -396,6 +404,7 @@
       <!-- Tabs Navigation -->
       <div class="controls-tabs-nav">
         <button class="tab-btn active" onclick="switchTab('tab-v-branding')">IDENTIDAD</button>
+        <button class="tab-btn" onclick="switchTab('tab-v-names')">NOMBRES & CAMS</button>
         <button class="tab-btn" onclick="switchTab('tab-v-timer')">TEMPORIZADOR</button>
         <button class="tab-btn" onclick="switchTab('tab-v-socials')">REDES</button>
         <button class="tab-btn" onclick="switchTab('tab-v-chat')">CHAT</button>
@@ -409,8 +418,8 @@
             <div class="card-title">🖼️ Logo del Programa</div>
             
             <div class="logo-mode-switcher">
-              <button id="btn-mode-text" class="logo-mode-btn active" onclick="setLogoMode('text')">Texto</button>
-              <button id="btn-mode-image" class="logo-mode-btn" onclick="setLogoMode('image')">Imagen / Logo</button>
+              <button id="btn-mode-text" class="logo-mode-btn active" onclick="setLogoMode('text')">Logo en Texto</button>
+              <button id="btn-mode-image" class="logo-mode-btn" onclick="setLogoMode('image')">Subir Imagen / Logo</button>
             </div>
 
             <!-- Mode: TEXT -->
@@ -424,30 +433,46 @@
               <input type="file" id="logo-file-input" accept="image/png, image/jpeg, image/svg+xml, image/webp" style="display: none;" onchange="handleLogoUpload(event)">
               
               <button class="btn-action btn-secondary" style="width: 100%; padding: 8px;" onclick="document.getElementById('logo-file-input').click()">
-                📁 Subir Imagen (PNG / SVG / JPG)
+                📁 Subir Imagen (PNG con transparencia / SVG / JPG)
               </button>
 
+              <div class="input-group" style="margin-top: 4px;">
+                <label class="input-label">O ingresa URL directa de la imagen</label>
+                <input type="text" id="cfg-logo-url" class="input-field" placeholder="https://ejemplo.com/logo.png" oninput="updateLogoUrl(this.value)">
+              </div>
+
               <div id="logo-preview-container" style="display: none; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 6px;">
-                <img id="logo-preview-img" src="" alt="Preview" style="max-height: 40px; object-fit: contain;">
-                <button class="btn-action btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="removeUploadedLogo()">Eliminar</button>
+                <img id="logo-preview-img" src="" alt="Preview" style="max-height: 48px; object-fit: contain;">
+                <button class="btn-action btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="removeUploadedLogo()">Eliminar Logo</button>
               </div>
 
               <!-- Width Slider -->
               <div class="input-group">
-                <div style="display: flex; justify-content: space-between;">
-                  <label class="input-label">Ancho del Logo</label>
-                  <span id="logo-width-val" style="font-size: 11px; font-weight: 700; color: var(--accent);">380px</span>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <label class="input-label" style="margin:0;">Ancho Máximo del Logo</label>
+                  <span id="logo-width-val" style="font-size: 12px; font-weight: 700; color: var(--accent);">380px</span>
                 </div>
-                <input type="range" id="cfg-logo-width" min="80" max="1000" step="10" value="380" style="accent-color: var(--accent);" oninput="updateLogoWidth(this.value)">
+                <input type="range" id="cfg-logo-width" min="80" max="1000" step="10" value="380" style="accent-color: var(--accent); cursor: pointer;" oninput="updateLogoWidth(this.value)">
               </div>
 
               <!-- Height Slider -->
               <div class="input-group">
-                <div style="display: flex; justify-content: space-between;">
-                  <label class="input-label">Alto Máximo del Logo</label>
-                  <span id="logo-height-val" style="font-size: 11px; font-weight: 700; color: var(--accent);">340px</span>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <label class="input-label" style="margin:0;">Alto Máximo del Logo</label>
+                  <span id="logo-height-val" style="font-size: 12px; font-weight: 700; color: var(--accent);">340px</span>
                 </div>
-                <input type="range" id="cfg-logo-height" min="60" max="800" step="10" value="340" style="accent-color: var(--accent);" oninput="updateLogoHeight(this.value)">
+                <input type="range" id="cfg-logo-height" min="60" max="800" step="10" value="340" style="accent-color: var(--accent); cursor: pointer;" oninput="updateLogoHeight(this.value)">
+              </div>
+
+              <!-- Presets -->
+              <div class="input-group">
+                <label class="input-label">Presets Rápidos de Tamaño</label>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 4px;">
+                  <button class="quick-time-btn" onclick="quickSetLogoSize(240, 200)">240px</button>
+                  <button class="quick-time-btn" onclick="quickSetLogoSize(380, 320)">380px</button>
+                  <button class="quick-time-btn" onclick="quickSetLogoSize(550, 420)">550px</button>
+                  <button class="quick-time-btn" onclick="quickSetLogoSize(750, 520)">750px</button>
+                </div>
               </div>
             </div>
           </div>
@@ -456,26 +481,69 @@
           <div class="control-card">
             <div class="card-title">📝 Textos de Escenas</div>
             <div class="input-group">
-              <label class="input-label">Subtítulo / Estado</label>
-              <input type="text" id="cfg-subtitle" class="input-field" placeholder="STREAMING & MEDIA" oninput="updateSubtitle(this.value)">
-            </div>
-            <div class="input-group">
-              <label class="input-label">Texto Ticker Superior</label>
+              <label class="input-label">Texto Ticker Superior (Scroll Infinito)</label>
               <input type="text" id="cfg-ticker-text" class="input-field" placeholder="YA COMENZAMOS" oninput="updateTickerText(this.value)">
             </div>
             <div class="input-group">
-              <label class="input-label">Texto Despedida (Nos Vemos Pronto)</label>
+              <label class="input-label">Texto Escena 1 (Ya Comenzamos)</label>
+              <input type="text" id="cfg-status-starting" class="input-field" placeholder="YA COMENZAMOS" oninput="updateStatusStarting(this.value)">
+            </div>
+            <div class="input-group">
+              <label class="input-label">Texto Escena 2 (Nos Vemos Pronto)</label>
               <input type="text" id="cfg-status-ending" class="input-field" placeholder="¡NOS VEMOS PRONTO!" oninput="updateStatusEnding(this.value)">
+            </div>
+            <div class="input-group">
+              <label class="input-label">Subtítulo General</label>
+              <input type="text" id="cfg-subtitle" class="input-field" placeholder="STREAMING & MEDIA" oninput="updateSubtitle(this.value)">
             </div>
           </div>
         </div>
 
-        <!-- TAB 2: TIMER -->
+        <!-- TAB 2: NOMBRES DE ESCENAS & CAMS -->
+        <div id="tab-v-names" class="tab-content">
+          <div class="control-card">
+            <div class="card-title">👥 Nombres Escena Dúo / Invitado</div>
+            <div class="two-col-grid">
+              <div class="input-group">
+                <label class="input-label">Anfitrión (Host)</label>
+                <input type="text" id="cfg-host-name" class="input-field" placeholder="AKMOVMEDIA" oninput="updateHostName(this.value)">
+              </div>
+              <div class="input-group">
+                <label class="input-label">Invitado (Guest)</label>
+                <input type="text" id="cfg-guest-name" class="input-field" placeholder="INVITADO" oninput="updateGuestName(this.value)">
+              </div>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <div class="card-title">📹 Etiquetas de Cámaras (CAM 1 - 4)</div>
+            <div class="two-col-grid">
+              <div class="input-group">
+                <label class="input-label">CAM 1</label>
+                <input type="text" id="cfg-cam1-title" class="input-field" placeholder="CAM 1 - PRINCIPAL" oninput="updateCamTitle('cam1', this.value)">
+              </div>
+              <div class="input-group">
+                <label class="input-label">CAM 2</label>
+                <input type="text" id="cfg-cam2-title" class="input-field" placeholder="CAM 2 - LATERAL" oninput="updateCamTitle('cam2', this.value)">
+              </div>
+              <div class="input-group">
+                <label class="input-label">CAM 3</label>
+                <input type="text" id="cfg-cam3-title" class="input-field" placeholder="CAM 3 - SETUP" oninput="updateCamTitle('cam3', this.value)">
+              </div>
+              <div class="input-group">
+                <label class="input-label">CAM 4</label>
+                <input type="text" id="cfg-cam4-title" class="input-field" placeholder="CAM 4 - AMBIENTE" oninput="updateCamTitle('cam4', this.value)">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: TIMER -->
         <div id="tab-v-timer" class="tab-content">
           <div class="control-card">
             <div class="card-title">⏱️ Control de Cuenta Regresiva</div>
             <div style="text-align: center; margin: 10px 0;">
-              <div id="cfg-timer-display" style="font-family: 'DSEG7 Classic', monospace; font-size: 42px; font-weight: 700; color: var(--accent); text-shadow: 0 0 15px rgba(0, 255, 102, 0.6);">05:00</div>
+              <div id="cfg-timer-display" style="font-family: 'DSEG7 Classic', monospace; font-size: 44px; font-weight: 700; color: var(--accent); text-shadow: 0 0 18px rgba(0, 255, 102, 0.7); letter-spacing: 4px;">05:00</div>
             </div>
             <div style="display: flex; gap: 6px; justify-content: center; margin-bottom: 12px;">
               <button class="quick-time-btn" onclick="quickSetTimer(3)">3 Min</button>
@@ -491,7 +559,7 @@
           </div>
         </div>
 
-        <!-- TAB 3: SOCIALS -->
+        <!-- TAB 4: SOCIALS -->
         <div id="tab-v-socials" class="tab-content">
           <div class="control-card">
             <div class="card-title">🌐 Redes Sociales (Barra Inferior)</div>
@@ -528,13 +596,13 @@
           </div>
         </div>
 
-        <!-- TAB 4: CHAT -->
+        <!-- TAB 5: CHAT -->
         <div id="tab-v-chat" class="tab-content">
           <div class="control-card">
-            <div class="card-title">🚀 Enviar Mensaje de Prueba al Chat</div>
+            <div class="card-title">🚀 Enviar Mensaje en Vivo al Overlay</div>
             <div class="input-group">
-              <label class="input-label">Usuario</label>
-              <input type="text" id="chat-sender-input" class="input-field" value="MODERADOR">
+              <label class="input-label">Usuario / Emisor</label>
+              <input type="text" id="chat-sender-input" class="input-field" value="STREAMER">
             </div>
             <div class="input-group">
               <label class="input-label">Mensaje</label>
@@ -546,10 +614,10 @@
           </div>
         </div>
 
-        <!-- TAB 5: COLORES NEÓN -->
+        <!-- TAB 6: COLORES NEÓN -->
         <div id="tab-v-theme" class="tab-content">
           <div class="control-card">
-            <div class="card-title">⚡ Paleta Neón LED</div>
+            <div class="card-title">⚡ Paleta Neón LED (Cambio Total)</div>
             <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;">
               <button class="quick-time-btn" style="color: #00ff66;" onclick="applyColorPreset('#00ff66')">🟢 Verde</button>
               <button class="quick-time-btn" style="color: #00f0ff;" onclick="applyColorPreset('#00f0ff')">🔵 Cyan</button>
@@ -569,12 +637,12 @@
     <section class="preview-section">
       <div class="preview-toolbar">
         <div class="scene-selector-bar">
-          <button class="scene-select-btn active" onclick="loadPreviewScene('scene-v-ya-comenzamos.html', this)">⏱️ Ya Comenzamos</button>
-          <button class="scene-select-btn" onclick="loadPreviewScene('scene-v-camara-chat.html', this)">📹 Cámara + Chat</button>
-          <button class="scene-select-btn" onclick="loadPreviewScene('scene-v-reaccion.html', this)">🎮 Reacción</button>
-          <button class="scene-select-btn" onclick="loadPreviewScene('scene-v-invitado.html', this)">👥 Dúo Invitado</button>
-          <button class="scene-select-btn" onclick="loadPreviewScene('scene-v-nos-vemos-pronto.html', this)">👋 Nos Vemos Pronto</button>
-          <button class="scene-select-btn" onclick="loadPreviewScene('scene-v-escritorio.html', this)">🖥️ Escritorio</button>
+          <button class="scene-select-btn active" onclick="loadPreviewScene('scene-v-ya-comenzamos.html', this)">⏱️ 1. Ya Comenzamos</button>
+          <button class="scene-select-btn" onclick="loadPreviewScene('scene-v-camara-chat.html', this)">📹 2. Cámara + Chat</button>
+          <button class="scene-select-btn" onclick="loadPreviewScene('scene-v-reaccion.html', this)">🎮 3. Reacción</button>
+          <button class="scene-select-btn" onclick="loadPreviewScene('scene-v-invitado.html', this)">👥 4. Dúo Invitado</button>
+          <button class="scene-select-btn" onclick="loadPreviewScene('scene-v-nos-vemos-pronto.html', this)">👋 5. Nos Vemos Pronto</button>
+          <button class="scene-select-btn" onclick="loadPreviewScene('scene-v-escritorio.html', this)">🖥️ 6. Escritorio</button>
         </div>
         <div style="display: flex; gap: 8px;">
           <button class="btn-action" style="padding: 6px 12px; font-size: 11px;" onclick="copyCurrentPreviewUrl()">📋 Copiar URL</button>
@@ -605,18 +673,19 @@
       document.getElementById(tabId).classList.add('active');
     }
 
-    // Auto-scale 9:16 Vertical Preview Frame
+    // Auto-scale 9:16 Vertical Preview Frame with robust dimensions calculation
     function scaleVerticalPreview() {
       const wrapper = document.getElementById('v-preview-wrapper');
       const scaleBox = document.getElementById('v-scale-box');
       if (!wrapper || !scaleBox) return;
 
-      const availW = wrapper.clientWidth - 20;
-      const availH = wrapper.clientHeight - 20;
+      const availW = Math.max(80, wrapper.clientWidth - 24);
+      const availH = Math.max(80, wrapper.clientHeight - 24);
 
       const scaleW = availW / 1080;
       const scaleH = availH / 1920;
-      const scale = Math.min(scaleW, scaleH);
+      let scale = Math.min(scaleW, scaleH);
+      if (!scale || scale <= 0.02) scale = 0.32;
 
       scaleBox.style.transform = `scale(${scale})`;
     }
@@ -625,7 +694,7 @@
     if (typeof ResizeObserver !== 'undefined') {
       new ResizeObserver(scaleVerticalPreview).observe(document.getElementById('v-preview-wrapper'));
     }
-    setTimeout(scaleVerticalPreview, 50);
+    setTimeout(scaleVerticalPreview, 60);
 
     let currentSceneFile = 'scene-v-ya-comenzamos.html';
     function loadPreviewScene(sceneUrl, btnEl) {
@@ -633,7 +702,7 @@
       document.querySelectorAll('.scene-select-btn').forEach(b => b.classList.remove('active'));
       if (btnEl) btnEl.classList.add('active');
       document.getElementById('preview-frame').src = sceneUrl;
-      setTimeout(scaleVerticalPreview, 50);
+      setTimeout(scaleVerticalPreview, 60);
     }
 
     function openFullscreenPreview() {
@@ -655,7 +724,7 @@
       setTimeout(() => t.classList.remove('show'), 3000);
     }
 
-    // Direct Preview Frame Updater
+    // Direct Live Preview Frame Invalidator
     function updatePreviewFrameLive() {
       const iframe = document.getElementById('preview-frame');
       if (iframe && iframe.contentWindow) {
@@ -676,7 +745,7 @@
       }
     }
 
-    // Logo & Controls Management
+    // Logo & Controls Handlers
     function setLogoMode(mode) {
       const btnText = document.getElementById('btn-mode-text');
       const btnImg = document.getElementById('btn-mode-image');
@@ -758,10 +827,25 @@
       reader.readAsDataURL(file);
     }
 
+    function updateLogoUrl(url) {
+      const cleanUrl = (url || '').trim();
+      if (cleanUrl) {
+        document.getElementById('logo-preview-img').src = cleanUrl;
+        document.getElementById('logo-preview-container').style.display = 'flex';
+      }
+      window.overlayApp.saveConfig({
+        logoType: 'image',
+        logoImageUrl: cleanUrl
+      });
+      updatePreviewFrameLive();
+    }
+
     function removeUploadedLogo() {
       document.getElementById('logo-preview-img').src = '';
       document.getElementById('logo-preview-container').style.display = 'none';
       document.getElementById('logo-file-input').value = '';
+      const urlInput = document.getElementById('cfg-logo-url');
+      if (urlInput) urlInput.value = '';
 
       window.overlayApp.saveConfig({
         logoImageBase64: '',
@@ -787,6 +871,18 @@
       updatePreviewFrameLive();
     }
 
+    function quickSetLogoSize(w, h) {
+      document.getElementById('cfg-logo-width').value = w;
+      document.getElementById('logo-width-val').innerText = `${w}px`;
+      document.getElementById('cfg-logo-height').value = h;
+      document.getElementById('logo-height-val').innerText = `${h}px`;
+      window.overlayApp.saveConfig({
+        logoImageWidth: w,
+        logoImageMaxHeight: h
+      });
+      updatePreviewFrameLive();
+    }
+
     function updateStreamerName(val) {
       window.overlayApp.saveConfig({ streamerName: val });
       updatePreviewFrameLive();
@@ -802,8 +898,30 @@
       updatePreviewFrameLive();
     }
 
+    function updateStatusStarting(val) {
+      window.overlayApp.saveConfig({ statusStarting: val });
+      updatePreviewFrameLive();
+    }
+
     function updateStatusEnding(val) {
       window.overlayApp.saveConfig({ statusEnding: val });
+      updatePreviewFrameLive();
+    }
+
+    function updateHostName(val) {
+      window.overlayApp.saveConfig({ hostName: val });
+      updatePreviewFrameLive();
+    }
+
+    function updateGuestName(val) {
+      window.overlayApp.saveConfig({ guestName: val });
+      updatePreviewFrameLive();
+    }
+
+    function updateCamTitle(camKey, val) {
+      const titles = window.overlayApp.config.camTitles || {};
+      titles[camKey] = val;
+      window.overlayApp.saveConfig({ camTitles: titles });
       updatePreviewFrameLive();
     }
 
@@ -834,26 +952,33 @@
     function quickSetTimer(mins) { window.overlayApp.resetTimer(mins); updatePreviewFrameLive(); }
 
     function sendTestChatMessage() {
-      const u = document.getElementById('chat-sender-input').value || 'USUARIO';
+      const u = document.getElementById('chat-sender-input').value || 'STREAMER';
       const t = document.getElementById('chat-msg-input').value;
       if (!t.trim()) return;
       window.overlayApp.sendChatMessage(u, t);
       document.getElementById('chat-msg-input').value = '';
     }
 
-    // State Sync
+    // State Sync on Load & Updates
     window.overlayApp.subscribe((cfg) => {
-      if (cfg.streamerName && document.activeElement !== document.getElementById('cfg-streamer-name')) {
-        document.getElementById('cfg-streamer-name').value = cfg.streamerName;
-      }
-      if (cfg.subtitle && document.activeElement !== document.getElementById('cfg-subtitle')) {
-        document.getElementById('cfg-subtitle').value = cfg.subtitle;
-      }
-      if (cfg.tickerText && document.activeElement !== document.getElementById('cfg-ticker-text')) {
-        document.getElementById('cfg-ticker-text').value = cfg.tickerText;
-      }
-      if (cfg.statusEnding && document.activeElement !== document.getElementById('cfg-status-ending')) {
-        document.getElementById('cfg-status-ending').value = cfg.statusEnding;
+      const setVal = (id, v, def = '') => {
+        const el = document.getElementById(id);
+        if (el && document.activeElement !== el) el.value = v !== undefined ? v : def;
+      };
+
+      setVal('cfg-streamer-name', cfg.streamerName, 'AKMOVMEDIA');
+      setVal('cfg-subtitle', cfg.subtitle, 'STREAMING & MEDIA');
+      setVal('cfg-ticker-text', cfg.tickerText, 'YA COMENZAMOS');
+      setVal('cfg-status-starting', cfg.statusStarting, 'YA COMENZAMOS');
+      setVal('cfg-status-ending', cfg.statusEnding, '¡NOS VEMOS PRONTO!');
+      setVal('cfg-host-name', cfg.hostName, 'AKMOVMEDIA');
+      setVal('cfg-guest-name', cfg.guestName, 'INVITADO');
+
+      if (cfg.camTitles) {
+        setVal('cfg-cam1-title', cfg.camTitles.cam1, 'CAM 1 - PRINCIPAL');
+        setVal('cfg-cam2-title', cfg.camTitles.cam2, 'CAM 2 - LATERAL');
+        setVal('cfg-cam3-title', cfg.camTitles.cam3, 'CAM 3 - SETUP');
+        setVal('cfg-cam4-title', cfg.camTitles.cam4, 'CAM 4 - AMBIENTE');
       }
 
       if (cfg.logoType === 'image') {
@@ -861,12 +986,25 @@
         document.getElementById('btn-mode-text').classList.remove('active');
         document.getElementById('section-logo-text').style.display = 'none';
         document.getElementById('section-logo-image').style.display = 'flex';
+      } else {
+        document.getElementById('btn-mode-text').classList.add('active');
+        document.getElementById('btn-mode-image').classList.remove('active');
+        document.getElementById('section-logo-image').style.display = 'none';
+        document.getElementById('section-logo-text').style.display = 'flex';
       }
 
       const prev = cfg.logoImageBase64 || cfg.logoImageUrl;
       if (prev) {
         document.getElementById('logo-preview-img').src = prev;
         document.getElementById('logo-preview-container').style.display = 'flex';
+      } else {
+        document.getElementById('logo-preview-container').style.display = 'none';
+      }
+
+      if (cfg.logoImageUrl && document.getElementById('cfg-logo-url')) {
+        if (document.activeElement !== document.getElementById('cfg-logo-url')) {
+          document.getElementById('cfg-logo-url').value = cfg.logoImageUrl;
+        }
       }
 
       if (cfg.logoImageWidth && document.activeElement !== document.getElementById('cfg-logo-width')) {
