@@ -22,8 +22,9 @@
 
   <!-- Center Hero Ending Vertical -->
   <div class="v-center-hero">
-    <div id="status-ending-title" class="streamer-status-title" style="font-size: 72px;">¡NOS VEMOS PRONTO!</div>
-    <div id="ending-streamer-name" class="streamer-subtitle" style="font-size: 24px; letter-spacing: 4px; margin-top: 18px;">GRACIAS POR ACOMPAÑARNOS HOY</div>
+    <div id="streamer-logo" class="streamer-logo-text">AKMOV<span class="dot">.</span></div>
+    <div id="status-ending-title" class="streamer-status-title" style="font-size: 64px; margin-top: 20px;">¡NOS VEMOS PRONTO!</div>
+    <div id="ending-streamer-name" class="streamer-subtitle" style="font-size: 22px; letter-spacing: 4px; margin-top: 14px;">GRACIAS POR ACOMPAÑARNOS HOY</div>
   </div>
 
   <!-- Floating Chat Section Vertical -->
@@ -42,6 +43,7 @@
   <script>
     window.overlayApp.setupBackground('scene-v-nos-vemos-pronto.html');
 
+    const logoEl = document.getElementById('streamer-logo');
     const titleEl = document.getElementById('status-ending-title');
     const subtitleEl = document.getElementById('ending-streamer-name');
     const socialBarEl = document.getElementById('social-bar');
@@ -81,6 +83,7 @@
 
     let lastText = '';
     window.overlayApp.subscribe((config) => {
+      window.overlayApp.renderHeroLogo(logoEl, { isVerticalHero: true, maxHeight: 240, width: 440 });
       const text = config.statusEnding !== undefined ? config.statusEnding : '¡NOS VEMOS PRONTO!';
       if (text !== lastText) {
         lastText = text;

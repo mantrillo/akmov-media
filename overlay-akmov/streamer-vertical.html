@@ -749,7 +749,14 @@
           if (iframeDoc) {
             const logoEl = iframeDoc.getElementById('streamer-logo');
             if (logoEl && window.overlayApp) {
-              window.overlayApp.renderHeroLogo(logoEl);
+              const isHeader = !!(logoEl.closest && (logoEl.closest('.v-header-branding') || logoEl.closest('.top-brand-pattern') || logoEl.closest('.header-branding')));
+              const isHero = !!(logoEl.closest && (logoEl.closest('.v-center-hero') || logoEl.closest('.center-hero')));
+              window.overlayApp.renderHeroLogo(logoEl, {
+                isHeader: isHeader,
+                isVerticalHero: isHero,
+                maxHeight: isHeader ? 75 : 260,
+                width: isHeader ? 320 : 460
+              });
             }
           }
         } catch (e) {}

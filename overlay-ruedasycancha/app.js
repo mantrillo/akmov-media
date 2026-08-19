@@ -291,9 +291,10 @@
       if (!containerEl) return;
       containerEl.innerHTML = '';
 
-      const isHeader = customOpts.isHeader || containerEl.classList.contains('header-logo') || containerEl.style.maxHeight !== '';
-      const width = customOpts.width || (isHeader ? 280 : (this.config.logoImageWidth || 540));
-      const maxHeight = customOpts.maxHeight || (isHeader ? 60 : (this.config.logoImageMaxHeight || 220));
+      const isHeader = customOpts.isHeader || containerEl.classList.contains('header-logo') || containerEl.classList.contains('sports-header-logo') || (containerEl.closest && (containerEl.closest('.v-sports-header') || containerEl.closest('header')));
+      const isVerticalHero = (containerEl.closest && containerEl.closest('.v-sports-hero'));
+      const width = customOpts.width || (isHeader ? 320 : (isVerticalHero ? Math.min(this.config.logoImageWidth || 480, 520) : (this.config.logoImageWidth || 540)));
+      const maxHeight = customOpts.maxHeight || (isHeader ? 75 : (isVerticalHero ? Math.min(this.config.logoImageMaxHeight || 260, 280) : (this.config.logoImageMaxHeight || 220)));
       const imgSrc = this.config.logoImageBase64 || this.config.logoImageUrl || (isHeader ? 'assets/logo-horizontal.png' : 'assets/logo-emblem.png');
 
       if (this.config.logoType === 'image' && imgSrc) {
@@ -312,8 +313,8 @@
           : 'drop-shadow(0 0 25px rgba(0, 180, 216, 0.5)) drop-shadow(0 0 35px rgba(255, 107, 0, 0.4))';
         containerEl.appendChild(img);
       } else {
-        const fontSize = isHeader ? '22px' : '64px';
-        containerEl.innerHTML = `<span style="font-family: var(--font-display); font-size: ${fontSize}; font-weight: 900; color: #fff; letter-spacing: 3px; text-shadow: 0 0 20px var(--neon-primary);">${this.config.streamerName || 'RUEDAS & CANCHA'}</span>`;
+        const fontSize = isHeader ? '28px' : (isVerticalHero ? '68px' : '64px');
+        containerEl.innerHTML = `<span style="font-family: var(--font-display); font-size: ${fontSize}; font-weight: 900; color: #fff; letter-spacing: 3px; text-shadow: 0 0 20px var(--neon-primary); text-transform: uppercase;">${this.config.streamerName || 'RUEDAS & CANCHA'}</span>`;
       }
     }
 

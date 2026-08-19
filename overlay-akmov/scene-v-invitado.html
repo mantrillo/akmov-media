@@ -27,7 +27,7 @@
       <span class="live-dot"></span>
       <span>ENTREVISTA / DÚO</span>
     </div>
-    <div id="streamer-logo" class="streamer-logo-text" style="font-size: 42px;">AKMOV<span class="dot">.</span></div>
+    <div id="streamer-logo" class="streamer-logo-text">AKMOV<span class="dot">.</span></div>
   </div>
 
   <!-- Cámara 1: Anfitrión (Arriba) -->
@@ -84,7 +84,7 @@
     });
 
     window.overlayApp.subscribe((config) => {
-      window.overlayApp.renderHeroLogo(logoEl);
+      window.overlayApp.renderHeroLogo(logoEl, { isHeader: true, maxHeight: 75, width: 320 });
       hostLabelEl.innerText = config.hostName || config.streamerName || 'ANFITRIÓN';
       guestLabelEl.innerText = config.guestName || 'INVITADO';
       window.overlayApp.renderSocialBar(socialBarEl);

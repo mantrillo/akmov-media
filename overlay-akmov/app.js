@@ -742,18 +742,40 @@ class OverlayEngine {
   }
 
   // Render Program Logo Helper (Text or Image)
-  renderHeroLogo(containerEl) {
+  renderHeroLogo(containerEl, customOpts = {}) {
     if (!containerEl) return;
     const config = this.config;
-    const logoSrc = config.logoImageBase64 || config.logoImageUrl;
+    let logoSrc = config.logoImageBase64 || config.logoImageUrl;
+    if (config.logoType === 'image' && !logoSrc) {
+      logoSrc = '../logo.svg';
+    }
+
+    const isHeader = customOpts.isHeader || 
+      (containerEl.closest && (containerEl.closest('.v-header-branding') || containerEl.closest('.top-brand-pattern') || containerEl.closest('.header-branding') || containerEl.closest('.top-nav'))) || 
+      containerEl.classList.contains('header-logo') || 
+      containerEl.classList.contains('v-header-logo');
+
+    const isVerticalHero = customOpts.isVerticalHero || (containerEl.closest && containerEl.closest('.v-center-hero'));
 
     if (config.logoType === 'image' && logoSrc) {
-      const width = config.logoImageWidth || 380;
-      const maxHeight = config.logoImageMaxHeight || 340;
-      containerEl.className = 'streamer-logo-img-wrapper';
-      containerEl.innerHTML = `<img src="${logoSrc}" alt="Logo" class="streamer-logo-img" style="width: ${width}px; max-width: 90vw; max-height: ${maxHeight}px; height: auto; object-fit: contain; filter: drop-shadow(0 0 25px rgba(var(--neon-primary-rgb), 0.75)) drop-shadow(0 4px 15px rgba(0, 0, 0, 0.8)); display: block; margin: 0 auto;">`;
+      let width, maxHeight;
+      if (isHeader) {
+        width = customOpts.width || 320;
+        maxHeight = customOpts.maxHeight || 75;
+      } else if (isVerticalHero) {
+        width = customOpts.width || Math.min(config.logoImageWidth || 440, 520);
+        maxHeight = customOpts.maxHeight || Math.min(config.logoImageMaxHeight || 260, 280);
+      } else {
+        width = customOpts.width || (config.logoImageWidth || 380);
+        maxHeight = customOpts.maxHeight || (config.logoImageMaxHeight || 340);
+      }
+
+      containerEl.className = 'streamer-logo-img-wrapper' + (isHeader ? ' header-logo' : '');
+      containerEl.style.fontSize = '';
+      containerEl.innerHTML = `<img src="${logoSrc}" alt="Logo" class="streamer-logo-img" style="max-width: ${width}px; max-height: ${maxHeight}px; width: auto; height: auto; object-fit: contain; filter: drop-shadow(0 0 25px rgba(var(--neon-primary-rgb), 0.75)) drop-shadow(0 4px 15px rgba(0, 0, 0, 0.8)); display: block; margin: 0 auto;">`;
     } else {
-      containerEl.className = 'streamer-logo-text';
+      containerEl.className = 'streamer-logo-text' + (isHeader ? ' header-logo' : '');
+      containerEl.style.fontSize = '';
       const name = config.streamerName !== undefined ? config.streamerName : "AKMOVMEDIA";
       if (!name || name.trim() === '') {
         containerEl.innerHTML = '';

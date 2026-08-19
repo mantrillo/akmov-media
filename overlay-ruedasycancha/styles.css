@@ -195,13 +195,16 @@ html, body { width: 100vw; height: 100vh; overflow: hidden; font-family: var(--f
 .cam-duo-2 { top: 120px; right: 80px; width: 850px; height: 560px; border-color: var(--neon-secondary); }
 
 /* Vertical Layouts 9:16 */
-.v-sports-header { position: absolute; top: 45px; left: 40px; right: 40px; display: flex; flex-direction: column; align-items: center; text-align: center; z-index: 20; }
+.v-sports-header { position: absolute; top: 40px; left: 40px; right: 40px; display: flex; flex-direction: column; align-items: center; text-align: center; z-index: 20; }
+.v-sports-header .sports-hero-logo { display: flex; justify-content: center; align-items: center; margin-top: 8px; max-height: 75px; }
 .v-sports-hero { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 980px; display: flex; flex-direction: column; align-items: center; text-align: center; z-index: 20; }
+.v-sports-hero .sports-hero-logo { display: flex; justify-content: center; align-items: center; margin: 0 auto; max-height: 260px; max-width: 480px; }
 .v-sports-cam-box { position: absolute; width: 980px; left: 50px; border: 3px solid var(--neon-primary); background: rgba(8, 11, 18, 0.5); box-shadow: 0 0 35px rgba(0, 180, 216, 0.35); overflow: hidden; z-index: 10; border-radius: 8px; }
 .v-sports-cam-box.center-large { top: 180px; height: 1200px; }
-.v-sports-cam-box.top-cam { top: 120px; height: 580px; }
-.v-sports-cam-box.mid-screen { top: 730px; height: 600px; border-color: var(--neon-secondary); }
-.v-sports-cam-box.duo-host { top: 120px; height: 580px; }
-.v-sports-cam-box.duo-guest { top: 720px; height: 580px; border-color: var(--neon-secondary); }
+.v-sports-cam-box.top-cam { top: 180px; height: 550px; }
+.v-sports-cam-box.mid-screen { top: 760px; height: 560px; border-color: var(--neon-secondary); }
+.v-sports-cam-box.duo-host { top: 180px; height: 550px; }
+.v-sports-cam-box.duo-guest { top: 760px; height: 560px; border-color: var(--neon-secondary); }
 .v-sports-chat-container { position: absolute; left: 50px; width: 980px; bottom: 110px; height: 420px; background: linear-gradient(180deg, rgba(12, 16, 26, 0.96) 0%, rgba(6, 8, 14, 0.98) 100%); border: 2px solid var(--border-neon); box-shadow: 0 0 30px rgba(0, 180, 216, 0.25); border-radius: 8px; padding: 18px 20px; overflow: hidden; display: flex; flex-direction: column; z-index: 15; }
 .v-sports-social-footer { position: absolute; bottom: 35px; left: 50px; right: 50px; display: flex; justify-content: center; z-index: 20; }
+

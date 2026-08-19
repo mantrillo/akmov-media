@@ -27,7 +27,7 @@
       <span class="live-dot"></span>
       <span>REACCIÓN EN VIVO</span>
     </div>
-    <div id="streamer-logo" class="streamer-logo-text" style="font-size: 46px;">AKMOV<span class="dot">.</span></div>
+    <div id="streamer-logo" class="streamer-logo-text">AKMOV<span class="dot">.</span></div>
   </div>
 
   <!-- Marco de Cámara Superior (Facecam) -->
@@ -83,7 +83,7 @@
     });
 
     window.overlayApp.subscribe((config) => {
-      window.overlayApp.renderHeroLogo(logoEl);
+      window.overlayApp.renderHeroLogo(logoEl, { isHeader: true, maxHeight: 75, width: 320 });
       if (config.camTitles && config.camTitles.cam1) {
         camTitleEl.innerText = config.camTitles.cam1;
       }

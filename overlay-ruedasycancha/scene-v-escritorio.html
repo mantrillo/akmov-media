@@ -16,14 +16,21 @@
 <body class="vertical-canvas">
   <div class="v-sports-frame"></div>
 
-  <!-- Badge Superior Discreto -->
-  <div style="position: absolute; top: 40px; right: 50px; z-index: 20;">
+  <!-- Header Superior Discreto -->
+  <div class="v-sports-header" style="top: 40px;">
     <div class="sports-badge">
       <span class="sports-live-dot"></span>
-      <span>RUEDAS & CANCHA</span>
+      <span>PANTALLA EN VIVO</span>
     </div>
+    <div id="streamer-logo" class="sports-hero-logo" style="margin-top: 8px; max-height: 65px;"></div>
   </div>
 
   <script src="app.js"></script>
+  <script>
+    const logoEl = document.getElementById('streamer-logo');
+    window.ruedasEngine.subscribe((cfg) => {
+      window.ruedasEngine.renderHeroLogo(logoEl, { isHeader: true, maxHeight: 60, width: 280 });
+    });
+  </script>
 </body>
 </html>

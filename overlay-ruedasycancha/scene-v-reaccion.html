@@ -25,6 +25,7 @@
       <span class="sports-live-dot" style="background:var(--neon-secondary);"></span>
       <span>JUGADAS & REACCIÓN</span>
     </div>
+    <div id="streamer-logo" class="sports-hero-logo" style="margin-top: 8px; max-height: 75px;"></div>
   </div>
 
   <!-- Facecam Superior -->
@@ -57,6 +58,7 @@
 
   <script src="app.js"></script>
   <script>
+    const logoEl = document.getElementById('streamer-logo');
     const camTitleEl = document.getElementById('cam-title');
     const socialBarEl = document.getElementById('social-bar');
     const chatListEl = document.getElementById('chat-list');
@@ -74,6 +76,7 @@
     });
 
     window.ruedasEngine.subscribe((cfg) => {
+      window.ruedasEngine.renderHeroLogo(logoEl, { isHeader: true, maxHeight: 65, width: 320 });
       if (cfg.camTitles && cfg.camTitles.cam1) {
         camTitleEl.innerText = cfg.camTitles.cam1;
       }

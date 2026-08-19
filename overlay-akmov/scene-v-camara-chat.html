@@ -28,8 +28,8 @@
       <span class="live-dot"></span>
       <span id="live-indicator-text">EN VIVO</span>
     </div>
-    <div id="streamer-logo" class="streamer-logo-text" style="font-size: 54px;">AKMOV<span class="dot">.</span></div>
-    <div id="streamer-subtitle" class="streamer-subtitle" style="font-size: 16px; margin-top: 6px; letter-spacing: 4px;">STREAMING & MEDIA</div>
+    <div id="streamer-logo" class="streamer-logo-text">AKMOV<span class="dot">.</span></div>
+    <div id="streamer-subtitle" class="streamer-subtitle" style="font-size: 15px; margin-top: 6px; letter-spacing: 4px;">STREAMING & MEDIA</div>
   </div>
 
   <!-- Marco de Cámara Principal (Facecam) -->
@@ -78,7 +78,7 @@
     });
 
     window.overlayApp.subscribe((config) => {
-      window.overlayApp.renderHeroLogo(logoEl);
+      window.overlayApp.renderHeroLogo(logoEl, { isHeader: true, maxHeight: 75, width: 320 });
       subtitleEl.innerText = config.subtitle || 'STREAMING & MEDIA';
       if (config.camTitles && config.camTitles.cam1) {
         camTitleEl.innerText = config.camTitles.cam1;

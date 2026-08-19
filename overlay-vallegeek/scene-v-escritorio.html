@@ -16,14 +16,21 @@
 <body class="vertical-canvas">
   <div class="v-geek-frame"></div>
 
-  <!-- Badge Superior Discreto -->
-  <div style="position: absolute; top: 40px; right: 50px; z-index: 20;">
+  <!-- Header Superior Discreto -->
+  <div class="v-geek-header" style="top: 40px;">
     <div class="geek-badge">
       <span class="geek-live-dot"></span>
-      <span>VALLE GEEK</span>
+      <span>PANTALLA EN VIVO</span>
     </div>
+    <div id="streamer-logo" class="vallegeek-hero-logo" style="margin-top: 8px; max-height: 65px;"></div>
   </div>
 
   <script src="app.js"></script>
+  <script>
+    const logoEl = document.getElementById('streamer-logo');
+    window.valleGeekApp.subscribe((cfg) => {
+      window.valleGeekApp.renderHeroLogo(logoEl, { isHeader: true, maxHeight: 60, width: 280 });
+    });
+  </script>
 </body>
 </html>

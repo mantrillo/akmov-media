@@ -322,10 +322,11 @@
       if (!containerEl) return;
       containerEl.innerHTML = '';
 
-      const isHeader = customOpts.isHeader || containerEl.classList.contains('header-logo') || containerEl.style.maxHeight !== '' || containerEl.closest('.geek-frame-16x9, header, .v-geek-header');
-      const width = customOpts.width || (isHeader ? 300 : (this.config.logoImageWidth || 560));
-      const maxHeight = customOpts.maxHeight || (isHeader ? 60 : (this.config.logoImageMaxHeight || 240));
-      const imgSrc = this.config.logoImageBase64 || this.config.logoImageUrl || 'assets/logo-horizontal.png';
+      const isHeader = customOpts.isHeader || containerEl.classList.contains('header-logo') || (containerEl.closest && (containerEl.closest('.v-geek-header') || containerEl.closest('.geek-frame-16x9') || containerEl.closest('header')));
+      const isVerticalHero = (containerEl.closest && containerEl.closest('.v-geek-hero'));
+      const width = customOpts.width || (isHeader ? 320 : (isVerticalHero ? Math.min(this.config.logoImageWidth || 480, 520) : (this.config.logoImageWidth || 560)));
+      const maxHeight = customOpts.maxHeight || (isHeader ? 75 : (isVerticalHero ? Math.min(this.config.logoImageMaxHeight || 260, 280) : (this.config.logoImageMaxHeight || 240)));
+      const imgSrc = this.config.logoImageBase64 || this.config.logoImageUrl || (isHeader ? 'assets/logo-horizontal.png' : 'assets/logo-emblem.png');
 
       if (this.config.logoType === 'image' && imgSrc) {
         const img = document.createElement('img');
@@ -343,8 +344,8 @@
           : 'drop-shadow(0 0 25px rgba(0, 229, 255, 0.45)) drop-shadow(0 0 40px rgba(255, 123, 0, 0.3))';
         containerEl.appendChild(img);
       } else {
-        const fontSize = isHeader ? '22px' : '64px';
-        containerEl.innerHTML = `<span style="font-family: var(--font-display); font-size: ${fontSize}; font-weight: 900; color: #fff; letter-spacing: 3px; text-shadow: 0 0 20px var(--neon-primary);">${this.config.streamerName || 'VALLE GEEK'}</span>`;
+        const fontSize = isHeader ? '28px' : (isVerticalHero ? '68px' : '64px');
+        containerEl.innerHTML = `<span style="font-family: var(--font-display); font-size: ${fontSize}; font-weight: 900; color: #fff; letter-spacing: 3px; text-shadow: 0 0 20px var(--neon-primary); text-transform: uppercase;">${this.config.streamerName || 'VALLE GEEK'}</span>`;
       }
     }
 

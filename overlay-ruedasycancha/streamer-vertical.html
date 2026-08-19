@@ -444,6 +444,20 @@
             type: 'CONFIG_UPDATE',
             config: window.ruedasEngine.config
           }, '*');
+
+          const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+          if (iframeDoc) {
+            const logoEl = iframeDoc.getElementById('streamer-logo');
+            if (logoEl && window.ruedasEngine) {
+              const isHeader = !!(logoEl.closest && (logoEl.closest('.v-sports-header') || logoEl.closest('header')));
+              const isHero = !!(logoEl.closest && (logoEl.closest('.v-sports-hero') || logoEl.closest('.sports-hero-branding')));
+              window.ruedasEngine.renderHeroLogo(logoEl, {
+                isHeader: isHeader,
+                maxHeight: isHeader ? 75 : 260,
+                width: isHeader ? 320 : 480
+              });
+            }
+          }
         } catch (e) {}
       }
     }

@@ -22,6 +22,7 @@
       <span class="live-dot"></span>
       <span>PANTALLA EN VIVO</span>
     </div>
+    <div id="streamer-logo" class="streamer-logo-text">AKMOV<span class="dot">.</span></div>
   </div>
 
   <!-- Marco de Pantalla Central -->
@@ -38,9 +39,11 @@
   <script src="app.js"></script>
   <script>
     window.overlayApp.setupBackground('scene-v-escritorio.html');
+    const logoEl = document.getElementById('streamer-logo');
     const socialBarEl = document.getElementById('social-bar');
 
     window.overlayApp.subscribe((config) => {
+      window.overlayApp.renderHeroLogo(logoEl, { isHeader: true, maxHeight: 65, width: 300 });
       window.overlayApp.renderSocialBar(socialBarEl);
     });
   </script>

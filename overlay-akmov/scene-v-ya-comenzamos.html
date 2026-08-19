@@ -84,7 +84,7 @@
 
     // Timer Display & Subscription
     window.overlayApp.subscribe((config) => {
-      window.overlayApp.renderHeroLogo(logoEl);
+      window.overlayApp.renderHeroLogo(logoEl, { isVerticalHero: true, maxHeight: 260, width: 460 });
       const sub = config.statusStarting !== undefined ? config.statusStarting : 'YA COMENZAMOS';
       subtitleEl.innerText = sub;
       subtitleEl.style.display = sub.trim() ? 'block' : 'none';

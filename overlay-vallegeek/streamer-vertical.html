@@ -770,7 +770,13 @@
           if (iframeDoc) {
             const logoEl = iframeDoc.getElementById('streamer-logo');
             if (logoEl && window.valleGeekApp) {
-              window.valleGeekApp.renderHeroLogo(logoEl);
+              const isHeader = !!(logoEl.closest && (logoEl.closest('.v-geek-header') || logoEl.closest('header')));
+              const isHero = !!(logoEl.closest && (logoEl.closest('.v-geek-hero') || logoEl.closest('.geek-hero-branding')));
+              window.valleGeekApp.renderHeroLogo(logoEl, {
+                isHeader: isHeader,
+                maxHeight: isHeader ? 75 : 260,
+                width: isHeader ? 320 : 480
+              });
             }
           }
         } catch (e) {}

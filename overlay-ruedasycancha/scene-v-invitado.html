@@ -25,6 +25,7 @@
       <span class="sports-live-dot"></span>
       <span>PANEL DEPORTIVO</span>
     </div>
+    <div id="streamer-logo" class="sports-hero-logo" style="margin-top: 8px; max-height: 75px;"></div>
   </div>
 
   <!-- Cámara 1: Conductor (Arriba) -->
@@ -57,6 +58,7 @@
 
   <script src="app.js"></script>
   <script>
+    const logoEl = document.getElementById('streamer-logo');
     const hostLabelEl = document.getElementById('host-name-label');
     const guestLabelEl = document.getElementById('guest-name-label');
     const socialBarEl = document.getElementById('social-bar');
@@ -75,6 +77,7 @@
     });
 
     window.ruedasEngine.subscribe((cfg) => {
+      window.ruedasEngine.renderHeroLogo(logoEl, { isHeader: true, maxHeight: 65, width: 320 });
       hostLabelEl.innerText = cfg.hostName || cfg.streamerName || 'CONDUCTOR';
       guestLabelEl.innerText = cfg.guestName || 'INVITADO';
       window.ruedasEngine.renderSocialBar(socialBarEl);

@@ -26,6 +26,7 @@
       <span class="geek-live-dot" style="background:var(--neon-secondary);"></span>
       <span>GAMEPLAY & REACCIÓN</span>
     </div>
+    <div id="streamer-logo" class="vallegeek-hero-logo" style="margin-top: 8px; max-height: 75px;"></div>
   </div>
 
   <!-- Facecam Superior -->
@@ -60,6 +61,7 @@
   <script>
     window.valleGeekApp.setupStarParticles('bg-canvas');
 
+    const logoEl = document.getElementById('streamer-logo');
     const camTitleEl = document.getElementById('cam-title');
     const socialBarEl = document.getElementById('social-bar');
     const chatListEl = document.getElementById('chat-list');
@@ -77,6 +79,7 @@
     });
 
     window.valleGeekApp.subscribe((cfg) => {
+      window.valleGeekApp.renderHeroLogo(logoEl, { isHeader: true, maxHeight: 65, width: 320 });
       if (cfg.camTitles && cfg.camTitles.cam1) {
         camTitleEl.innerText = cfg.camTitles.cam1;
       }
