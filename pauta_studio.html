@@ -7,8 +7,9 @@
   <meta name="description" content="Plataforma de gestión de pautas de transmisión y teleprompter en tiempo real para estudio.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Oswald:wght@500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>if (window.pdfjsLib) { pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; }</script>
   <style>
     :root {
       --black: #050505;
@@ -747,6 +748,31 @@
 </head>
 <body>
 
+  <!-- HIDDEN FILE INPUT FOR IMPORT (PDF / JSON) -->
+  <input type="file" id="pauta-file-input" accept=".pdf,.json" style="display:none;" onchange="handleImportPauta(event)">
+
+  <!-- MODAL DE CONFIRMACIÓN: LIMPIAR PAUTA -->
+  <div id="clear-confirm-modal" class="pdf-modal-overlay" style="display:none; align-items:center; justify-content:center; z-index:10000;">
+    <div style="background:#141414; border:2px solid var(--accent-red); border-radius:6px; max-width:460px; width:90%; padding:28px; box-shadow:0 0 35px rgba(255, 59, 48, 0.35); text-align:center;">
+      <div style="font-size:2.8rem; margin-bottom:12px;">⚠️</div>
+      <h3 style="font-family:var(--font-display); font-size:1.4rem; color:var(--white); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:10px;">
+        ¿Limpiar toda la pauta?
+      </h3>
+      <p style="font-size:0.85rem; color:var(--gray-text); line-height:1.6; margin-bottom:24px;">
+        Esta acción borrará todos los datos del programa, conductor, notas y bloques actuales para que puedas comenzar con una pauta completamente en blanco.
+      </p>
+      <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+        <button class="btn btn-danger-outline btn-sm" onclick="executeClearPauta()" style="background:var(--accent-red); color:#fff; border-color:var(--accent-red);">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+          Sí, Borrar y Limpiar
+        </button>
+        <button class="btn btn-outline btn-sm" onclick="closeClearModal()" style="border-color:var(--gray-border); color:var(--white);">
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- TOPBAR -->
   <header class="topbar">
     <div class="topbar-logo">
@@ -757,6 +783,18 @@
         <span class="sync-dot"></span>
         <span>Sincronizado</span>
       </div>
+      <button class="btn btn-outline btn-sm" onclick="triggerImportPauta()" title="Subir archivo PDF o JSON de pauta para restaurar y actualizar la web">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="display:inline-block; vertical-align:middle; margin-right:4px;">
+          <path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z"/>
+        </svg>
+        <span>CARGAR PAUTA (PDF/JSON)</span>
+      </button>
+      <button class="btn btn-danger-outline btn-sm" onclick="confirmClearPauta()" title="Limpiar y borrar todos los datos actuales de la pauta">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="display:inline-block; vertical-align:middle; margin-right:4px;">
+          <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+        </svg>
+        <span>LIMPIAR PAUTA</span>
+      </button>
       <button class="btn btn-neon btn-sm" id="btn-export-pdf" onclick="exportPautaPDF()" title="Descargar Pauta completa en PDF optimizada para hojas tamaño Carta (8.5x11 in)">
         <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="display:inline-block; vertical-align:middle; margin-right:4px;">
           <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
@@ -803,7 +841,13 @@
             <label for="pauta-style">Estilo</label>
             <input type="text" id="pauta-style" class="form-input" value="Dinámico, magazine cultural, geek y místico">
           </div>
-          <button class="btn btn-neon btn-block" onclick="saveAndBroadcastPauta()">Guardar y Actualizar Pauta</button>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button class="btn btn-neon btn-block" onclick="saveAndBroadcastPauta()">Guardar y Actualizar Pauta</button>
+            <button class="btn btn-danger-outline btn-block btn-sm" onclick="confirmClearPauta()">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+              Limpiar Campos de Pauta
+            </button>
+          </div>
         </section>
 
         <!-- Live Controller (Avanzar bloques en vivo) -->
@@ -830,22 +874,36 @@
 
       <!-- COL 2: EDITOR DE BLOQUES -->
       <section class="panel">
-        <div class="panel-header" style="display: flex; justify-content: space-between;">
+        <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
           <h2 class="panel-title">Bloques de Tiempo</h2>
-          <button class="btn btn-outline btn-sm" onclick="addNewBlockField()">+ Añadir Bloque</button>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="btn btn-outline btn-sm" onclick="triggerImportPauta()" title="Importar PDF o JSON para cargar pauta">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z"/></svg>
+              Cargar PDF / JSON
+            </button>
+            <button class="btn btn-outline btn-sm" onclick="addNewBlockField()">+ Añadir Bloque</button>
+          </div>
         </div>
         
         <div class="blocks-container" id="blocks-builder-container">
           <!-- Dynamic blocks loaded from JS -->
         </div>
 
-        <div style="display: flex; justify-content: flex-end; gap: 12px; flex-wrap: wrap;">
-          <button class="btn btn-outline" onclick="restoreDefaultExample()">Restaurar Ejemplo Ascoypera</button>
-          <button class="btn btn-outline" onclick="exportPautaPDF()" title="Descargar Pauta completa en PDF (Carta)">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
+          <button class="btn btn-danger-outline btn-sm" onclick="confirmClearPauta()" title="Limpiar y borrar todos los datos">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+            Limpiar Pauta
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="restoreDefaultExample()" title="Cargar pauta de ejemplo">Restaurar Ejemplo Ascoypera</button>
+          <button class="btn btn-outline btn-sm" onclick="triggerImportPauta()" title="Cargar PDF o JSON descargado">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z"/></svg>
+            Cargar Pauta (PDF/JSON)
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="exportPautaPDF()" title="Descargar Pauta completa en PDF (Carta)">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
             Descargar PDF (Carta)
           </button>
-          <button class="btn btn-neon" onclick="saveAndBroadcastPauta()">Guardar y Sincronizar</button>
+          <button class="btn btn-neon btn-sm" onclick="saveAndBroadcastPauta()">Guardar y Sincronizar</button>
         </div>
       </section>
 
@@ -1360,6 +1418,323 @@
       }, 3500);
     }
 
+    // ─── LIMPIAR PAUTA ───
+    function confirmClearPauta() {
+      const modal = document.getElementById('clear-confirm-modal');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function closeClearModal() {
+      const modal = document.getElementById('clear-confirm-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function executeClearPauta() {
+      currentPauta = {
+        title: "",
+        durationTotal: 0,
+        format: "",
+        host: "",
+        style: "",
+        activeBlockIndex: 0,
+        timerState: {
+          isRunning: false,
+          timeRemaining: 0,
+          lastUpdated: Date.now()
+        },
+        blocks: [
+          {
+            timeStart: "00:00",
+            timeEnd: "05:00",
+            name: "Bloque 1",
+            duration: 5,
+            content: "",
+            techNotes: ""
+          }
+        ]
+      };
+
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+
+      closeClearModal();
+      saveAndBroadcastPauta();
+      showToast("Pauta limpiada correctamente. Lista para nueva información.");
+    }
+
+    // ─── IMPORTACIÓN DE PAUTA (PDF / JSON) ───
+    function triggerImportPauta() {
+      const fileInput = document.getElementById('pauta-file-input');
+      if (fileInput) fileInput.click();
+    }
+
+    function handleImportPauta(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      processImportFile(file);
+      event.target.value = '';
+    }
+
+    // Soporte Drag & Drop en toda la ventana
+    window.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+    window.addEventListener('drop', (e) => {
+      e.preventDefault();
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        const file = e.dataTransfer.files[0];
+        if (file.name.endsWith('.pdf') || file.name.endsWith('.json')) {
+          processImportFile(file);
+        }
+      }
+    });
+
+    async function processImportFile(file) {
+      const fileName = file.name.toLowerCase();
+
+      if (fileName.endsWith('.json')) {
+        showToast("Cargando archivo JSON de pauta...");
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const data = JSON.parse(e.target.result);
+            applyImportedPauta(data, "archivo JSON");
+          } catch(err) {
+            console.error("JSON parse error:", err);
+            showToast("Error: El archivo JSON no tiene un formato válido.", true);
+          }
+        };
+        reader.readAsText(file);
+      } else if (fileName.endsWith('.pdf')) {
+        showToast("Analizando y extrayendo pauta del archivo PDF...");
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          const arrayBuffer = e.target.result;
+
+          // Método 1: Búsqueda binaria directa del payload codificado en Base64
+          try {
+            const bytes = new Uint8Array(arrayBuffer);
+            let binaryStr = "";
+            const chunk = 16384;
+            for (let i = 0; i < bytes.length; i += chunk) {
+              binaryStr += String.fromCharCode.apply(null, bytes.subarray(i, Math.min(i + chunk, bytes.length)));
+            }
+
+            const match = binaryStr.match(/AKMOV_PAUTA_DATA:([A-Za-z0-9+/=]+)/);
+            if (match && match[1]) {
+              try {
+                const jsonStr = decodeURIComponent(escape(atob(match[1])));
+                const data = JSON.parse(jsonStr);
+                applyImportedPauta(data, "metadatos del PDF");
+                return;
+              } catch(e) {
+                console.warn("Fallo al decodificar payload base64 directo:", e);
+              }
+            }
+          } catch(err) {
+            console.warn("Fallo escaneo binario:", err);
+          }
+
+          // Método 2: Extracción con PDF.js (metadatos o texto)
+          if (typeof pdfjsLib !== 'undefined') {
+            try {
+              const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+              const pdfDoc = await loadingTask.promise;
+
+              // Metadatos de PDF
+              const meta = await pdfDoc.getMetadata();
+              if (meta && meta.info) {
+                const subject = meta.info.Subject || '';
+                const keywords = meta.info.Keywords || '';
+                const target = subject.includes('AKMOV_PAUTA_DATA:') ? subject : (keywords.includes('AKMOV_PAUTA_DATA:') ? keywords : '');
+                
+                if (target) {
+                  const b64 = target.split('AKMOV_PAUTA_DATA:')[1].trim();
+                  const jsonStr = decodeURIComponent(escape(atob(b64)));
+                  const data = JSON.parse(jsonStr);
+                  applyImportedPauta(data, "metadatos del PDF");
+                  return;
+                }
+              }
+
+              // Método 3: Extracción y parseo de texto página a página
+              let fullText = "";
+              for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+                const page = await pdfDoc.getPage(pageNum);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items.map(item => item.str).join(' ');
+                fullText += pageText + "\n";
+              }
+
+              const parsedData = parsePautaFromText(fullText);
+              if (parsedData && parsedData.blocks && parsedData.blocks.length > 0) {
+                applyImportedPauta(parsedData, "texto del PDF");
+                return;
+              }
+            } catch(err) {
+              console.error("Error al procesar PDF con PDF.js:", err);
+            }
+          }
+
+          showToast("No se pudo leer la pauta del PDF. Asegúrate de que sea un PDF exportado desde AKMOV MEDIA.", true);
+        };
+        reader.readAsArrayBuffer(file);
+      } else {
+        showToast("Formato no soportado. Selecciona un archivo .pdf o .json", true);
+      }
+    }
+
+    // Aplicar los datos importados al estado global y sincronizar
+    function applyImportedPauta(data, sourceName = "archivo") {
+      if (!data || typeof data !== 'object') {
+        showToast("Error: Estructura de pauta no válida.", true);
+        return;
+      }
+
+      currentPauta.title = data.title || "Programa Importado";
+      currentPauta.durationTotal = parseInt(data.durationTotal) || 45;
+      currentPauta.format = data.format || "Stream en vivo";
+      currentPauta.host = data.host || "";
+      currentPauta.style = data.style || "";
+      currentPauta.activeBlockIndex = 0;
+
+      if (Array.isArray(data.blocks) && data.blocks.length > 0) {
+        currentPauta.blocks = data.blocks.map(b => ({
+          timeStart: b.timeStart || "00:00",
+          timeEnd: b.timeEnd || "00:00",
+          name: b.name || "Bloque",
+          duration: parseInt(b.duration) || 0,
+          content: b.content || "",
+          techNotes: b.techNotes || ""
+        }));
+      } else {
+        currentPauta.blocks = [
+          {
+            timeStart: "00:00",
+            timeEnd: "05:00",
+            name: "Bloque 1",
+            duration: 5,
+            content: "",
+            techNotes: ""
+          }
+        ];
+      }
+
+      const firstBlock = currentPauta.blocks[0];
+      const startSecs = parseTimeToSeconds(firstBlock.timeStart);
+      const endSecs = parseTimeToSeconds(firstBlock.timeEnd);
+      const durSecs = endSecs > startSecs ? (endSecs - startSecs) : (firstBlock.duration * 60);
+
+      currentPauta.timerState = {
+        isRunning: false,
+        timeRemaining: durSecs || 0,
+        lastUpdated: Date.now()
+      };
+
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+
+      saveAndBroadcastPauta();
+      showToast(`¡Pauta web actualizada exitosamente desde ${sourceName}!`);
+    }
+
+    // Parser de texto plano como respaldo para PDFs impresos/exportados
+    function parsePautaFromText(fullText) {
+      const result = {
+        title: "",
+        durationTotal: 45,
+        format: "Stream en vivo",
+        host: "",
+        style: "",
+        blocks: []
+      };
+
+      const titleMatch = fullText.match(/PROGRAMA\s*\/\s*SHOW\s*[:\s]*([^\n\r]+?)(?=\s*(?:CONDUCCI|DURACI|ESTILO|FORMATO|TOTAL|$))/i);
+      if (titleMatch && titleMatch[1]) result.title = titleMatch[1].trim();
+
+      const hostMatch = fullText.match(/CONDUCCI[OÓ]N\s*\/\s*HOST\s*[:\s]*([^\n\r]+?)(?=\s*(?:PROGRAMA|DURACI|ESTILO|FORMATO|TOTAL|$))/i);
+      if (hostMatch && hostMatch[1]) result.host = hostMatch[1].trim();
+
+      const durMatch = fullText.match(/DURACI[OÓ]N\s*TOTAL\s*[:\s]*(\d+)/i);
+      if (durMatch && durMatch[1]) result.durationTotal = parseInt(durMatch[1]);
+
+      const styleMatch = fullText.match(/ESTILO\s*&\s*TONO\s*[:\s]*([^\n\r]+?)(?=\s*(?:FORMATO|TOTAL|PROGRAMA|CONDUCCI|$))/i);
+      if (styleMatch && styleMatch[1]) result.style = styleMatch[1].trim();
+
+      const fmtMatch = fullText.match(/FORMATO\s*[:\s]*([^\n\r]+?)(?=\s*(?:TOTAL|ESTILO|PROGRAMA|CONDUCCI|$))/i);
+      if (fmtMatch && fmtMatch[1]) result.format = fmtMatch[1].trim();
+
+      const blockRegex = /BLOQUE\s*#?(\d+)\s*(\d{1,2}:\d{2})\s*(?:→|-|a)\s*(\d{1,2}:\d{2})(?:[^\n\r]*Duración:\s*(\d+)\s*min)?\s*([^\n\r]+?)(?=(?:BLOQUE\s*#?\d+|AKMOV\s*MEDIA|$))/gi;
+      let match;
+      while ((match = blockRegex.exec(fullText)) !== null) {
+        const timeStart = match[2];
+        const timeEnd = match[3];
+        const dur = parseInt(match[4]) || 0;
+        const body = match[5].trim();
+        
+        let name = body;
+        let techNotes = "";
+        
+        const cueSplit = body.split(/CUE\s*\/\s*NOTA\s*T[EÉ]CNICA\s*:\s*/i);
+        if (cueSplit.length > 1) {
+          name = cueSplit[0].trim();
+          techNotes = cueSplit[1].trim();
+        }
+        
+        result.blocks.push({
+          timeStart: timeStart,
+          timeEnd: timeEnd,
+          name: name.substring(0, 60),
+          duration: dur,
+          content: body,
+          techNotes: techNotes
+        });
+      }
+
+      return result;
+    }
+
+    // Exportar respaldo directo en JSON
+    function exportPautaJSON() {
+      saveAndBroadcastPauta();
+      const cleanTitle = (currentPauta.title || 'Pauta_Transmision').replace(/[^a-zA-Z0-9_-]/g, '_');
+      const filename = `Pauta_${cleanTitle}_${new Date().toISOString().slice(0, 10)}.json`;
+      const blob = new Blob([JSON.stringify(currentPauta, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast("¡Archivo de respaldo JSON descargado!");
+    }
+
+    // ─── TOAST NOTIFICATION ───
+    function showToast(message, isError = false) {
+      const existing = document.querySelector('.toast-popup');
+      if (existing) existing.remove();
+
+      const toast = document.createElement('div');
+      toast.className = 'toast-popup';
+      if (isError) toast.style.borderColor = 'var(--accent-red)';
+      toast.innerHTML = `
+        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:${isError ? '#ff3b30' : '#00ff66'}; box-shadow:0 0 10px ${isError ? '#ff3b30' : '#00ff66'};"></span>
+        <span>${message}</span>
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.style.transition = 'opacity 0.3s';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 3500);
+      }, 3500);
+    }
+
     // ─── CERRAR MODAL DE VISTA PREVIA PDF ───
     function closePdfModal() {
       const modal = document.getElementById('pdf-modal-preview');
@@ -1368,7 +1743,6 @@
 
     // ─── EXPORT PAUTA PDF (TAMAÑO CARTA OPTIMIZADO) ───
     function exportPautaPDF() {
-      // 1. Guardar cualquier cambio de los inputs del formulario
       const titleInput = document.getElementById('pauta-title');
       if (titleInput) {
         saveAndBroadcastPauta();
@@ -1376,7 +1750,6 @@
 
       showToast("Generando Pauta para hoja tamaño Carta...");
 
-      // 2. Formatear la fecha y hora en español
       const now = new Date();
       const dateStr = now.toLocaleDateString('es-CL', {
         weekday: 'long',
@@ -1386,15 +1759,12 @@
       });
       const timeStr = now.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
 
-      // 3. Eliminar modal previo si existe
       closePdfModal();
 
-      // 4. Construir contenedor modal de vista previa y renderizado
       const modal = document.createElement('div');
       modal.id = 'pdf-modal-preview';
       modal.className = 'pdf-modal-overlay';
 
-      // Construir filas de la escaleta
       const blocksHtml = currentPauta.blocks.map((b, i) => {
         const lines = (b.content || '').split('\n').filter(l => l.trim().length > 0);
         const contentFormatted = lines.map(line => {
@@ -1446,6 +1816,10 @@
           <button class="btn btn-neon btn-sm" id="btn-save-pdf-now" onclick="triggerDirectPdfDownload('${filename}')">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
             DESCARGAR ARCHIVO PDF
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="exportPautaJSON()" title="Descargar respaldo directo en archivo .JSON">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            DESCARGAR RESPALDO JSON
           </button>
           <button class="btn btn-outline btn-sm" onclick="window.print()">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
@@ -1575,16 +1949,17 @@
 
       document.body.appendChild(modal);
 
-      // 5. Intentar descarga automática de PDF con html2pdf
       setTimeout(() => {
         triggerDirectPdfDownload(filename);
       }, 250);
     }
 
-    // ─── DESCARGA DIRECTA DE ARCHIVO PDF ───
+    // ─── DESCARGA DIRECTA DE ARCHIVO PDF (CON EMBEBIDO DE METADATOS) ───
     function triggerDirectPdfDownload(filename) {
       const sheet = document.getElementById('pauta-pdf-print-area');
       if (!sheet) return;
+
+      const pautaPayload = btoa(unescape(encodeURIComponent(JSON.stringify(currentPauta))));
 
       if (typeof html2pdf !== 'undefined') {
         const opt = {
@@ -1607,7 +1982,18 @@
           pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
         };
 
-        html2pdf().set(opt).from(sheet).save().then(() => {
+        html2pdf().set(opt).from(sheet).toPdf().get('pdf').then((pdf) => {
+          try {
+            pdf.setProperties({
+              title: currentPauta.title || 'Pauta de Transmisión',
+              subject: `AKMOV_PAUTA_DATA:${pautaPayload}`,
+              author: currentPauta.host || 'AKMOV Media',
+              keywords: `AKMOV_PAUTA_DATA:${pautaPayload}`
+            });
+          } catch(e) {
+            console.warn("Could not set PDF properties:", e);
+          }
+          pdf.save(filename);
           showToast("¡PDF de la Pauta descargado exitosamente!");
         }).catch(err => {
           console.error("html2pdf generation error:", err);
