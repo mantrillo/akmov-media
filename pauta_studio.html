@@ -821,25 +821,25 @@
           </div>
           <div class="form-group">
             <label for="pauta-title">Título del Programa</label>
-            <input type="text" id="pauta-title" class="form-input" value="Ascoypera">
+            <input type="text" id="pauta-title" class="form-input" placeholder="Ej: Ascoypera">
           </div>
           <div class="form-row">
             <div class="form-group">
               <label for="pauta-duration">Duración (Min)</label>
-              <input type="number" id="pauta-duration" class="form-input" value="45">
+              <input type="number" id="pauta-duration" class="form-input" placeholder="45">
             </div>
             <div class="form-group">
               <label for="pauta-format">Formato</label>
-              <input type="text" id="pauta-format" class="form-input" value="Stream en vivo">
+              <input type="text" id="pauta-format" class="form-input" placeholder="Ej: Stream en vivo">
             </div>
           </div>
           <div class="form-group">
             <label for="pauta-host">Conductor(a)</label>
-            <input type="text" id="pauta-host" class="form-input" value="Monserrat Cortés">
+            <input type="text" id="pauta-host" class="form-input" placeholder="Ej: Monserrat Cortés">
           </div>
           <div class="form-group">
             <label for="pauta-style">Estilo</label>
-            <input type="text" id="pauta-style" class="form-input" value="Dinámico, magazine cultural, geek y místico">
+            <input type="text" id="pauta-style" class="form-input" placeholder="Ej: Dinámico, magazine cultural...">
           </div>
           <div style="display: flex; flex-direction: column; gap: 10px;">
             <button class="btn btn-neon btn-block" onclick="saveAndBroadcastPauta()">Guardar y Actualizar Pauta</button>
@@ -1088,15 +1088,35 @@
       }
     });
 
+    // Sincronizar estado completo a la interfaz, almacenamiento y canal de emisión
+    function syncUIFromState() {
+      localStorage.setItem('akmov_current_pauta', JSON.stringify(currentPauta));
+      renderLocutorForm();
+      renderLiveController();
+      updateEstudioView();
+
+      syncChannel.postMessage({
+        type: 'pauta_update',
+        data: currentPauta
+      });
+    }
+
     // Render Blocks in Editor Form
     function renderLocutorForm() {
-      document.getElementById('pauta-title').value = currentPauta.title;
-      document.getElementById('pauta-duration').value = currentPauta.durationTotal;
-      document.getElementById('pauta-format').value = currentPauta.format;
-      document.getElementById('pauta-host').value = currentPauta.host;
-      document.getElementById('pauta-style').value = currentPauta.style;
+      const titleEl = document.getElementById('pauta-title');
+      const durEl = document.getElementById('pauta-duration');
+      const fmtEl = document.getElementById('pauta-format');
+      const hostEl = document.getElementById('pauta-host');
+      const styleEl = document.getElementById('pauta-style');
+
+      if (titleEl) titleEl.value = currentPauta.title || "";
+      if (durEl) durEl.value = (currentPauta.durationTotal !== undefined && currentPauta.durationTotal !== null && currentPauta.durationTotal !== 0) ? currentPauta.durationTotal : (currentPauta.durationTotal === 0 ? "0" : "");
+      if (fmtEl) fmtEl.value = currentPauta.format || "";
+      if (hostEl) hostEl.value = currentPauta.host || "";
+      if (styleEl) styleEl.value = currentPauta.style || "";
 
       const container = document.getElementById('blocks-builder-container');
+      if (!container) return;
       container.innerHTML = '';
 
       currentPauta.blocks.forEach((block, idx) => {
@@ -1110,22 +1130,22 @@
           <div class="form-row" style="margin-bottom: 12px;">
             <div class="form-group" style="margin-bottom: 0;">
               <label>Nombre del Bloque</label>
-              <input type="text" class="form-input block-name" value="${block.name}" onchange="updateBlockData(${idx}, 'name', this.value)">
+              <input type="text" class="form-input block-name" value="${block.name || ''}" onchange="updateBlockData(${idx}, 'name', this.value)">
             </div>
             <div class="form-row">
               <div class="form-group" style="margin-bottom: 0;">
                 <label>Inicio (mm:ss)</label>
-                <input type="text" class="form-input block-start" value="${block.timeStart}" onchange="updateBlockData(${idx}, 'timeStart', this.value)">
+                <input type="text" class="form-input block-start" value="${block.timeStart || ''}" onchange="updateBlockData(${idx}, 'timeStart', this.value)">
               </div>
               <div class="form-group" style="margin-bottom: 0;">
                 <label>Fin (mm:ss)</label>
-                <input type="text" class="form-input block-end" value="${block.timeEnd}" onchange="updateBlockData(${idx}, 'timeEnd', this.value)">
+                <input type="text" class="form-input block-end" value="${block.timeEnd || ''}" onchange="updateBlockData(${idx}, 'timeEnd', this.value)">
               </div>
             </div>
           </div>
           <div class="form-group" style="margin-bottom: 12px;">
             <label>Descripción / Guión / Viñetas</label>
-            <textarea class="form-input block-content" rows="3" style="resize: vertical; font-family: inherit;" onchange="updateBlockData(${idx}, 'content', this.value)">${block.content}</textarea>
+            <textarea class="form-input block-content" rows="3" style="resize: vertical; font-family: inherit;" onchange="updateBlockData(${idx}, 'content', this.value)">${block.content || ''}</textarea>
           </div>
           <div class="form-group" style="margin-bottom: 0;">
             <label>Apoyo Técnico / Notas</label>
@@ -1139,6 +1159,7 @@
     // Render Side Controller List
     function renderLiveController() {
       const listContainer = document.getElementById('live-control-list');
+      if (!listContainer) return;
       listContainer.innerHTML = '';
 
       currentPauta.blocks.forEach((block, idx) => {
@@ -1146,8 +1167,8 @@
         item.className = `live-control-item ${currentPauta.activeBlockIndex === idx ? 'active' : ''}`;
         item.onclick = () => selectActiveBlock(idx);
         item.innerHTML = `
-          <div class="live-control-name">${block.name}</div>
-          <div class="live-control-time">${block.timeStart} - ${block.timeEnd} (${block.duration}m)</div>
+          <div class="live-control-name">${block.name || 'Bloque'}</div>
+          <div class="live-control-time">${block.timeStart || '00:00'} - ${block.timeEnd || '00:00'} (${block.duration || 0}m)</div>
         `;
         listContainer.appendChild(item);
       });
@@ -1155,6 +1176,7 @@
 
     // Update block specific data directly
     function updateBlockData(index, field, value) {
+      if (!currentPauta.blocks[index]) return;
       currentPauta.blocks[index][field] = value;
       if (field === 'timeStart' || field === 'timeEnd') {
         const startSecs = parseTimeToSeconds(currentPauta.blocks[index].timeStart);
@@ -1168,9 +1190,21 @@
 
     // Add Block Field
     function addNewBlockField() {
+      // Guardar inputs generales antes de añadir
+      const titleEl = document.getElementById('pauta-title');
+      if (titleEl) currentPauta.title = titleEl.value;
+      const durEl = document.getElementById('pauta-duration');
+      if (durEl) currentPauta.durationTotal = durEl.value !== "" ? (parseInt(durEl.value) || 0) : 0;
+      const fmtEl = document.getElementById('pauta-format');
+      if (fmtEl) currentPauta.format = fmtEl.value;
+      const hostEl = document.getElementById('pauta-host');
+      if (hostEl) currentPauta.host = hostEl.value;
+      const styleEl = document.getElementById('pauta-style');
+      if (styleEl) currentPauta.style = styleEl.value;
+
       let lastEnd = "00:00";
       if (currentPauta.blocks.length > 0) {
-        lastEnd = currentPauta.blocks[currentPauta.blocks.length - 1].timeEnd;
+        lastEnd = currentPauta.blocks[currentPauta.blocks.length - 1].timeEnd || "00:00";
       }
       
       const newBlock = {
@@ -1178,48 +1212,57 @@
         timeEnd: lastEnd,
         name: "Nuevo Bloque",
         duration: 0,
-        content: "• Viñeta 1\n• Viñeta 2",
+        content: "",
         techNotes: ""
       };
       
       currentPauta.blocks.push(newBlock);
-      saveAndBroadcastPauta();
+      syncUIFromState();
     }
 
     // Remove Block
     function removeBlockField(index) {
-      if (currentPauta.blocks.length <= 1) return;
-      currentPauta.blocks.splice(index, 1);
-      if (currentPauta.activeBlockIndex >= currentPauta.blocks.length) {
-        currentPauta.activeBlockIndex = currentPauta.blocks.length - 1;
+      if (currentPauta.blocks.length <= 1) {
+        currentPauta.blocks[0] = {
+          timeStart: "00:00",
+          timeEnd: "05:00",
+          name: "Bloque 1",
+          duration: 5,
+          content: "",
+          techNotes: ""
+        };
+      } else {
+        currentPauta.blocks.splice(index, 1);
+        if (currentPauta.activeBlockIndex >= currentPauta.blocks.length) {
+          currentPauta.activeBlockIndex = currentPauta.blocks.length - 1;
+        }
       }
-      saveAndBroadcastPauta();
+      syncUIFromState();
     }
 
     // Restore default
     function restoreDefaultExample() {
       currentPauta = JSON.parse(JSON.stringify(defaultPauta));
-      saveAndBroadcastPauta();
+      syncUIFromState();
+      showToast("Pauta de ejemplo Ascoypera restaurada.");
     }
 
     // Save current fields into State and broadcast
     function saveAndBroadcastPauta() {
-      currentPauta.title = document.getElementById('pauta-title').value;
-      currentPauta.durationTotal = parseInt(document.getElementById('pauta-duration').value) || 45;
-      currentPauta.format = document.getElementById('pauta-format').value;
-      currentPauta.host = document.getElementById('pauta-host').value;
-      currentPauta.style = document.getElementById('pauta-style').value;
+      const titleEl = document.getElementById('pauta-title');
+      const durEl = document.getElementById('pauta-duration');
+      const fmtEl = document.getElementById('pauta-format');
+      const hostEl = document.getElementById('pauta-host');
+      const styleEl = document.getElementById('pauta-style');
 
-      localStorage.setItem('akmov_current_pauta', JSON.stringify(currentPauta));
-      
-      renderLocutorForm();
-      renderLiveController();
-      updateEstudioView();
+      if (titleEl) currentPauta.title = titleEl.value.trim();
+      if (durEl) currentPauta.durationTotal = durEl.value !== "" ? (parseInt(durEl.value) || 0) : 0;
+      if (fmtEl) currentPauta.format = fmtEl.value.trim();
+      if (hostEl) currentPauta.host = hostEl.value.trim();
+      if (styleEl) currentPauta.style = styleEl.value.trim();
 
-      syncChannel.postMessage({
-        type: 'pauta_update',
-        data: currentPauta
-      });
+      syncUIFromState();
+      showToast("Pauta guardada y sincronizada.");
     }
 
     // Switch Active Block in Transmission
@@ -1460,8 +1503,8 @@
       }
 
       closeClearModal();
-      saveAndBroadcastPauta();
-      showToast("Pauta limpiada correctamente. Lista para nueva información.");
+      syncUIFromState();
+      showToast("Pauta y datos generales limpiados correctamente.");
     }
 
     // ─── IMPORTACIÓN DE PAUTA (PDF / JSON) ───
@@ -1638,7 +1681,7 @@
         timerInterval = null;
       }
 
-      saveAndBroadcastPauta();
+      syncUIFromState();
       showToast(`¡Pauta web actualizada exitosamente desde ${sourceName}!`);
     }
 
