@@ -2186,7 +2186,7 @@
       kickToggle, kickHandle, xToggle, xHandle, themeParticles
     ];
 
-    inputs.forEach(el => {
+    inputs.filter(Boolean).forEach(el => {
       el.addEventListener('input', syncFromUI);
       el.addEventListener('change', syncFromUI);
     });
