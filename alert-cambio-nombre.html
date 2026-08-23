@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notificación - Cambio de Nombre | AKMOV Media</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@600;700;800&family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      background: transparent !important;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Rajdhani', sans-serif;
+    }
+
+    :root {
+      --primary: #00e5ff;
+      --primary-rgb: 0, 229, 255;
+      --accent: #ff7b00;
+      --accent-rgb: 255, 123, 0;
+      --bg-glass: rgba(10, 15, 24, 0.9);
+      --border-color: rgba(0, 229, 255, 0.45);
+    }
+
+    #alert-stage {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    /* Floating Alert Card */
+    .rename-alert-card {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-glass);
+      border: 2px solid var(--border-color);
+      border-radius: 20px;
+      padding: 24px 44px;
+      text-align: center;
+      backdrop-filter: blur(18px);
+      box-shadow: 
+        0 0 35px rgba(var(--primary-rgb), 0.35),
+        0 20px 50px rgba(0, 0, 0, 0.85),
+        inset 0 0 20px rgba(var(--primary-rgb), 0.15);
+      opacity: 0;
+      transform: scale(0.65) translateY(40px);
+      transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      max-width: 90vw;
+      min-width: 440px;
+      z-index: 1000;
+    }
+
+    .rename-alert-card.show {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+      animation: pulseGlowCyan 2.5s infinite ease-in-out;
+    }
+
+    .rename-alert-card.hide {
+      opacity: 0;
+      transform: scale(0.85) translateY(-40px);
+      transition: all 0.45s ease-in;
+    }
+
+    @keyframes pulseGlowCyan {
+      0%, 100% {
+        box-shadow: 
+          0 0 25px rgba(var(--primary-rgb), 0.3),
+          0 20px 50px rgba(0, 0, 0, 0.8),
+          inset 0 0 15px rgba(var(--primary-rgb), 0.1);
+        border-color: rgba(var(--primary-rgb), 0.4);
+      }
+      50% {
+        box-shadow: 
+          0 0 50px rgba(var(--primary-rgb), 0.65),
+          0 25px 60px rgba(0, 0, 0, 0.9),
+          inset 0 0 30px rgba(var(--primary-rgb), 0.3);
+        border-color: rgba(var(--primary-rgb), 0.95);
+      }
+    }
+
+    .alert-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.25), rgba(var(--accent-rgb), 0.25));
+      border: 1px solid var(--primary);
+      padding: 6px 18px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #ffffff;
+      margin-bottom: 14px;
+      box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.4);
+    }
+
+    .badge-icon {
+      font-size: 16px;
+      animation: spinRotate 3s infinite linear;
+    }
+
+    @keyframes spinRotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .old-user-box {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: #94a3b8;
+      text-decoration: line-through;
+      margin-bottom: 4px;
+      letter-spacing: 1.5px;
+    }
+
+    .rename-action-text {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: #cbd5e1;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      margin-bottom: 6px;
+    }
+
+    .new-user-box {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 38px;
+      font-weight: 900;
+      color: #ffffff;
+      text-shadow: 
+        0 0 15px rgba(var(--primary-rgb), 0.8),
+        0 0 30px rgba(var(--primary-rgb), 0.5);
+      letter-spacing: 1.5px;
+      word-break: break-word;
+      line-height: 1.15;
+    }
+
+    .cyber-ring {
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      right: -10px;
+      bottom: -10px;
+      border-radius: 26px;
+      border: 2px dashed rgba(var(--primary-rgb), 0.35);
+      pointer-events: none;
+      animation: rotateRing 15s linear infinite;
+    }
+
+    @keyframes rotateRing {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @media (max-aspect-ratio: 1/1) {
+      .rename-alert-card {
+        min-width: 320px;
+        padding: 20px 28px;
+      }
+      .old-user-box {
+        font-size: 20px;
+      }
+      .rename-action-text {
+        font-size: 16px;
+      }
+      .new-user-box {
+        font-size: 28px;
+      }
+      .alert-badge {
+        font-size: 12px;
+        padding: 5px 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="alert-stage">
+    <div id="alert-card" class="rename-alert-card">
+      <div class="cyber-ring"></div>
+      <div class="alert-badge">
+        <span class="badge-icon">🔄</span>
+        <span>CAMBIO DE NOMBRE</span>
+      </div>
+      <div id="alert-old-name" class="old-user-box">@NickAntiguo</div>
+      <div class="rename-action-text">AHORA SE LLAMA</div>
+      <div id="alert-new-name" class="new-user-box">@NickNuevo</div>
+    </div>
+  </div>
+
+  <!-- Futuristic Audio Synthesizer -->
+  <script>
+    function playRenameChime() {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        
+        const now = ctx.currentTime;
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(440, now); // A4
+        osc1.frequency.exponentialRampToValueAtTime(659.25, now + 0.12); // E5
+        osc1.frequency.exponentialRampToValueAtTime(880, now + 0.25); // A5
+
+        osc2.type = 'triangle';
+        osc2.frequency.setValueAtTime(554.37, now); // C#5
+        osc2.frequency.exponentialRampToValueAtTime(1108.73, now + 0.25); // C#6
+
+        gain.gain.setValueAtTime(0.01, now);
+        gain.gain.linearRampToValueAtTime(0.2, now + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.85);
+
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + 0.9);
+      } catch (e) {}
+    }
+  </script>
+
+  <!-- Connection & Queue Engine -->
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const serverUrlParam = urlParams.get('streamurl') || urlParams.get('owncast') || 'https://stream.akmovmedia.com';
+    const durationParam = parseInt(urlParams.get('duration') || '6', 10) * 1000;
+    const colorParam = urlParams.get('color');
+
+    if (colorParam) {
+      const cleanHex = colorParam.replace('#', '');
+      document.documentElement.style.setProperty('--primary', '#' + cleanHex);
+    }
+
+    const alertCard = document.getElementById('alert-card');
+    const alertOldName = document.getElementById('alert-old-name');
+    const alertNewName = document.getElementById('alert-new-name');
+    const queue = [];
+    let isShowing = false;
+
+    function triggerRenameAlert(oldName, newName) {
+      if (!oldName || !newName) return;
+      queue.push({ oldName, newName });
+      if (!isShowing) processQueue();
+    }
+
+    function processQueue() {
+      if (queue.length === 0) {
+        isShowing = false;
+        return;
+      }
+
+      isShowing = true;
+      const item = queue.shift();
+      alertOldName.innerText = item.oldName.startsWith('@') ? item.oldName : `@${item.oldName}`;
+      alertNewName.innerText = item.newName.startsWith('@') ? item.newName : `@${item.newName}`;
+
+      alertCard.classList.remove('hide');
+      alertCard.classList.add('show');
+      playRenameChime();
+
+      setTimeout(() => {
+        alertCard.classList.remove('show');
+        alertCard.classList.add('hide');
+
+        setTimeout(() => {
+          processQueue();
+        }, 550);
+      }, durationParam);
+    }
+
+    // 1. Listen via BroadcastChannel
+    if (typeof BroadcastChannel !== 'undefined') {
+      ['akmov_overlay_channel', 'vallegeek_overlay_channel', 'ruedas_overlay_channel'].forEach((chName) => {
+        try {
+          const bc = new BroadcastChannel(chName);
+          bc.onmessage = (event) => {
+            if (event.data && event.data.type === 'NAME_CHANGE' && event.data.oldName && event.data.newName) {
+              triggerRenameAlert(event.data.oldName, event.data.newName);
+            }
+          };
+        } catch (e) {}
+      });
+    }
+
+    // 2. Direct Live Owncast Connection with Token Auth
+    async function connectOwncastDirect() {
+      const candidates = [
+        serverUrlParam,
+        'https://stream.akmovmedia.com',
+        'http://192.168.1.15:8080',
+        'http://localhost:8080'
+      ];
+      const unique = [...new Set(candidates.filter(Boolean))];
+
+      for (const base of unique) {
+        try {
+          const cleanBase = base.replace(/\/+$/, '');
+          let token = null;
+          try {
+            const reg = await fetch(`${cleanBase}/api/chat/register`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ displayName: 'AlertOverlay' })
+            });
+            if (reg.ok) {
+              const data = await reg.json();
+              token = data.accessToken;
+            }
+          } catch(e) {}
+
+          let wsUrl = cleanBase.replace(/^http/, 'ws') + '/ws';
+          if (token) wsUrl += '?accessToken=' + encodeURIComponent(token);
+
+          const socket = new WebSocket(wsUrl);
+          socket.onopen = () => {
+            console.log('[Alert Overlay] Conectado a Owncast para Cambios de Nombre:', wsUrl);
+          };
+          socket.onmessage = (event) => {
+            try {
+              const d = JSON.parse(event.data);
+              if (d.type === 'NAME_CHANGE') {
+                const oldN = d.oldName || d.user?.previousNames?.[d.user?.previousNames?.length - 1] || 'Usuario';
+                const newN = d.newName || d.user?.displayName || 'Usuario';
+                triggerRenameAlert(oldN, newN);
+              }
+            } catch(e) {}
+          };
+          socket.onclose = () => {
+            setTimeout(connectOwncastDirect, 5000);
+          };
+          break;
+        } catch(e) {}
+      }
+    }
+
+    connectOwncastDirect();
+
+    // 3. Test Mode via URL (e.g. ?test=1&old=Gamer1&new=GamerPro)
+    if (urlParams.has('test') || (urlParams.has('old') && urlParams.has('new'))) {
+      const oldU = urlParams.get('old') || 'NikoAntiguo';
+      const newU = urlParams.get('new') || 'NikoProGamer';
+      setTimeout(() => triggerRenameAlert(oldU, newU), 800);
+    }
+  </script>
+</body>
+</html>

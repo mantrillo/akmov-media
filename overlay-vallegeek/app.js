@@ -128,6 +128,10 @@
             this.notifyListeners();
           } else if (event.data.type === 'CHAT_MESSAGE') {
             this.notifyChatListeners(event.data.user, event.data.text);
+          } else if (event.data.type === 'USER_JOINED') {
+            this.notifyUserJoinedListeners(event.data.user);
+          } else if (event.data.type === 'NAME_CHANGE') {
+            this.notifyNameChangeListeners(event.data.oldName, event.data.newName);
           }
         };
       }
@@ -182,6 +186,46 @@
       this.chatListeners.forEach((cb) => {
         try { cb(user, text); } catch (e) {}
       });
+    }
+
+    onUserJoined(cb) {
+      this.userJoinedListeners = this.userJoinedListeners || [];
+      if (typeof cb === 'function') this.userJoinedListeners.push(cb);
+    }
+
+    notifyUserJoinedListeners(user) {
+      this.userJoinedListeners = this.userJoinedListeners || [];
+      this.userJoinedListeners.forEach((cb) => {
+        try { cb(user); } catch (e) {}
+      });
+    }
+
+    onNameChange(cb) {
+      this.nameChangeListeners = this.nameChangeListeners || [];
+      if (typeof cb === 'function') this.nameChangeListeners.push(cb);
+    }
+
+    notifyNameChangeListeners(oldName, newName) {
+      this.nameChangeListeners = this.nameChangeListeners || [];
+      this.nameChangeListeners.forEach((cb) => {
+        try { cb(oldName, newName); } catch (e) {}
+      });
+    }
+
+    sendUserJoined(user) {
+      if (!user) return;
+      if (this.channel) {
+        this.channel.postMessage({ type: 'USER_JOINED', user });
+      }
+      this.notifyUserJoinedListeners(user);
+    }
+
+    sendNameChange(oldName, newName) {
+      if (!oldName || !newName) return;
+      if (this.channel) {
+        this.channel.postMessage({ type: 'NAME_CHANGE', oldName, newName });
+      }
+      this.notifyNameChangeListeners(oldName, newName);
     }
 
     sendChatMessage(user, text, isSimulated = false) {
@@ -359,6 +403,13 @@
                   if (parsed) {
                     this.sendChatMessage(parsed.user, parsed.text);
                   }
+                } else if (data.type === 'USER_JOINED') {
+                  const user = data.user?.displayName || data.user?.name || data.eventData?.user?.displayName || data.body || 'Usuario';
+                  this.sendUserJoined(user);
+                } else if (data.type === 'NAME_CHANGE') {
+                  const oldName = data.oldName || data.user?.previousNames?.[data.user?.previousNames?.length - 1] || 'Usuario';
+                  const newName = data.newName || data.user?.displayName || 'Usuario';
+                  this.sendNameChange(oldName, newName);
                 }
               } catch (err) {}
             };

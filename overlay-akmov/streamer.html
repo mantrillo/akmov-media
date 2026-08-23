@@ -1282,6 +1282,38 @@
             💡 <strong>No requieres configurar Webhooks en Owncast Admin.</strong> El overlay se conecta automáticamente al WebSocket (<code>/ws</code>) y API de chat de Owncast en tiempo real.
           </div>
         </div>
+
+        <!-- Manual Message & Alerts -->
+        <div class="control-card">
+          <div class="card-title">🚀 Enviar Mensaje Manual</div>
+          <div class="input-group">
+            <label class="input-label">Usuario / Emisor</label>
+            <input type="text" id="chat-sender-input" class="input-field" value="AKMOV MEDIA">
+          </div>
+          <div class="input-group">
+            <label class="input-label">Mensaje</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="chat-msg-input" class="input-field" style="flex:1;" placeholder="Escribe un mensaje de prueba...">
+              <button class="btn btn-primary" onclick="sendTestChatMessage()">Enviar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alert Triggers Card -->
+        <div class="control-card">
+          <div class="card-title">🔔 Notificaciones & Alertas en Pantalla</div>
+          <div style="font-size: 11px; color: #94a3b8; margin-bottom: 10px; line-height: 1.4;">
+            Prueba las alertas animadas transparentes de nuevo usuario y cambio de nombre.
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <button type="button" class="btn btn-secondary" style="padding: 8px 10px; font-size: 11px; font-weight: 700; color: #00ff66; border-color: rgba(0,255,102,0.4);" onclick="testUserJoinedAlert()">
+              👋 Probar "Llegó al Chat"
+            </button>
+            <button type="button" class="btn btn-secondary" style="padding: 8px 10px; font-size: 11px; font-weight: 700; color: #00e5ff; border-color: rgba(0,229,255,0.4);" onclick="testNameChangeAlert()">
+              🔄 Probar "Cambio de Nombre"
+            </button>
+          </div>
+        </div>
       </section>
 
       <!-- TAB 3: TEMPORIZADOR EN VIVO -->
@@ -2202,6 +2234,27 @@
     }
 
     // Live Owncast Status
+    function sendTestChatMessage() {
+      const u = document.getElementById('chat-sender-input')?.value || 'AKMOV MEDIA';
+      const t = document.getElementById('chat-msg-input')?.value;
+      if (!t || !t.trim()) return;
+      window.overlayApp.sendChatMessage(u, t);
+      document.getElementById('chat-msg-input').value = '';
+    }
+
+    function testUserJoinedAlert() {
+      const u = document.getElementById('chat-sender-input')?.value || 'NuevoEspectador';
+      window.overlayApp.sendUserJoined(u);
+      showToast("Alerta 'Llegó al Chat' enviada");
+    }
+
+    function testNameChangeAlert() {
+      const oldN = document.getElementById('chat-sender-input')?.value || 'NickAntiguo';
+      const newN = oldN + '_PRO';
+      window.overlayApp.sendNameChange(oldN, newN);
+      showToast("Alerta 'Cambio de Nombre' enviada");
+    }
+
     window.overlayApp.onOwncastStatus((connected, url) => {
       const dot = document.getElementById('owncast-status-dot');
       const txt = document.getElementById('owncast-status-text');

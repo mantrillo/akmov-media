@@ -311,6 +311,10 @@ class OverlayEngine {
               return;
             }
             this.notifyChatListeners(event.data.user, event.data.text);
+          } else if (event.data && event.data.type === 'USER_JOINED') {
+            this.notifyUserJoinedListeners(event.data.user);
+          } else if (event.data && event.data.type === 'NAME_CHANGE') {
+            this.notifyNameChangeListeners(event.data.oldName, event.data.newName);
           } else if (event.data && event.data.type === 'OWNCAST_STATUS') {
             if (this.statusListeners) {
               this.statusListeners.forEach(fn => fn(event.data.connected, event.data.url));
@@ -387,12 +391,39 @@ class OverlayEngine {
 
   // Chat message distribution
   chatListeners = [];
+  userJoinedListeners = [];
+  nameChangeListeners = [];
+
   onChatMessage(fn) {
     this.chatListeners.push(fn);
   }
 
   notifyChatListeners(user, text) {
     this.chatListeners.forEach(fn => fn(user, text));
+  }
+
+  onUserJoined(fn) {
+    this.userJoinedListeners = this.userJoinedListeners || [];
+    this.userJoinedListeners.push(fn);
+  }
+
+  notifyUserJoinedListeners(user) {
+    this.userJoinedListeners = this.userJoinedListeners || [];
+    this.userJoinedListeners.forEach(fn => {
+      try { fn(user); } catch (e) {}
+    });
+  }
+
+  onNameChange(fn) {
+    this.nameChangeListeners = this.nameChangeListeners || [];
+    this.nameChangeListeners.push(fn);
+  }
+
+  notifyNameChangeListeners(oldName, newName) {
+    this.nameChangeListeners = this.nameChangeListeners || [];
+    this.nameChangeListeners.forEach(fn => {
+      try { fn(oldName, newName); } catch (e) {}
+    });
   }
 
   sendChatMessage(user, text, isSimulated = false) {
@@ -407,6 +438,29 @@ class OverlayEngine {
         user: user,
         text: text,
         isSimulated: isSimulated
+      });
+    }
+  }
+
+  sendUserJoined(user) {
+    if (!user) return;
+    this.notifyUserJoinedListeners(user);
+    if (this.broadcastChannel) {
+      this.broadcastChannel.postMessage({
+        type: 'USER_JOINED',
+        user: user
+      });
+    }
+  }
+
+  sendNameChange(oldName, newName) {
+    if (!oldName || !newName) return;
+    this.notifyNameChangeListeners(oldName, newName);
+    if (this.broadcastChannel) {
+      this.broadcastChannel.postMessage({
+        type: 'NAME_CHANGE',
+        oldName: oldName,
+        newName: newName
       });
     }
   }
@@ -583,6 +637,13 @@ class OverlayEngine {
                 if (parsed) {
                   this.sendChatMessage(parsed.user, parsed.text);
                 }
+              } else if (data.type === 'USER_JOINED') {
+                const user = data.user?.displayName || data.user?.name || data.eventData?.user?.displayName || data.body || 'Usuario';
+                this.sendUserJoined(user);
+              } else if (data.type === 'NAME_CHANGE') {
+                const oldName = data.oldName || data.user?.previousNames?.[data.user?.previousNames?.length - 1] || 'Usuario';
+                const newName = data.newName || data.user?.displayName || 'Usuario';
+                this.sendNameChange(oldName, newName);
               }
             } catch (err) {}
           };

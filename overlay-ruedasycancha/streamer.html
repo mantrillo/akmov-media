@@ -394,6 +394,22 @@
               </div>
             </div>
           </div>
+
+          <!-- Alert Triggers Card -->
+          <div class="control-card">
+            <div class="card-title">🔔 Notificaciones & Alertas en Pantalla</div>
+            <div style="font-size: 11px; color: #94a3b8; margin-bottom: 10px; line-height: 1.4;">
+              Prueba las alertas animadas transparentes de nuevo usuario y cambio de nombre.
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <button type="button" class="action-btn" style="padding: 8px 10px; font-size: 11px; font-weight: 700; color: #00ff66;" onclick="testUserJoinedAlert()">
+                👋 Probar "Llegó al Chat"
+              </button>
+              <button type="button" class="action-btn" style="padding: 8px 10px; font-size: 11px; font-weight: 700; color: #00e5ff;" onclick="testNameChangeAlert()">
+                🔄 Probar "Cambio de Nombre"
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- TAB 6: COLORES DEPORTIVOS -->
@@ -677,6 +693,19 @@
       if (!t.trim()) return;
       window.ruedasEngine.sendChatMessage(u, t);
       document.getElementById('chat-msg-input').value = '';
+    }
+
+    function testUserJoinedAlert() {
+      const u = document.getElementById('chat-sender-input')?.value || 'RuedasFan';
+      window.ruedasEngine.sendUserJoined(u);
+      showToast("Alerta 'Llegó al Chat' enviada");
+    }
+
+    function testNameChangeAlert() {
+      const oldN = document.getElementById('chat-sender-input')?.value || 'RuedasFan';
+      const newN = oldN + '_PRO';
+      window.ruedasEngine.sendNameChange(oldN, newN);
+      showToast("Alerta 'Cambio de Nombre' enviada");
     }
 
     function handleSuiteSwitch(suite) {
