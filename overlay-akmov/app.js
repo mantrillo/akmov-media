@@ -453,16 +453,36 @@ class OverlayEngine {
     }
   }
 
-  sendNameChange(oldName, newName) {
-    if (!oldName || !newName) return;
-    this.notifyNameChangeListeners(oldName, newName);
+  notifyOwncastStatus(connected, url) {
+    this.owncastConnected = connected;
+    this.activeOwncastUrl = url;
     if (this.broadcastChannel) {
       this.broadcastChannel.postMessage({
-        type: 'NAME_CHANGE',
-        oldName: oldName,
-        newName: newName
+        type: 'OWNCAST_STATUS',
+        connected: connected,
+        url: url
       });
     }
+    if (this.statusListeners) {
+      this.statusListeners.forEach((cb) => {
+        try { cb(connected, url); } catch (e) {}
+      });
+    }
+  }
+
+  onOwncastStatus(cb) {
+    this.statusListeners = this.statusListeners || [];
+    if (typeof cb === 'function') {
+      this.statusListeners.push(cb);
+      if (this.owncastConnected !== undefined) {
+        cb(this.owncastConnected, this.activeOwncastUrl || this.config?.chat?.streamUrl);
+      }
+    }
+  }
+
+  reconnectOwncast() {
+    this.owncastConnected = false;
+    this.connectLiveChatSources();
   }
 
   // Simulated live chat pool
