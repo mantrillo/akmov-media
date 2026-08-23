@@ -2087,38 +2087,38 @@
     // Save changes function
     function syncFromUI() {
       const updated = {
-        streamerName: streamerNameInput.value,
-        tickerText: tickerTextInput.value,
+        streamerName: streamerNameInput ? streamerNameInput.value : 'AKMOVMEDIA',
+        tickerText: tickerTextInput ? tickerTextInput.value : 'YA COMENZAMOS',
         tickerSpeed: parseInt(tickerSpeedInput ? tickerSpeedInput.value : 35, 10) || 35,
-        statusStarting: statusStartingInput.value,
-        statusEnding: statusEndingInput.value,
-        hostName: hostNameInput.value,
-        guestName: guestNameInput.value,
+        statusStarting: statusStartingInput ? statusStartingInput.value : 'YA COMENZAMOS',
+        statusEnding: statusEndingInput ? statusEndingInput.value : '¡NOS VEMOS PRONTO!',
+        hostName: hostNameInput ? hostNameInput.value : 'AKMOVMEDIA',
+        guestName: guestNameInput ? guestNameInput.value : 'INVITADO',
         camTitles: {
-          cam1: cam1TitleInput.value,
-          cam2: cam2TitleInput.value,
-          cam3: cam3TitleInput.value,
-          cam4: cam4TitleInput.value
+          cam1: cam1TitleInput ? cam1TitleInput.value : 'CAM 1',
+          cam2: cam2TitleInput ? cam2TitleInput.value : 'CAM 2',
+          cam3: cam3TitleInput ? cam3TitleInput.value : 'CAM 3',
+          cam4: cam4TitleInput ? cam4TitleInput.value : 'CAM 4'
         },
         chat: {
-          enabled: chatEnabledInput.checked,
-          simulation: chatSimInput.checked,
-          showInEndingScene: chatEndingInput.checked,
+          enabled: chatEnabledInput ? chatEnabledInput.checked : true,
+          simulation: chatSimInput ? chatSimInput.checked : false,
+          showInEndingScene: chatEndingInput ? chatEndingInput.checked : true,
           webhookUrl: chatWebhookInput ? chatWebhookInput.value : 'https://api.akmovmedia.com/owncast-webhook',
-          apiBase: chatApiBaseInput.value,
-          streamUrl: chatStreamUrlInput.value
+          apiBase: chatApiBaseInput ? chatApiBaseInput.value : 'https://api.akmovmedia.com',
+          streamUrl: chatStreamUrlInput ? chatStreamUrlInput.value : 'https://stream.akmovmedia.com'
         },
         socials: {
-          instagram: { enabled: igToggle.checked, handle: igHandle.value },
-          youtube: { enabled: ytToggle.checked, handle: ytHandle.value },
-          tiktok: { enabled: ttToggle.checked, handle: ttHandle.value },
-          twitch: { enabled: twToggle.checked, handle: twHandle.value },
-          kick: { enabled: kickToggle.checked, handle: kickHandle.value },
-          twitter: { enabled: xToggle.checked, handle: xHandle.value }
+          instagram: { enabled: !!igToggle?.checked, handle: igHandle ? igHandle.value : '' },
+          youtube: { enabled: !!ytToggle?.checked, handle: ytHandle ? ytHandle.value : '' },
+          tiktok: { enabled: !!ttToggle?.checked, handle: ttHandle ? ttHandle.value : '' },
+          twitch: { enabled: !!twToggle?.checked, handle: twHandle ? twHandle.value : '' },
+          kick: { enabled: !!kickToggle?.checked, handle: kickHandle ? kickHandle.value : '' },
+          twitter: { enabled: !!xToggle?.checked, handle: xHandle ? xHandle.value : '' }
         },
         theme: {
-          neonPrimary: themePrimaryHex.value,
-          particlesEnabled: themeParticles.checked
+          neonPrimary: themePrimaryHex ? themePrimaryHex.value : '#00ff66',
+          particlesEnabled: !!themeParticles?.checked
         }
       };
       window.overlayApp.saveConfig(updated);

@@ -399,7 +399,10 @@ class OverlayEngine {
   }
 
   notifyChatListeners(user, text) {
-    this.chatListeners.forEach(fn => fn(user, text));
+    this.chatListeners = this.chatListeners || [];
+    this.chatListeners.forEach(fn => {
+      try { fn(user, text); } catch (e) { console.error('Error in chatListener:', e); }
+    });
   }
 
   onUserJoined(fn) {
@@ -433,11 +436,21 @@ class OverlayEngine {
     }
     this.notifyChatListeners(user, text);
     if (this.broadcastChannel) {
-      this.broadcastChannel.postMessage({
-        type: 'CHAT_MESSAGE',
-        user: user,
-        text: text,
-        isSimulated: isSimulated
+      try {
+        this.broadcastChannel.postMessage({
+          type: 'CHAT_MESSAGE',
+          user: user,
+          text: text,
+          isSimulated: isSimulated
+        });
+      } catch (e) {}
+    }
+    if (typeof window !== 'undefined') {
+      if (window.parent && window.parent !== window) {
+        try { window.parent.postMessage({ type: 'CHAT_MESSAGE', user, text, isSimulated }, '*'); } catch (e) {}
+      }
+      document.querySelectorAll('iframe').forEach(ifr => {
+        try { ifr.contentWindow?.postMessage({ type: 'CHAT_MESSAGE', user, text, isSimulated }, '*'); } catch (e) {}
       });
     }
   }
@@ -446,9 +459,41 @@ class OverlayEngine {
     if (!user) return;
     this.notifyUserJoinedListeners(user);
     if (this.broadcastChannel) {
-      this.broadcastChannel.postMessage({
-        type: 'USER_JOINED',
-        user: user
+      try {
+        this.broadcastChannel.postMessage({
+          type: 'USER_JOINED',
+          user: user
+        });
+      } catch (e) {}
+    }
+    if (typeof window !== 'undefined') {
+      if (window.parent && window.parent !== window) {
+        try { window.parent.postMessage({ type: 'USER_JOINED', user }, '*'); } catch (e) {}
+      }
+      document.querySelectorAll('iframe').forEach(ifr => {
+        try { ifr.contentWindow?.postMessage({ type: 'USER_JOINED', user }, '*'); } catch (e) {}
+      });
+    }
+  }
+
+  sendNameChange(oldName, newName) {
+    if (!oldName || !newName) return;
+    this.notifyNameChangeListeners(oldName, newName);
+    if (this.broadcastChannel) {
+      try {
+        this.broadcastChannel.postMessage({
+          type: 'NAME_CHANGE',
+          oldName: oldName,
+          newName: newName
+        });
+      } catch (e) {}
+    }
+    if (typeof window !== 'undefined') {
+      if (window.parent && window.parent !== window) {
+        try { window.parent.postMessage({ type: 'NAME_CHANGE', oldName, newName }, '*'); } catch (e) {}
+      }
+      document.querySelectorAll('iframe').forEach(ifr => {
+        try { ifr.contentWindow?.postMessage({ type: 'NAME_CHANGE', oldName, newName }, '*'); } catch (e) {}
       });
     }
   }
@@ -457,15 +502,25 @@ class OverlayEngine {
     this.owncastConnected = connected;
     this.activeOwncastUrl = url;
     if (this.broadcastChannel) {
-      this.broadcastChannel.postMessage({
-        type: 'OWNCAST_STATUS',
-        connected: connected,
-        url: url
-      });
+      try {
+        this.broadcastChannel.postMessage({
+          type: 'OWNCAST_STATUS',
+          connected: connected,
+          url: url
+        });
+      } catch (e) {}
     }
     if (this.statusListeners) {
       this.statusListeners.forEach((cb) => {
         try { cb(connected, url); } catch (e) {}
+      });
+    }
+    if (typeof window !== 'undefined') {
+      if (window.parent && window.parent !== window) {
+        try { window.parent.postMessage({ type: 'OWNCAST_STATUS', connected, url }, '*'); } catch (e) {}
+      }
+      document.querySelectorAll('iframe').forEach(ifr => {
+        try { ifr.contentWindow?.postMessage({ type: 'OWNCAST_STATUS', connected, url }, '*'); } catch (e) {}
       });
     }
   }
