@@ -371,7 +371,11 @@
 
       const tryConnectWs = async (baseUrl) => {
         const cleanBase = baseUrl.replace(/\/+$/, '');
-        const wsUrl = cleanBase.replace(/^http/, 'ws') + '/ws';
+        const token = await this.getOwncastAccessToken(cleanBase);
+        let wsUrl = cleanBase.replace(/^http/, 'ws') + '/ws';
+        if (token) {
+          wsUrl += (wsUrl.includes('?') ? '&' : '?') + 'accessToken=' + encodeURIComponent(token);
+        }
 
         return new Promise((resolve) => {
           try {
