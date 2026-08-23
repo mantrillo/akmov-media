@@ -474,6 +474,33 @@ class OverlayEngine {
     return { user: username, text: cleanText };
   }
 
+  async getOwncastAccessToken(baseUrl) {
+    const cleanBase = baseUrl.replace(/\/+$/, '');
+    const storageKey = `owncast_token_${cleanBase}`;
+    try {
+      const cached = localStorage.getItem(storageKey);
+      if (cached) return cached;
+    } catch (e) {}
+
+    try {
+      const res = await fetch(`${cleanBase}/api/chat/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ displayName: 'AkmovOverlay' })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.accessToken) {
+          try { localStorage.setItem(storageKey, data.accessToken); } catch (e) {}
+          return data.accessToken;
+        }
+      }
+    } catch (err) {
+      console.warn('[AKMOV Chat] No se pudo registrar token en', cleanBase, err);
+    }
+    return null;
+  }
+
   // Live Owncast / Webhook / SSE / WebSocket connection
   async connectLiveChatSources() {
     if (this.owncastConnecting) return;
@@ -510,17 +537,22 @@ class OverlayEngine {
     const uniqueCandidates = [...new Set(candidates.filter(Boolean))];
     let connected = false;
 
-    const tryConnectWs = (baseUrl) => {
+    const tryConnectWs = async (baseUrl) => {
+      const cleanBase = baseUrl.replace(/\/+$/, '');
+      const token = await this.getOwncastAccessToken(cleanBase);
+
       return new Promise((resolve) => {
         try {
-          const cleanBase = baseUrl.replace(/\/+$/, '');
-          const wsUrl = cleanBase.replace(/^http/, 'ws') + '/ws';
+          let wsUrl = cleanBase.replace(/^http/, 'ws') + '/ws';
+          if (token) {
+            wsUrl += (wsUrl.includes('?') ? '&' : '?') + 'accessToken=' + encodeURIComponent(token);
+          }
           const socket = new WebSocket(wsUrl);
 
           let timeout = setTimeout(() => {
             try { socket.close(); } catch (e) {}
             resolve(false);
-          }, 2500);
+          }, 3000);
 
           socket.onopen = () => {
             clearTimeout(timeout);
@@ -528,8 +560,8 @@ class OverlayEngine {
             this.owncastConnected = true;
             this.activeOwncastUrl = cleanBase;
             this.notifyOwncastStatus(true, cleanBase);
-            console.log('[AKMOV Chat] Conectado a Owncast WebSocket:', wsUrl);
-            this.fetchOwncastHistory(cleanBase);
+            console.log('[AKMOV Chat] Conectado exitosamente a Owncast:', wsUrl);
+            this.fetchOwncastHistory(cleanBase, token);
             resolve(true);
           };
 
@@ -596,16 +628,31 @@ class OverlayEngine {
     }
   }
 
-  async fetchOwncastHistory(baseUrl) {
+  async fetchOwncastHistory(baseUrl, token = null) {
     try {
       const cleanBase = baseUrl.replace(/\/+$/, '');
-      const res = await fetch(`${cleanBase}/api/chat`, { method: 'GET', mode: 'cors' });
+      const authToken = token || await this.getOwncastAccessToken(cleanBase);
+      let apiUrl = `${cleanBase}/api/chat`;
+      if (authToken) apiUrl += '?accessToken=' + encodeURIComponent(authToken);
+
+      const res = await fetch(apiUrl, { method: 'GET', mode: 'cors' });
       if (!res.ok) return;
       const data = await res.json();
       const list = Array.isArray(data) ? data : (data.messages || []);
-      list.forEach((msg) => {
+      
+      // Render the last 4 recent messages if chat list is fresh
+      const recent = list.slice(-4);
+      recent.forEach((msg) => {
         const id = msg.id || (msg.timestamp + (msg.user?.displayName || ''));
-        if (id) this.seenChatIds.add(id);
+        if (id && !this.seenChatIds.has(id)) {
+          this.seenChatIds.add(id);
+          const parsed = this.parseOwncastMessage(msg);
+          if (parsed) {
+            this.sendChatMessage(parsed.user, parsed.text);
+          }
+        } else if (id) {
+          this.seenChatIds.add(id);
+        }
       });
     } catch (e) {}
   }
@@ -620,7 +667,11 @@ class OverlayEngine {
       for (const baseUrl of candidates) {
         try {
           const cleanBase = baseUrl.replace(/\/+$/, '');
-          const res = await fetch(`${cleanBase}/api/chat`, { method: 'GET', mode: 'cors' });
+          const authToken = await this.getOwncastAccessToken(cleanBase);
+          let apiUrl = `${cleanBase}/api/chat`;
+          if (authToken) apiUrl += '?accessToken=' + encodeURIComponent(authToken);
+
+          const res = await fetch(apiUrl, { method: 'GET', mode: 'cors' });
           if (res.ok) {
             const data = await res.json();
             const list = Array.isArray(data) ? data : (data.messages || []);
