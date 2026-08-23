@@ -52,6 +52,10 @@
     theme: {
       neonPrimary: '#00b4d8',
       neonSecondary: '#ff6b00'
+    },
+    background: {
+      mode: 'default', // 'default' | 'transparent'
+      opacity: 1.0
     }
   };
 
@@ -146,11 +150,24 @@
           changed = true;
         }
       }
-      if (params.has('streamurl') || params.has('owncast')) {
-        if (!this.config.chat) this.config.chat = {};
-        this.config.chat.streamUrl = params.get('streamurl') || params.get('owncast');
+      if (params.has('bg')) {
+        if (!this.config.background) this.config.background = {};
+        this.config.background.mode = params.get('bg');
         changed = true;
       }
+
+      // Check hash #cfg= base64
+      try {
+        if (window.location.hash && window.location.hash.includes('cfg=')) {
+          const b64 = window.location.hash.split('cfg=')[1];
+          if (b64) {
+            const parsed = JSON.parse(decodeURIComponent(atob(b64)));
+            this.config = { ...this.config, ...parsed };
+            changed = true;
+          }
+        }
+      } catch (e) {}
+
       if (changed) this.applyThemeToCSS();
     }
 
@@ -550,6 +567,26 @@
       root.style.setProperty('--neon-secondary', secondary);
       root.style.setProperty('--border-neon', `${primary}55`);
       root.style.setProperty('--ticker-duration', `${tickerSpeed}s`);
+
+      // Transparent background enforcement
+      if (this.config.background?.mode === 'transparent') {
+        document.documentElement.style.background = 'transparent';
+        document.body.style.background = 'transparent';
+        document.querySelectorAll('.sports-bg-layer, .sports-overlay-tint').forEach((el) => {
+          el.style.display = 'none';
+        });
+        const cvs = document.getElementById('bg-canvas');
+        if (cvs) {
+          cvs.style.display = 'none';
+          cvs.style.opacity = '0';
+        }
+      } else {
+        document.querySelectorAll('.sports-bg-layer, .sports-overlay-tint').forEach((el) => {
+          el.style.display = 'block';
+        });
+        const cvs = document.getElementById('bg-canvas');
+        if (cvs) cvs.style.display = 'block';
+      }
     }
 
     renderHeroLogo(containerEl, customOpts = {}) {
@@ -656,9 +693,23 @@
       const origin = window.location.origin;
       const path = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
       const url = new URL(`${origin}${path}/${sceneFilename}`);
-      if (this.config.tickerSpeed) {
-        url.searchParams.set('tickerspeed', this.config.tickerSpeed);
-      }
+      const cfg = this.config;
+
+      if (cfg.streamerName) url.searchParams.set('streamer', cfg.streamerName);
+      if (cfg.subtitle) url.searchParams.set('subtitle', cfg.subtitle);
+      if (cfg.tickerText) url.searchParams.set('ticker', cfg.tickerText);
+      if (cfg.tickerSpeed) url.searchParams.set('tickerspeed', cfg.tickerSpeed);
+      if (cfg.theme && cfg.theme.neonPrimary) url.searchParams.set('color', cfg.theme.neonPrimary.replace('#', ''));
+      if (cfg.background && cfg.background.mode) url.searchParams.set('bg', cfg.background.mode);
+      if (cfg.logoImageUrl) url.searchParams.set('logourl', cfg.logoImageUrl);
+      if (cfg.chat && cfg.chat.streamUrl) url.searchParams.set('streamurl', cfg.chat.streamUrl);
+
+      try {
+        const cleanCfg = JSON.parse(JSON.stringify(cfg));
+        const b64 = btoa(encodeURIComponent(JSON.stringify(cleanCfg)));
+        url.hash = `cfg=${b64}`;
+      } catch (e) {}
+
       return url.toString();
     }
   }

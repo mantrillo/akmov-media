@@ -289,8 +289,8 @@ html, body {
 .geek-cam-box {
   position: absolute;
   border: 2.5px solid var(--neon-primary);
-  background: rgba(7, 8, 20, 0.5);
-  box-shadow: 0 0 30px rgba(var(--neon-primary-rgb), 0.3), inset 0 0 20px rgba(var(--neon-primary-rgb), 0.1);
+  background: transparent !important;
+  box-shadow: 0 0 30px rgba(var(--neon-primary-rgb), 0.3);
   overflow: hidden;
   z-index: 10;
   border-radius: 6px;
@@ -505,8 +505,8 @@ html, body {
   width: 980px;
   left: 50px;
   border: 3px solid var(--neon-primary);
-  background: rgba(7, 8, 20, 0.5);
-  box-shadow: 0 0 35px rgba(var(--neon-primary-rgb), 0.35), inset 0 0 25px rgba(var(--neon-primary-rgb), 0.12);
+  background: transparent !important;
+  box-shadow: 0 0 35px rgba(var(--neon-primary-rgb), 0.35);
   overflow: hidden;
   z-index: 10;
   border-radius: 8px;

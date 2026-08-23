@@ -1183,11 +1183,18 @@ class OverlayEngine {
       const rgb = this.hexToRgb(config.theme.neonPrimary || '#00ff66') || { r: 0, g: 255, b: 102 };
       const secRgb = this.hexToRgb(config.theme.neonSecondary || '#0df576') || { r: 13, g: 245, b: 118 };
 
-      if (mode === 'transparent') {
+      if (mode === 'transparent' || opacity === 0) {
         ctx.clearRect(0, 0, 1920, 1080);
+        canvas.style.display = 'none';
+        canvas.style.opacity = '0';
         customLayer.innerHTML = '';
         customLayer.style.display = 'none';
+        document.documentElement.style.background = 'transparent';
+        document.body.style.background = 'transparent';
+        if (container) container.style.background = 'transparent';
         return;
+      } else {
+        canvas.style.display = 'block';
       }
 
       if (mode === 'custom') {
