@@ -48,27 +48,13 @@
     </div>
   </div>
 
-  <!-- Chat Lateral Derecho (Debajo de la Facecam) -->
-  <div class="geek-chat-box" style="top: 440px; right: 60px; width: 400px; height: 445px;">
-    <div class="geek-chat-header">
+  <!-- Barra de Chat Scroll Horizontal al Fondo -->
+  <div class="chat-linear-bottom-bar" id="chat-linear-bar">
+    <div class="chat-linear-badge">
       <span class="geek-live-dot"></span>
       <span>CHAT</span>
     </div>
-    <div class="geek-chat-list" id="chat-list"></div>
-  </div>
-
-  <!-- Ticker Inferior -->
-  <div style="position: absolute; bottom: 40px; left: 60px; width: 1360px; height: 44px; background: rgba(7,8,20,0.9); border: 1.5px solid var(--border-neon); border-radius: 6px; overflow: hidden; display: flex; align-items: center; z-index: 20;">
-    <div class="geek-ticker-content" id="ticker-content" style="font-size: 14px;">
-      <span>VALLE GEEK</span>
-      <span>CULTURA POP</span>
-      <span>GAMING</span>
-      <span>VALLENAR • HUASCO • FREIRINA • ALTO DEL CARMEN</span>
-      <span>VALLE GEEK</span>
-      <span>CULTURA POP</span>
-      <span>GAMING</span>
-      <span>VALLENAR • HUASCO • FREIRINA • ALTO DEL CARMEN</span>
-    </div>
+    <div class="chat-linear-track" id="linear-chat-track"></div>
   </div>
 
   <script src="app.js"></script>
@@ -77,29 +63,28 @@
 
     const logoEl = document.getElementById('streamer-logo');
     const camTitleEl = document.getElementById('cam-title');
-    const tickerContentEl = document.getElementById('ticker-content');
     const socialBarEl = document.getElementById('social-bar');
-    const chatListEl = document.getElementById('chat-list');
+    const linearChatTrack = document.getElementById('linear-chat-track');
 
     window.valleGeekApp.onChatMessage((user, text) => {
-      if (!chatListEl) return;
-      const msg = document.createElement('div');
-      msg.className = 'geek-chat-msg';
-      msg.innerHTML = `<div class="user">${user}</div><div class="text">${text}</div>`;
-      chatListEl.appendChild(msg);
-
-      while (chatListEl.children.length > 5) {
-        chatListEl.removeChild(chatListEl.firstChild);
+      if (!linearChatTrack) return;
+      const msgEl = document.createElement('div');
+      msgEl.className = 'chat-linear-msg';
+      msgEl.innerHTML = `
+        <span class="chat-linear-user">${user}:</span>
+        <span class="chat-linear-text">${text}</span>
+      `;
+      linearChatTrack.appendChild(msgEl);
+      while (linearChatTrack.children.length > 12) {
+        linearChatTrack.removeChild(linearChatTrack.firstChild);
       }
+      linearChatTrack.scrollLeft = linearChatTrack.scrollWidth;
     });
 
     window.valleGeekApp.subscribe((cfg) => {
       window.valleGeekApp.renderHeroLogo(logoEl, { isHeader: true, maxHeight: 60, width: 280 });
       if (cfg.camTitles && cfg.camTitles.cam1) {
         camTitleEl.innerText = cfg.camTitles.cam1;
-      }
-      if (cfg.tickerText) {
-        tickerContentEl.innerHTML = `<span>${cfg.tickerText}</span><span>${cfg.tickerText}</span>`;
       }
       window.valleGeekApp.renderSocialBar(socialBarEl);
     });

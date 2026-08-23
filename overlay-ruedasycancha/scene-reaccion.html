@@ -47,56 +47,41 @@
     </div>
   </div>
 
-  <!-- Chat en Vivo (Derecha Inferior) -->
-  <div class="sports-chat-box" style="top: 455px; right: 60px; width: 420px; height: 430px;">
-    <div class="sports-chat-header">
+  <!-- Barra de Chat Scroll Horizontal al Fondo -->
+  <div class="chat-linear-bottom-bar" id="chat-linear-bar">
+    <div class="chat-linear-badge">
       <span class="sports-live-dot"></span>
       <span>CHAT</span>
     </div>
-    <div class="sports-chat-list" id="chat-list"></div>
-  </div>
-
-  <!-- Ticker Inferior -->
-  <div class="sports-ticker-ribbon" style="top: auto; bottom: 45px; left: 60px; transform: none; width: 1800px; height: 40px;">
-    <div class="sports-ticker-content" id="ticker-content" style="font-size: 14px;">
-      <span>RUEDAS & CANCHA</span>
-      <span>DEPORTES URBANOS</span>
-      <span>MOTORES & RALLY</span>
-      <span>VALLENAR • HUASCO • FREIRINA • ALTO DEL CARMEN</span>
-      <span>RUEDAS & CANCHA</span>
-      <span>DEPORTES URBANOS</span>
-      <span>MOTORES & RALLY</span>
-      <span>VALLENAR • HUASCO • FREIRINA • ALTO DEL CARMEN</span>
-    </div>
+    <div class="chat-linear-track" id="linear-chat-track"></div>
   </div>
 
   <script src="app.js"></script>
   <script>
     const logoEl = document.getElementById('streamer-logo');
     const camTitleEl = document.getElementById('cam-title');
-    const tickerContentEl = document.getElementById('ticker-content');
     const socialBarEl = document.getElementById('social-bar');
-    const chatListEl = document.getElementById('chat-list');
+    const linearChatTrack = document.getElementById('linear-chat-track');
 
     window.ruedasEngine.onChatMessage((user, text) => {
-      if (!chatListEl) return;
-      const msg = document.createElement('div');
-      msg.className = 'sports-chat-msg';
-      msg.innerHTML = `<div class="user">${user}</div><div class="text">${text}</div>`;
-      chatListEl.appendChild(msg);
-
-      while (chatListEl.children.length > 5) {
-        chatListEl.removeChild(chatListEl.firstChild);
+      if (!linearChatTrack) return;
+      const msgEl = document.createElement('div');
+      msgEl.className = 'chat-linear-msg';
+      msgEl.innerHTML = `
+        <span class="chat-linear-user">${user}:</span>
+        <span class="chat-linear-text">${text}</span>
+      `;
+      linearChatTrack.appendChild(msgEl);
+      while (linearChatTrack.children.length > 12) {
+        linearChatTrack.removeChild(linearChatTrack.firstChild);
       }
+      linearChatTrack.scrollLeft = linearChatTrack.scrollWidth;
     });
 
     window.ruedasEngine.subscribe((cfg) => {
       window.ruedasEngine.renderHeroLogo(logoEl, { isHeader: true, maxHeight: 60, width: 280 });
       if (cfg.camTitles && cfg.camTitles.cam1) {
         camTitleEl.innerText = cfg.camTitles.cam1;
-      }
-      if (cfg.tickerText) {
-        tickerContentEl.innerHTML = `<span>${cfg.tickerText}</span><span>${cfg.tickerText}</span>`;
       }
       window.ruedasEngine.renderSocialBar(socialBarEl);
     });

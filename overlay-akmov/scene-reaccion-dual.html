@@ -54,8 +54,14 @@
       </div>
     </div>
 
-    <!-- Barra de Redes Sociales Biselada Inferior -->
-    <div class="social-bar-container" id="social-bar" style="bottom: 25px;"></div>
+    <!-- Barra de Chat Scroll Horizontal al Fondo -->
+    <div class="chat-linear-bottom-bar" id="chat-linear-bar">
+      <div class="chat-linear-badge">
+        <span class="live-indicator-dot"></span>
+        <span>CHAT</span>
+      </div>
+      <div class="chat-linear-track" id="linear-chat-track"></div>
+    </div>
   </div>
 
   <script src="app.js"></script>
@@ -67,6 +73,22 @@
     const tagHost1 = document.getElementById('tag-host1');
     const tagHost2 = document.getElementById('tag-host2');
     const socialBarEl = document.getElementById('social-bar');
+    const linearChatTrack = document.getElementById('linear-chat-track');
+
+    window.overlayApp.onChatMessage((user, text) => {
+      if (!linearChatTrack) return;
+      const msgEl = document.createElement('div');
+      msgEl.className = 'chat-linear-msg';
+      msgEl.innerHTML = `
+        <span class="chat-linear-user">${user}:</span>
+        <span class="chat-linear-text">${text}</span>
+      `;
+      linearChatTrack.appendChild(msgEl);
+      while (linearChatTrack.children.length > 12) {
+        linearChatTrack.removeChild(linearChatTrack.firstChild);
+      }
+      linearChatTrack.scrollLeft = linearChatTrack.scrollWidth;
+    });
 
     window.overlayApp.subscribe((config) => {
       const streamer = config.streamerName !== undefined ? config.streamerName : 'AKMOVMEDIA';

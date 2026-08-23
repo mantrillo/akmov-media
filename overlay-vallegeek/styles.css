@@ -563,3 +563,80 @@ html, body {
   justify-content: center;
   z-index: 20;
 }
+
+/* ==========================================================================
+   LINEAR HORIZONTAL CHAT SCROLL BAR
+   ========================================================================== */
+
+.chat-linear-bottom-bar {
+  position: absolute;
+  bottom: 0px;
+  left: 0;
+  width: 100%;
+  height: 48px;
+  background: linear-gradient(90deg, rgba(8, 10, 24, 0.96) 0%, rgba(14, 18, 40, 0.94) 50%, rgba(8, 10, 24, 0.96) 100%);
+  border-top: 2px solid var(--neon-primary);
+  box-shadow: 0 -4px 20px rgba(var(--neon-primary-rgb), 0.35);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  padding: 0 24px;
+  z-index: 100;
+}
+
+.chat-linear-badge {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(var(--neon-primary-rgb), 0.15);
+  border: 1px solid var(--neon-primary);
+  color: var(--neon-primary);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  padding: 4px 12px;
+  border-radius: 4px;
+  margin-right: 18px;
+  box-shadow: 0 0 10px rgba(var(--neon-primary-rgb), 0.35);
+}
+
+.chat-linear-track {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  overflow: hidden;
+  white-space: nowrap;
+  flex: 1;
+  mask-image: linear-gradient(to right, transparent 0%, black 4%, black 96%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 4%, black 96%, transparent 100%);
+}
+
+.chat-linear-msg {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(var(--neon-primary-rgb), 0.1);
+  border: 1px solid rgba(var(--neon-primary-rgb), 0.3);
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 14px;
+  animation: slideLinearMsg 0.4s ease-out;
+}
+
+.chat-linear-user {
+  font-family: var(--font-display);
+  font-weight: 800;
+  color: var(--neon-secondary, #ff7b00);
+}
+
+.chat-linear-text {
+  font-family: var(--font-sans);
+  color: #ffffff;
+}
+
+@keyframes slideLinearMsg {
+  from { opacity: 0; transform: translateX(30px) scale(0.95); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
