@@ -322,7 +322,6 @@
       try {
         const res = await fetch(`${cleanBase}/api/chat/register`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ displayName: 'ValleGeekOverlay' })
         });
         if (res.ok) {
@@ -332,9 +331,7 @@
             return data.accessToken;
           }
         }
-      } catch (err) {
-        console.warn('[ValleGeek Chat] No se pudo registrar token en', cleanBase, err);
-      }
+      } catch (err) {}
       return null;
     }
 

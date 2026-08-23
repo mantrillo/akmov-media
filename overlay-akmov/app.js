@@ -537,9 +537,9 @@ class OverlayEngine {
     } catch (e) {}
 
     try {
+      // Send simple body without triggering CORS preflight header restrictions
       const res = await fetch(`${cleanBase}/api/chat/register`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ displayName: 'AkmovOverlay' })
       });
       if (res.ok) {
@@ -549,9 +549,7 @@ class OverlayEngine {
           return data.accessToken;
         }
       }
-    } catch (err) {
-      console.warn('[AKMOV Chat] No se pudo registrar token en', cleanBase, err);
-    }
+    } catch (err) {}
     return null;
   }
 
@@ -631,7 +629,16 @@ class OverlayEngine {
           socket.onmessage = (event) => {
             try {
               const data = JSON.parse(event.data);
-              if (data.type === 'CHAT' || data.body || data.eventData) {
+              const type = (data.type || '').toUpperCase();
+
+              if (type === 'USER_JOINED' || type === 'USER_JOIN') {
+                const user = data.user?.displayName || data.user?.name || data.eventData?.user?.displayName || data.body || 'Usuario';
+                this.sendUserJoined(user);
+              } else if (type === 'NAME_CHANGE' || type === 'NAME_CHANGED' || type === 'USER_NAME_CHANGED') {
+                const oldName = data.oldName || data.user?.previousNames?.[data.user?.previousNames?.length - 1] || 'Usuario';
+                const newName = data.newName || data.user?.displayName || 'Usuario';
+                this.sendNameChange(oldName, newName);
+              } else if (type === 'CHAT' || type === 'CHAT_MESSAGE' || data.body || data.eventData) {
                 const id = data.id || (data.timestamp + (data.user?.displayName || ''));
                 if (id && this.seenChatIds.has(id)) return;
                 if (id) {
@@ -645,13 +652,6 @@ class OverlayEngine {
                 if (parsed) {
                   this.sendChatMessage(parsed.user, parsed.text);
                 }
-              } else if (data.type === 'USER_JOINED') {
-                const user = data.user?.displayName || data.user?.name || data.eventData?.user?.displayName || data.body || 'Usuario';
-                this.sendUserJoined(user);
-              } else if (data.type === 'NAME_CHANGE') {
-                const oldName = data.oldName || data.user?.previousNames?.[data.user?.previousNames?.length - 1] || 'Usuario';
-                const newName = data.newName || data.user?.displayName || 'Usuario';
-                this.sendNameChange(oldName, newName);
               }
             } catch (err) {}
           };
