@@ -202,6 +202,24 @@
               <label class="input-label">Texto Ticker Superior (Scroll Infinito)</label>
               <input type="text" id="cfg-ticker-text" class="input-field" value="RUEDAS & CANCHA • SKATE • BMX • FÚTBOL • BASKETBALL • ARTES MARCIALES • VALLENAR • HUASCO • FREIRINA • ALTO DEL CARMEN" oninput="updateTickerText(this.value)">
             </div>
+            <div class="input-group" style="margin-top: 12px; background: rgba(0, 180, 216, 0.04); border: 1px solid rgba(0, 180, 216, 0.2); border-radius: 8px; padding: 12px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <label class="input-label" style="margin-bottom: 0;">⏱️ Velocidad del Scroll / Ticker</label>
+                <span id="ticker-speed-val" style="font-family: var(--font-display); font-size: 13px; font-weight: 800; color: var(--neon-primary); background: rgba(0, 180, 216, 0.15); padding: 2px 10px; border-radius: 12px; border: 1px solid var(--border-neon);">35s (Normal)</span>
+              </div>
+              <input type="range" id="cfg-ticker-speed" min="10" max="75" step="1" value="35" oninput="updateTickerSpeed(this.value)" style="width: 100%; accent-color: var(--neon-primary); cursor: pointer; height: 6px;">
+              <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-top: 4px; margin-bottom: 8px;">
+                <span>⚡ Rápido (10s)</span>
+                <span>⭐ Recomendado (35s)</span>
+                <span>🐢 Lento (75s)</span>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;">
+                <button type="button" class="action-btn" style="padding: 6px 4px; font-size: 11px;" onclick="setTickerSpeedPreset(18)">⚡ 18s Rápido</button>
+                <button type="button" class="action-btn" style="padding: 6px 4px; font-size: 11px;" onclick="setTickerSpeedPreset(35)">⭐ 35s Normal</button>
+                <button type="button" class="action-btn" style="padding: 6px 4px; font-size: 11px;" onclick="setTickerSpeedPreset(50)">🐢 50s Lento</button>
+                <button type="button" class="action-btn" style="padding: 6px 4px; font-size: 11px;" onclick="setTickerSpeedPreset(65)">💤 65s Pausado</button>
+              </div>
+            </div>
             <div class="input-group">
               <label class="input-label">Texto Escena 1 (Ya Comenzamos)</label>
               <input type="text" id="cfg-status-starting" class="input-field" value="YA COMENZAMOS" oninput="updateStatusStarting(this.value)">
@@ -333,16 +351,31 @@
 
           <!-- Owncast Status Card -->
           <div class="control-card">
-            <div class="card-title">📡 Conexión Owncast Chat en Vivo</div>
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.5); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 8px;">
+            <div class="card-title">📡 Conexión Directa Owncast (WebSocket & API)</div>
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.5); padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 10px;">
               <div style="display: flex; align-items: center; gap: 8px;">
-                <span class="sports-live-dot"></span>
-                <span style="font-size: 11px; font-weight: 700;">Owncast SSE / Webhook Activo</span>
+                <span id="owncast-status-dot" class="sports-live-dot" style="background: #22c55e;"></span>
+                <span id="owncast-status-text" style="font-size: 12px; font-weight: 700; color: #fff;">Conectando a Owncast...</span>
               </div>
-              <span style="font-size: 10px; color: var(--accent); font-weight: 800;">EN LÍNEA</span>
+              <span id="owncast-status-badge" style="font-size: 11px; color: #22c55e; font-weight: 800; background: rgba(34, 197, 94, 0.15); padding: 2px 8px; border-radius: 4px;">EN LÍNEA</span>
             </div>
-            <div style="font-size: 10.5px; color: #94a3b8;">
-              Los mensajes enviados por los usuarios en el reproductor de Owncast se muestran en pantalla en tiempo real.
+
+            <div class="input-group">
+              <label class="input-label">URL del Servidor Owncast</label>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="cfg-chat-streamurl" class="input-field" style="flex:1;" value="http://192.168.1.15:8080" placeholder="http://192.168.1.15:8080" oninput="updateOwncastUrl(this.value)">
+                <button type="button" class="btn-action" onclick="reconnectOwncastLive()">🔄 Reconectar</button>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 6px; margin-top: 8px;">
+              <button type="button" class="action-btn" style="padding: 4px 8px; font-size: 10.5px;" onclick="setOwncastUrlPreset('http://192.168.1.15:8080')">🏠 192.168.1.15:8080</button>
+              <button type="button" class="action-btn" style="padding: 4px 8px; font-size: 10.5px;" onclick="setOwncastUrlPreset('http://localhost:8080')">💻 localhost:8080</button>
+              <button type="button" class="action-btn" style="padding: 4px 8px; font-size: 10.5px;" onclick="setOwncastUrlPreset('https://stream.akmovmedia.com')">🌐 stream.akmovmedia.com</button>
+            </div>
+
+            <div style="font-size: 10.5px; color: #94a3b8; margin-top: 10px; line-height: 1.4; background: rgba(0, 180, 216, 0.05); border: 1px solid rgba(0, 180, 216, 0.15); padding: 8px 10px; border-radius: 6px;">
+              💡 <strong>No necesitas configurar Webhooks en Owncast Admin.</strong> El overlay se conecta automáticamente al WebSocket (<code>/ws</code>) y API de chat de Owncast en tiempo real.
             </div>
           </div>
 
@@ -551,6 +584,31 @@
     function updateStreamerName(val) { window.ruedasEngine.saveConfig({ streamerName: val }); updatePreviewFrameLive(); }
     function updateSubtitle(val) { window.ruedasEngine.saveConfig({ subtitle: val }); updatePreviewFrameLive(); }
     function updateTickerText(val) { window.ruedasEngine.saveConfig({ tickerText: val }); updatePreviewFrameLive(); }
+
+    function updateTickerSpeed(val) {
+      const speed = parseInt(val, 10) || 35;
+      window.ruedasEngine.saveConfig({ tickerSpeed: speed });
+      updateTickerSpeedLabel(speed);
+      updatePreviewFrameLive();
+    }
+
+    function setTickerSpeedPreset(val) {
+      const slider = document.getElementById('cfg-ticker-speed');
+      if (slider) slider.value = val;
+      updateTickerSpeed(val);
+    }
+
+    function updateTickerSpeedLabel(speed) {
+      const label = document.getElementById('ticker-speed-val');
+      if (!label) return;
+      let desc = 'Normal';
+      if (speed <= 20) desc = 'Rápido';
+      else if (speed <= 28) desc = 'Medio';
+      else if (speed <= 42) desc = 'Normal';
+      else if (speed <= 58) desc = 'Lento';
+      else desc = 'Muy Lento';
+      label.innerText = `${speed}s (${desc})`;
+    }
     function updateStatusStarting(val) { window.ruedasEngine.saveConfig({ statusStarting: val }); updatePreviewFrameLive(); }
     function updateStatusEnding(val) { window.ruedasEngine.saveConfig({ statusEnding: val }); updatePreviewFrameLive(); }
     function updateHostName(val) { window.ruedasEngine.saveConfig({ hostName: val }); updatePreviewFrameLive(); }
@@ -594,6 +652,25 @@
       showToast(enabled ? "Simulación de chat deportivo activada" : "Simulación de chat desactivada");
     }
 
+    function updateOwncastUrl(val) {
+      const url = (val || '').trim();
+      const chatCfg = window.ruedasEngine.config.chat || {};
+      chatCfg.streamUrl = url;
+      window.ruedasEngine.saveConfig({ chat: chatCfg });
+      window.ruedasEngine.reconnectOwncast();
+    }
+
+    function setOwncastUrlPreset(url) {
+      const el = document.getElementById('cfg-chat-streamurl');
+      if (el) el.value = url;
+      updateOwncastUrl(url);
+    }
+
+    function reconnectOwncastLive() {
+      window.ruedasEngine.reconnectOwncast();
+      showToast("Reconectando a Owncast...");
+    }
+
     function sendTestChatMessage() {
       const u = document.getElementById('chat-sender-input').value || 'RUEDAS & CANCHA';
       const t = document.getElementById('chat-msg-input').value;
@@ -618,13 +695,27 @@
         if (el && document.activeElement !== el) el.value = v !== undefined ? v : def;
       };
 
-      if (cfg.chat && document.getElementById('cfg-chat-simulation')) {
-        document.getElementById('cfg-chat-simulation').checked = !!cfg.chat.simulation;
+      if (cfg.chat) {
+        if (document.getElementById('cfg-chat-simulation')) {
+          document.getElementById('cfg-chat-simulation').checked = !!cfg.chat.simulation;
+        }
+        if (cfg.chat.streamUrl && document.getElementById('cfg-chat-streamurl')) {
+          if (document.activeElement !== document.getElementById('cfg-chat-streamurl')) {
+            document.getElementById('cfg-chat-streamurl').value = cfg.chat.streamUrl;
+          }
+        }
       }
 
       setVal('cfg-streamer-name', cfg.streamerName, 'RUEDAS & CANCHA');
       setVal('cfg-subtitle', cfg.subtitle, 'DEPORTES URBANOS • MOTORES • VALLE DEL HUASCO');
       setVal('cfg-ticker-text', cfg.tickerText, 'RUEDAS & CANCHA • SKATE • BMX • FÚTBOL • BASKETBALL • ARTES MARCIALES • VALLENAR • HUASCO • FREIRINA • ALTO DEL CARMEN');
+      if (cfg.tickerSpeed !== undefined) {
+        const slider = document.getElementById('cfg-ticker-speed');
+        if (slider && document.activeElement !== slider) {
+          slider.value = cfg.tickerSpeed;
+        }
+        updateTickerSpeedLabel(cfg.tickerSpeed);
+      }
       setVal('cfg-status-starting', cfg.statusStarting, 'YA COMENZAMOS');
       setVal('cfg-status-ending', cfg.statusEnding, '¡NOS VEMOS EN LA PRÓXIMA FECHA!');
       setVal('cfg-host-name', cfg.hostName, 'RUEDAS & CANCHA');
@@ -661,6 +752,26 @@
       const timerEl = document.getElementById('cfg-timer-display');
       if (timerEl && cfg.timer) {
         timerEl.innerText = window.ruedasEngine.formatTimer(cfg.timer.remainingSeconds);
+      }
+    });
+    // Live Owncast Status
+    window.ruedasEngine.onOwncastStatus((connected, url) => {
+      const dot = document.getElementById('owncast-status-dot');
+      const txt = document.getElementById('owncast-status-text');
+      const badge = document.getElementById('owncast-status-badge');
+      if (!txt || !badge) return;
+      if (connected) {
+        if (dot) dot.style.background = '#22c55e';
+        txt.innerText = `Conectado: ${url}`;
+        badge.innerText = 'EN LÍNEA';
+        badge.style.color = '#22c55e';
+        badge.style.background = 'rgba(34, 197, 94, 0.15)';
+      } else {
+        if (dot) dot.style.background = '#ef4444';
+        txt.innerText = 'Buscando servidor Owncast...';
+        badge.innerText = 'BUSCANDO';
+        badge.style.color = '#ef4444';
+        badge.style.background = 'rgba(239, 68, 68, 0.15)';
       }
     });
   </script>

@@ -14,6 +14,7 @@
     streamerName: 'VALLE GEEK',
     subtitle: 'CULTURA POP • GAMING • COMUNIDAD',
     tickerText: 'VALLE GEEK • CULTURA POP • GAMING • COMUNIDAD • VALLENAR • HUASCO • FREIRINA • ALTO DEL CARMEN',
+    tickerSpeed: 35,
     statusStarting: 'YA COMENZAMOS',
     statusEnding: '¡NOS VEMOS PRONTO!',
     hostName: 'VALLE GEEK',
@@ -46,7 +47,7 @@
       simulation: false,
       apiBase: 'https://api.akmovmedia.com',
       webhookUrl: 'https://api.akmovmedia.com/owncast-webhook',
-      streamUrl: 'https://stream.akmovmedia.com'
+      streamUrl: 'http://192.168.1.15:8080'
     },
     theme: {
       neonPrimary: '#00e5ff',
@@ -139,9 +140,21 @@
       if (params.has('streamer')) { this.config.streamerName = params.get('streamer'); changed = true; }
       if (params.has('subtitle')) { this.config.subtitle = params.get('subtitle'); changed = true; }
       if (params.has('ticker')) { this.config.tickerText = params.get('ticker'); changed = true; }
+      if (params.has('tickerspeed') || params.has('speed')) {
+        const spd = parseInt(params.get('tickerspeed') || params.get('speed'), 10);
+        if (!isNaN(spd) && spd > 0) {
+          this.config.tickerSpeed = spd;
+          changed = true;
+        }
+      }
       if (params.has('color')) { this.config.theme.neonPrimary = '#' + params.get('color').replace('#', ''); changed = true; }
       if (params.has('logowidth')) { this.config.logoImageWidth = parseInt(params.get('logowidth'), 10); changed = true; }
       if (params.has('logoheight')) { this.config.logoImageMaxHeight = parseInt(params.get('logoheight'), 10); changed = true; }
+      if (params.has('streamurl') || params.has('owncast')) {
+        if (!this.config.chat) this.config.chat = {};
+        this.config.chat.streamUrl = params.get('streamurl') || params.get('owncast');
+        changed = true;
+      }
 
       if (changed) {
         this.applyThemeToCSS();
@@ -239,56 +252,200 @@
     }
 
     async connectLiveChatSources() {
+      if (this.owncastConnecting) return;
+      this.owncastConnecting = true;
+
+      if (this.owncastWs) {
+        try { this.owncastWs.close(); } catch (e) {}
+        this.owncastWs = null;
+      }
+      if (this.owncastPollTimer) {
+        clearInterval(this.owncastPollTimer);
+        this.owncastPollTimer = null;
+      }
+
       const chatCfg = this.config?.chat;
-      if (!chatCfg || !chatCfg.enabled) return;
+      if (!chatCfg || chatCfg.enabled === false) {
+        this.owncastConnecting = false;
+        return;
+      }
 
-      const apiBase = chatCfg.apiBase || 'https://api.akmovmedia.com';
-      const webhookUrl = chatCfg.webhookUrl || `${apiBase}/owncast-webhook`;
+      this.seenChatIds = this.seenChatIds || new Set();
 
-      // 1. SSE from API
-      if (typeof EventSource !== 'undefined') {
-        const sseEndpoints = [
-          `${webhookUrl}/events`,
-          `${apiBase}/owncast-webhook/events`,
-          `${apiBase}/alerts/stream`,
-          `${apiBase}/chat/stream`,
-          `${apiBase}/events`
-        ];
+      // Candidate URLs for Owncast
+      const candidates = [];
+      if (chatCfg.streamUrl) candidates.push(chatCfg.streamUrl.trim());
+      candidates.push('http://192.168.1.15:8080');
+      candidates.push('http://localhost:8080');
+      candidates.push('http://127.0.0.1:8080');
+      if (typeof window !== 'undefined' && window.location && window.location.hostname) {
+        candidates.push(`${window.location.protocol}//${window.location.hostname}:8080`);
+      }
+      candidates.push('https://stream.akmovmedia.com');
 
-        for (const endpoint of sseEndpoints) {
+      const uniqueCandidates = [...new Set(candidates.filter(Boolean))];
+      let connected = false;
+
+      const tryConnectWs = (baseUrl) => {
+        return new Promise((resolve) => {
           try {
-            const es = new EventSource(endpoint);
-            es.onmessage = (event) => {
+            const cleanBase = baseUrl.replace(/\/+$/, '');
+            const wsUrl = cleanBase.replace(/^http/, 'ws') + '/ws';
+            const socket = new WebSocket(wsUrl);
+
+            let timeout = setTimeout(() => {
+              try { socket.close(); } catch (e) {}
+              resolve(false);
+            }, 2500);
+
+            socket.onopen = () => {
+              clearTimeout(timeout);
+              this.owncastWs = socket;
+              this.owncastConnected = true;
+              this.activeOwncastUrl = cleanBase;
+              this.notifyOwncastStatus(true, cleanBase);
+              console.log('[ValleGeek Chat] Conectado a Owncast WebSocket:', wsUrl);
+              this.fetchOwncastHistory(cleanBase);
+              resolve(true);
+            };
+
+            socket.onmessage = (event) => {
               try {
                 const data = JSON.parse(event.data);
-                const parsed = this.parseOwncastMessage(data);
-                if (parsed) {
-                  this.sendChatMessage(parsed.user, parsed.text);
+                if (data.type === 'CHAT' || data.body || data.eventData) {
+                  const id = data.id || (data.timestamp + (data.user?.displayName || ''));
+                  if (id && this.seenChatIds.has(id)) return;
+                  if (id) {
+                    this.seenChatIds.add(id);
+                    if (this.seenChatIds.size > 200) {
+                      const first = this.seenChatIds.values().next().value;
+                      this.seenChatIds.delete(first);
+                    }
+                  }
+                  const parsed = this.parseOwncastMessage(data);
+                  if (parsed) {
+                    this.sendChatMessage(parsed.user, parsed.text);
+                  }
                 }
-              } catch (e) {}
+              } catch (err) {}
             };
-            es.onerror = () => { es.close(); };
-            break;
-          } catch (e) {}
+
+            socket.onerror = () => {
+              clearTimeout(timeout);
+              resolve(false);
+            };
+
+            socket.onclose = () => {
+              clearTimeout(timeout);
+              if (this.owncastWs === socket) {
+                this.owncastWs = null;
+                this.owncastConnected = false;
+                this.notifyOwncastStatus(false, cleanBase);
+                setTimeout(() => {
+                  if (!this.owncastConnected) this.connectLiveChatSources();
+                }, 4000);
+              }
+            };
+          } catch (e) {
+            resolve(false);
+          }
+        });
+      };
+
+      for (const url of uniqueCandidates) {
+        const ok = await tryConnectWs(url);
+        if (ok) {
+          connected = true;
+          break;
         }
       }
 
-      // 2. Direct Owncast WebSocket
+      this.owncastConnecting = false;
+
+      // If WebSocket failed for all endpoints, start polling fallback
+      if (!connected) {
+        this.notifyOwncastStatus(false, uniqueCandidates[0]);
+        this.startOwncastPolling(uniqueCandidates);
+        setTimeout(() => {
+          if (!this.owncastConnected) this.connectLiveChatSources();
+        }, 6000);
+      }
+    }
+
+    async fetchOwncastHistory(baseUrl) {
       try {
-        if (chatCfg.streamUrl && typeof WebSocket !== 'undefined') {
-          const wsUrl = chatCfg.streamUrl.replace(/^http/, 'ws') + '/ws';
-          const ws = new WebSocket(wsUrl);
-          ws.onmessage = (event) => {
-            try {
-              const data = JSON.parse(event.data);
-              const parsed = this.parseOwncastMessage(data);
-              if (parsed) {
-                this.sendChatMessage(parsed.user, parsed.text);
-              }
-            } catch (e) {}
-          };
-        }
+        const cleanBase = baseUrl.replace(/\/+$/, '');
+        const res = await fetch(`${cleanBase}/api/chat`, { method: 'GET', mode: 'cors' });
+        if (!res.ok) return;
+        const data = await res.json();
+        const list = Array.isArray(data) ? data : (data.messages || []);
+        list.forEach((msg) => {
+          const id = msg.id || (msg.timestamp + (msg.user?.displayName || ''));
+          if (id) this.seenChatIds.add(id);
+        });
       } catch (e) {}
+    }
+
+    startOwncastPolling(candidates) {
+      if (this.owncastPollTimer) clearInterval(this.owncastPollTimer);
+      this.owncastPollTimer = setInterval(async () => {
+        if (this.owncastConnected) {
+          clearInterval(this.owncastPollTimer);
+          return;
+        }
+        for (const baseUrl of candidates) {
+          try {
+            const cleanBase = baseUrl.replace(/\/+$/, '');
+            const res = await fetch(`${cleanBase}/api/chat`, { method: 'GET', mode: 'cors' });
+            if (res.ok) {
+              const data = await res.json();
+              const list = Array.isArray(data) ? data : (data.messages || []);
+              list.forEach((msg) => {
+                const id = msg.id || (msg.timestamp + (msg.user?.displayName || ''));
+                if (id && !this.seenChatIds.has(id)) {
+                  this.seenChatIds.add(id);
+                  const parsed = this.parseOwncastMessage(msg);
+                  if (parsed) {
+                    this.sendChatMessage(parsed.user, parsed.text);
+                  }
+                }
+              });
+              this.notifyOwncastStatus(true, `${cleanBase} (HTTP)`);
+              break;
+            }
+          } catch (e) {}
+        }
+      }, 2500);
+    }
+
+    notifyOwncastStatus(connected, url) {
+      if (this.channel) {
+        this.channel.postMessage({
+          type: 'OWNCAST_STATUS',
+          connected: connected,
+          url: url
+        });
+      }
+      if (this.statusListeners) {
+        this.statusListeners.forEach((cb) => {
+          try { cb(connected, url); } catch (e) {}
+        });
+      }
+    }
+
+    onOwncastStatus(cb) {
+      this.statusListeners = this.statusListeners || [];
+      if (typeof cb === 'function') {
+        this.statusListeners.push(cb);
+        if (this.owncastConnected !== undefined) {
+          cb(this.owncastConnected, this.activeOwncastUrl || this.config?.chat?.streamUrl);
+        }
+      }
+    }
+
+    reconnectOwncast() {
+      this.owncastConnected = false;
+      this.connectLiveChatSources();
     }
 
     applyThemeToCSS() {
@@ -297,10 +454,12 @@
 
       const primary = this.config.theme?.neonPrimary || '#00e5ff';
       const secondary = this.config.theme?.neonSecondary || '#ff7b00';
+      const tickerSpeed = this.config.tickerSpeed || 35;
 
       root.style.setProperty('--neon-primary', primary);
       root.style.setProperty('--neon-secondary', secondary);
       root.style.setProperty('--border-neon', `${primary}55`);
+      root.style.setProperty('--ticker-duration', `${tickerSpeed}s`);
 
       const rgb = this.hexToRgb(primary);
       if (rgb) {
@@ -476,7 +635,11 @@
     getExportableUrl(sceneFilename) {
       const origin = window.location.origin;
       const path = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
-      return `${origin}${path}/${sceneFilename}`;
+      const url = new URL(`${origin}${path}/${sceneFilename}`);
+      if (this.config.tickerSpeed) {
+        url.searchParams.set('tickerspeed', this.config.tickerSpeed);
+      }
+      return url.toString();
     }
   }
 

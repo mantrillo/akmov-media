@@ -11,6 +11,7 @@
   --neon-accent: #00e5ff;
   --neon-primary-rgb: 0, 180, 216;
   --neon-secondary-rgb: 255, 107, 0;
+  --ticker-duration: 35s;
 
   --bg-dark: #07090e;
   --bg-panel: rgba(12, 16, 26, 0.92);
@@ -114,7 +115,7 @@ html, body { width: 100vw; height: 100vh; overflow: hidden; font-family: var(--f
 }
 
 .sports-ticker-content {
-  display: flex; white-space: nowrap; animation: sportsScroll 18s linear infinite;
+  display: flex; white-space: nowrap; animation: sportsScroll var(--ticker-duration, 35s) linear infinite;
   font-family: var(--font-display); font-size: 15px; font-weight: 800; letter-spacing: 3px; color: #fff;
 }
 

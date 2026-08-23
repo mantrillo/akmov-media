@@ -13,6 +13,7 @@
   --neon-yellow: #ffd166;        /* Oro Estelar / Pixel Star */
   --neon-primary-rgb: 0, 229, 255;
   --neon-secondary-rgb: 255, 123, 0;
+  --ticker-duration: 35s;
 
   --bg-dark: #070814;
   --bg-panel: rgba(11, 13, 28, 0.88);
@@ -222,7 +223,7 @@ html, body {
 .geek-ticker-content {
   display: flex;
   white-space: nowrap;
-  animation: geekScroll 18s linear infinite;
+  animation: geekScroll var(--ticker-duration, 35s) linear infinite;
   font-family: var(--font-display);
   font-size: 15px;
   font-weight: 800;

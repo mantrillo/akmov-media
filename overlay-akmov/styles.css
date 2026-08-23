@@ -36,6 +36,7 @@
   --font-mono: 'Syne', monospace;
   
   --anim-speed: 1;
+  --ticker-duration: 35s;
 }
 
 * {
@@ -217,7 +218,7 @@ body {
 .ticker-track {
   display: flex;
   white-space: nowrap;
-  animation: tickerScroll 16s linear infinite;
+  animation: tickerScroll var(--ticker-duration, 35s) linear infinite;
   will-change: transform;
 }
 
