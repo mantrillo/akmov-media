@@ -38,7 +38,7 @@ const DEFAULT_CONFIG = {
     simulation: false, // Por defecto inactivo para evitar spam automático en OBS a menos que se active
     apiBase: "https://api.akmovmedia.com",
     webhookUrl: "https://api.akmovmedia.com/owncast-webhook",
-    streamUrl: "http://192.168.1.15:8080",
+    streamUrl: "https://stream.akmovmedia.com",
     showInEndingScene: true,
     showInCamChatScene: true
   },
@@ -526,13 +526,14 @@ class OverlayEngine {
     // Candidate URLs for Owncast
     const candidates = [];
     if (chatCfg.streamUrl) candidates.push(chatCfg.streamUrl.trim());
+    candidates.push('https://stream.akmovmedia.com');
     candidates.push('http://192.168.1.15:8080');
     candidates.push('http://localhost:8080');
     candidates.push('http://127.0.0.1:8080');
     if (typeof window !== 'undefined' && window.location && window.location.hostname) {
       candidates.push(`${window.location.protocol}//${window.location.hostname}:8080`);
+      candidates.push(`${window.location.protocol}//${window.location.hostname}`);
     }
-    candidates.push('https://stream.akmovmedia.com');
 
     const uniqueCandidates = [...new Set(candidates.filter(Boolean))];
     let connected = false;
