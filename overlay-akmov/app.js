@@ -605,14 +605,7 @@ class OverlayEngine {
 
   async getOwncastAccessToken(baseUrl) {
     const cleanBase = baseUrl.replace(/\/+$/, '');
-    const storageKey = `owncast_token_${cleanBase}`;
     try {
-      const cached = localStorage.getItem(storageKey);
-      if (cached) return cached;
-    } catch (e) {}
-
-    try {
-      // Send simple body without triggering CORS preflight header restrictions
       const res = await fetch(`${cleanBase}/api/chat/register`, {
         method: 'POST',
         body: JSON.stringify({ displayName: 'AkmovOverlay' })
@@ -620,11 +613,13 @@ class OverlayEngine {
       if (res.ok) {
         const data = await res.json();
         if (data && data.accessToken) {
-          try { localStorage.setItem(storageKey, data.accessToken); } catch (e) {}
+          console.log('[AKMOV Chat] Token de chat obtenido correctamente');
           return data.accessToken;
         }
       }
-    } catch (err) {}
+    } catch (err) {
+      console.warn('[AKMOV Chat] Error obteniendo token:', err);
+    }
     return null;
   }
 

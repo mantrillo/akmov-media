@@ -303,12 +303,6 @@
 
     async getOwncastAccessToken(baseUrl) {
       const cleanBase = baseUrl.replace(/\/+$/, '');
-      const storageKey = `owncast_token_${cleanBase}`;
-      try {
-        const cached = localStorage.getItem(storageKey);
-        if (cached) return cached;
-      } catch (e) {}
-
       try {
         const res = await fetch(`${cleanBase}/api/chat/register`, {
           method: 'POST',
@@ -317,7 +311,7 @@
         if (res.ok) {
           const data = await res.json();
           if (data && data.accessToken) {
-            try { localStorage.setItem(storageKey, data.accessToken); } catch (e) {}
+            console.log('[Ruedas&Cancha Chat] Token de chat obtenido correctamente');
             return data.accessToken;
           }
         }
