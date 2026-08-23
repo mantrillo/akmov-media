@@ -343,10 +343,6 @@
         try { this.owncastWs.close(); } catch (e) {}
         this.owncastWs = null;
       }
-      if (this.owncastPollTimer) {
-        clearInterval(this.owncastPollTimer);
-        this.owncastPollTimer = null;
-      }
 
       const chatCfg = this.config?.chat;
       if (!chatCfg || chatCfg.enabled === false) {
@@ -356,7 +352,6 @@
 
       this.seenChatIds = this.seenChatIds || new Set();
 
-      // Candidate URLs for Owncast
       const isHttpsPage = typeof window !== 'undefined' && window.location && window.location.protocol === 'https:';
       const candidates = [];
 
@@ -365,15 +360,10 @@
       }
       candidates.push('https://stream.akmovmedia.com');
 
-      // Only probe local IPs/ports if NOT running on an HTTPS web origin to prevent Mixed Content & Local Network prompts
       if (!isHttpsPage) {
         candidates.push('http://192.168.1.15:8080');
         candidates.push('http://localhost:8080');
         candidates.push('http://127.0.0.1:8080');
-        if (typeof window !== 'undefined' && window.location && window.location.hostname) {
-          candidates.push(`${window.location.protocol}//${window.location.hostname}:8080`);
-          candidates.push(`${window.location.protocol}//${window.location.hostname}`);
-        }
       }
 
       const uniqueCandidates = [...new Set(candidates.filter(Boolean))];
@@ -381,20 +371,16 @@
 
       const tryConnectWs = async (baseUrl) => {
         const cleanBase = baseUrl.replace(/\/+$/, '');
-        const token = await this.getOwncastAccessToken(cleanBase);
+        const wsUrl = cleanBase.replace(/^http/, 'ws') + '/ws';
 
         return new Promise((resolve) => {
           try {
-            let wsUrl = cleanBase.replace(/^http/, 'ws') + '/ws';
-            if (token) {
-              wsUrl += (wsUrl.includes('?') ? '&' : '?') + 'accessToken=' + encodeURIComponent(token);
-            }
             const socket = new WebSocket(wsUrl);
 
             let timeout = setTimeout(() => {
               try { socket.close(); } catch (e) {}
               resolve(false);
-            }, 3000);
+            }, 4000);
 
             socket.onopen = () => {
               clearTimeout(timeout);
@@ -403,14 +389,22 @@
               this.activeOwncastUrl = cleanBase;
               this.notifyOwncastStatus(true, cleanBase);
               console.log('[ValleGeek Chat] Conectado exitosamente a Owncast:', wsUrl);
-              this.fetchOwncastHistory(cleanBase, token);
               resolve(true);
             };
 
             socket.onmessage = (event) => {
               try {
                 const data = JSON.parse(event.data);
-                if (data.type === 'CHAT' || data.body || data.eventData) {
+                const type = (data.type || '').toUpperCase();
+
+                if (type === 'USER_JOINED' || type === 'USER_JOIN') {
+                  const user = data.user?.displayName || data.user?.name || data.eventData?.user?.displayName || data.body || 'Usuario';
+                  this.sendUserJoined(user);
+                } else if (type === 'NAME_CHANGE' || type === 'NAME_CHANGED' || type === 'USER_NAME_CHANGED') {
+                  const oldName = data.oldName || data.user?.previousNames?.[data.user?.previousNames?.length - 1] || 'Usuario';
+                  const newName = data.newName || data.user?.displayName || 'Usuario';
+                  this.sendNameChange(oldName, newName);
+                } else if (type === 'CHAT' || type === 'CHAT_MESSAGE' || data.body || data.eventData) {
                   const id = data.id || (data.timestamp + (data.user?.displayName || ''));
                   if (id && this.seenChatIds.has(id)) return;
                   if (id) {
@@ -424,13 +418,6 @@
                   if (parsed) {
                     this.sendChatMessage(parsed.user, parsed.text);
                   }
-                } else if (data.type === 'USER_JOINED') {
-                  const user = data.user?.displayName || data.user?.name || data.eventData?.user?.displayName || data.body || 'Usuario';
-                  this.sendUserJoined(user);
-                } else if (data.type === 'NAME_CHANGE') {
-                  const oldName = data.oldName || data.user?.previousNames?.[data.user?.previousNames?.length - 1] || 'Usuario';
-                  const newName = data.newName || data.user?.displayName || 'Usuario';
-                  this.sendNameChange(oldName, newName);
                 }
               } catch (err) {}
             };
@@ -446,9 +433,6 @@
                 this.owncastWs = null;
                 this.owncastConnected = false;
                 this.notifyOwncastStatus(false, cleanBase);
-                setTimeout(() => {
-                  if (!this.owncastConnected) this.connectLiveChatSources();
-                }, 4000);
               }
             };
           } catch (e) {
@@ -467,43 +451,12 @@
 
       this.owncastConnecting = false;
 
-      // If WebSocket failed for all endpoints, start polling fallback
       if (!connected) {
         this.notifyOwncastStatus(false, uniqueCandidates[0]);
-        this.startOwncastPolling(uniqueCandidates);
         setTimeout(() => {
           if (!this.owncastConnected) this.connectLiveChatSources();
-        }, 6000);
+        }, 5000);
       }
-    }
-
-    async fetchOwncastHistory(baseUrl, token = null) {
-      try {
-        const cleanBase = baseUrl.replace(/\/+$/, '');
-        const authToken = token || await this.getOwncastAccessToken(cleanBase);
-        let apiUrl = `${cleanBase}/api/chat`;
-        if (authToken) apiUrl += '?accessToken=' + encodeURIComponent(authToken);
-
-        const res = await fetch(apiUrl, { method: 'GET', mode: 'cors' });
-        if (!res.ok) return;
-        const data = await res.json();
-        const list = Array.isArray(data) ? data : (data.messages || []);
-        
-        // Render the last 4 recent messages if chat list is fresh
-        const recent = list.slice(-4);
-        recent.forEach((msg) => {
-          const id = msg.id || (msg.timestamp + (msg.user?.displayName || ''));
-          if (id && !this.seenChatIds.has(id)) {
-            this.seenChatIds.add(id);
-            const parsed = this.parseOwncastMessage(msg);
-            if (parsed) {
-              this.sendChatMessage(parsed.user, parsed.text);
-            }
-          } else if (id) {
-            this.seenChatIds.add(id);
-          }
-        });
-      } catch (e) {}
     }
 
     startOwncastPolling(candidates) {
