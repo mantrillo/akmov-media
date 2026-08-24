@@ -80,8 +80,45 @@ app.post('/owncast/send-chat', async (req, res) => {
   return res.json({ success: true });
 });
 
+// ─── CABECERAS DE SEGURIDAD HTTP & HARDENING (OBSERVATORY / SUCURI / PCI DSS) ──
+app.use((req, res, next) => {
+  // 1. Bloquear acceso a .git, .env y archivos ocultos (Recomendación Sucuri)
+  if (req.path.includes('/.git') || req.path.includes('/.env') || req.path.includes('/.system') || req.path.startsWith('/.')) {
+    return res.status(403).send('Forbidden: Access to sensitive directories is denied.');
+  }
+
+  // 2. HTTP Strict Transport Security (HSTS - 1 año + subdominios)
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+
+  // 3. X-Content-Type-Options (Prevenir MIME-sniffing)
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+
+  // 4. Referrer-Policy (Privacidad de navegación)
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+  // 5. Permisos de encuadre (Permitir iframe para nuestros propios overlays e iframe de Owncast)
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+
+  // 6. Content Security Policy (CSP permisivo para streaming HLS, Owncast, Supabase, Google Cast, Google Fonts y YouTube)
+  res.setHeader('Content-Security-Policy', [
+    "default-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data:",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://www.gstatic.com https://cdn.supabase.com https://static.cloudflareinsights.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com data:",
+    "img-src 'self' data: blob: https: http:",
+    "media-src 'self' blob: data: https://stream.akmovmedia.com https://stream.zeno.fm https://www.soundhelix.com https: http:",
+    "connect-src 'self' blob: data: https://stream.akmovmedia.com https://api.akmovmedia.com https://*.supabase.co wss://*.supabase.co https://itunes.apple.com https://www.gstatic.com https://www.googleapis.com https: http: ws: wss:",
+    "frame-src 'self' https://stream.akmovmedia.com https://www.youtube.com https://youtube.com",
+    "frame-ancestors 'self'"
+  ].join('; '));
+
+  next();
+});
+
 // ─── STATIC FILE SERVING: Overlays & Control Panel via HTTPS ───────────────────
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname), {
+  dotfiles: 'ignore' // Ignora completamente archivos que comiencen con . (como .git)
+}));
 
 // ─── OBS LOCAL STATUS STORAGE ─────────────────────────────────
 let lastObsStatus = {
