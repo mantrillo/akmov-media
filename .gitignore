@@ -1,2 +1,10 @@
 node_modules/
 local-overlay-studio/
+akmov-autodjweb/
+autodj.html
+overlay-esperando-locutor.html
+overlay-fondo-247.html
+overlay-radio-tv-news.html
+obs_automation.py
+*.tmp
+.tempmediaStorage/

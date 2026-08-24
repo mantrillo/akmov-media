@@ -380,6 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const vinylPlatter = document.getElementById('vinylPlatter');
     const turntableTonearm = document.getElementById('turntableTonearm');
+    const playerEqBars = document.getElementById('playerEqBars');
 
     if (isAudioPlaying) {
       // Avoid dual audio overlap: pause video player if playing
@@ -393,27 +394,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
       liveAudioStream.play().then(() => {
         updatePlayerUI();
-        audioTrackName.style.color = "var(--color-neon)";
       }).catch(err => {
         console.warn("Autoplay block or streaming offline. error:", err);
       });
       
       iconPlayAudio.classList.add('hidden');
       iconPauseAudio.classList.remove('hidden');
-      audioPlayPauseBtn.style.boxShadow = "0 0 15px var(--color-neon)";
+      audioPlayPauseBtn.style.boxShadow = "0 0 18px var(--color-neon)";
       
       // Update giant button in footer as well
       const footerPlayIcon = footerListenBtn.querySelector('svg');
-      footerPlayIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>'; // Pause icon path
+      footerPlayIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
       footerListenBtn.style.borderColor = "var(--color-neon)";
 
-      // Turntable animation active
+      // Turntable and EQ animation active
       if (vinylPlatter) vinylPlatter.classList.add('playing');
       if (turntableTonearm) turntableTonearm.classList.add('playing');
+      if (playerEqBars) playerEqBars.classList.add('playing');
     } else {
       liveAudioStream.pause();
-      audioTrackName.textContent = "SEÑAL ONLINE - SINTONÍA DIGITAL STEREO (128 KBPS AAC)";
-      audioTrackName.style.color = "var(--color-gray-text)";
+      
+      const audioSongTitle = document.getElementById('audioSongTitle');
+      if (audioSongTitle) audioSongTitle.textContent = "AKMOV MEDIA";
+      audioTrackName.textContent = "Transmisión Online • Señal de Audio";
       
       iconPlayAudio.classList.remove('hidden');
       iconPauseAudio.classList.add('hidden');
@@ -421,19 +424,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Reset giant button in footer
       const footerPlayIcon = footerListenBtn.querySelector('svg');
-      footerPlayIcon.innerHTML = '<path d="M8 5v14l11-7z"/>'; // Play icon path
+      footerPlayIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
       footerListenBtn.style.borderColor = "var(--color-gray-border)";
 
-      // Turntable animation inactive
+      // Turntable and EQ animation inactive
       if (vinylPlatter) vinylPlatter.classList.remove('playing');
       if (turntableTonearm) turntableTonearm.classList.remove('playing');
+      if (playerEqBars) playerEqBars.classList.remove('playing');
 
-      // Reset vinyl label image
-      const vinylLabel = document.querySelector('.vinyl-label');
-      if (vinylLabel) {
-        vinylLabel.style.backgroundImage = 'none';
-        const star = vinylLabel.querySelector('.vinyl-logo-star');
-        if (star) star.style.opacity = '1';
+      // Reset album art
+      const albumArtEl = document.getElementById('audioAlbumArt');
+      if (albumArtEl) {
+        albumArtEl.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='38' height='38' viewBox='0 0 24 24' fill='%2300ff00'><path d='M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z'/></svg>";
       }
     }
   }
@@ -453,27 +455,26 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updatePlayerUI() {
-    if (!isAudioPlaying) return;
+    const audioSongTitle = document.getElementById('audioSongTitle');
+    const albumArtEl = document.getElementById('audioAlbumArt');
     
     if (nowPlayingData && nowPlayingData.title && nowPlayingData.title !== 'Transmisión Online') {
-      const artistStr = nowPlayingData.artist ? `${nowPlayingData.artist} - ` : '';
-      audioTrackName.textContent = `${artistStr}${nowPlayingData.title} • AUDIO DIGITAL HD`;
+      if (audioSongTitle) {
+        audioSongTitle.textContent = nowPlayingData.title.toUpperCase();
+      }
+      audioTrackName.textContent = (nowPlayingData.artist || 'AKMOV MEDIA').toUpperCase();
     } else {
-      audioTrackName.textContent = "TRANSMITIENDO EN VIVO • AUDIO DE LA TRANSMISIÓN DIGITAL HD • HQ AUDIO";
+      if (audioSongTitle) {
+        audioSongTitle.textContent = "AKMOV MEDIA 24/7";
+      }
+      audioTrackName.textContent = "TRANSMITIENDO EN VIVO • SEÑAL DIGITAL HD";
     }
 
-    const vinylLabel = document.querySelector('.vinyl-label');
-    if (vinylLabel) {
-      if (nowPlayingData && nowPlayingData.cover && isAudioPlaying) {
-        vinylLabel.style.backgroundImage = `url(${nowPlayingData.cover})`;
-        vinylLabel.style.backgroundSize = 'cover';
-        vinylLabel.style.backgroundPosition = 'center';
-        const star = vinylLabel.querySelector('.vinyl-logo-star');
-        if (star) star.style.opacity = '0';
+    if (albumArtEl) {
+      if (nowPlayingData && nowPlayingData.cover) {
+        albumArtEl.src = nowPlayingData.cover;
       } else {
-        vinylLabel.style.backgroundImage = 'none';
-        const star = vinylLabel.querySelector('.vinyl-logo-star');
-        if (star) star.style.opacity = '1';
+        albumArtEl.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='38' height='38' viewBox='0 0 24 24' fill='%2300ff00'><path d='M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z'/></svg>";
       }
     }
   }

@@ -417,36 +417,26 @@
     </div>
   </footer>
 
-  <!-- STICKY BOTTOM RADIO PLAYER -->
+  <!-- STICKY BOTTOM RADIO PLAYER (ESTILO OVERLAY AUTODJ 24/7) -->
   <section class="sticky-player-bar">
     <div class="sticky-player-container">
       
-      <!-- Extremo Izquierdo: Tocadisco Animado -->
-      <div class="turntable-container">
-        <div class="turntable-body">
-          <div class="vinyl-platter" id="vinylPlatter">
-            <div class="vinyl-grooves"></div>
-            <div class="vinyl-label">
-              <svg class="vinyl-logo-star" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9Z" />
-              </svg>
-            </div>
-          </div>
-          <div class="turntable-tonearm" id="turntableTonearm">
-            <svg viewBox="0 0 20 40" fill="none" style="width: 100%; height: 100%;" xmlns="http://www.w3.org/2000/svg">
-              <!-- Pivot -->
-              <circle cx="10" cy="6" r="3" fill="#555"/>
-              <circle cx="10" cy="6" r="1.5" fill="#bbb"/>
-              <!-- Arm -->
-              <path d="M10 6 L10 26 L6 32" stroke="#bbb" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              <!-- Cartridge -->
-              <rect x="4" y="30" width="4" height="6" rx="1" fill="var(--color-neon)"/>
-            </svg>
-          </div>
+      <!-- 1. TOCADISCOS DE VINILO CON BRAZO ANIMADO Y CARÁTULA -->
+      <div class="sticky-turntable-box">
+        <div class="turntable-vinyl-disc" id="vinylPlatter">
+          <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='38' height='38' viewBox='0 0 24 24' fill='%2300ff00'><path d='M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z'/></svg>" alt="Carátula" class="turntable-album-art" id="audioAlbumArt">
+          <div class="turntable-center-hole"></div>
         </div>
+        <svg class="turntable-arm-svg" id="turntableTonearm" viewBox="0 0 40 80">
+          <circle cx="30" cy="15" r="7" fill="#111" stroke="var(--color-neon)" stroke-width="1.5"/>
+          <circle cx="30" cy="15" r="2.5" fill="var(--color-neon)"/>
+          <path d="M 30 15 L 22 45 L 16 62" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>
+          <rect x="11" y="60" width="10" height="14" rx="1.5" fill="#222" stroke="var(--color-neon)" stroke-width="1" transform="rotate(-15, 16, 67)"/>
+          <line x1="16" y1="62" x2="16" y2="72" stroke="var(--color-neon)" stroke-width="1"/>
+        </svg>
       </div>
 
-      <!-- Botón Play Circular Verde -->
+      <!-- 2. BOTÓN PLAY/PAUSE CIRCULAR NEÓN -->
       <button class="sticky-play-btn" id="audioPlayPauseBtn" aria-label="Reproducir señal de audio">
         <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor">
           <path d="M8 5v14l11-7z"/>
@@ -456,15 +446,30 @@
         </svg>
       </button>
 
-      <!-- Centro: Metadata del Stream -->
-      <div class="sticky-metadata">
-        <span class="meta-title">AKMOV MEDIA • Aire</span>
-        <div class="meta-ticker-wrap">
-          <span class="meta-ticker" id="audioTrackName">SEÑAL ONLINE - SINTONÍA DIGITAL STEREO (128 KBPS AAC)</span>
+      <!-- 3. METADATA ESTILO OVERLAY 24/7 (BADGE + CANCIÓN + ARTISTA) -->
+      <div class="sticky-song-info">
+        <div class="sticky-badge-status">
+          <span class="badge-dot"></span>
+          <span id="playerStatusLabel">AUTODJ 24/7</span>
+          <span class="badge-tag-quality">128 KBPS HD</span>
+        </div>
+        <div class="sticky-song-title-wrap">
+          <div class="sticky-song-title" id="audioSongTitle">AKMOV MEDIA</div>
+        </div>
+        <div class="sticky-song-artist-wrap">
+          <div class="sticky-song-artist" id="audioTrackName">Transmisión Online • Señal de Audio</div>
         </div>
       </div>
 
-      <!-- Extremo Derecho: Control de Volumen -->
+      <!-- 4. EQUALIZADOR ANIMADO -->
+      <div class="sticky-eq-container" id="playerEqBars">
+        <div class="sticky-eq-bar"></div>
+        <div class="sticky-eq-bar"></div>
+        <div class="sticky-eq-bar"></div>
+        <div class="sticky-eq-bar"></div>
+      </div>
+
+      <!-- 5. CONTROL DE VOLUMEN CON SLIDER NEÓN -->
       <div class="sticky-volume">
         <button class="sticky-volume-btn" id="audioMuteBtn" aria-label="Mute Audio">
           <svg class="icon-volume-high" viewBox="0 0 24 24" fill="currentColor">
@@ -475,10 +480,9 @@
           </svg>
         </button>
         <div class="slider-container">
-          <input type="range" class="sticky-volume-slider" id="audioVolumeSlider" min="0" max="1" step="0.1" value="0.7" aria-label="Volumen de radio">
+          <input type="range" class="sticky-volume-slider" id="audioVolumeSlider" min="0" max="1" step="0.05" value="0.7" aria-label="Volumen de radio">
         </div>
       </div>
-
     </div>
   </section>
 

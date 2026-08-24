@@ -1227,111 +1227,259 @@ a {
   width: 12px;
   height: 12px;
   background-color: var(--color-neon);
-  border-radius: 50%;
+/* STICKY BOTTOM RADIO PLAYER (BRUTALIST AUTODJ 24/7 OVERLAY DESIGN) */
+.sticky-player-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(10, 10, 10, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 2px solid var(--color-neon);
+  box-shadow: 0 -4px 30px rgba(0, 255, 0, 0.15), 0 -8px 24px rgba(0, 0, 0, 0.9);
+  z-index: 1000;
+  height: 76px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-black);
-  z-index: 2;
 }
 
-.vinyl-logo-star {
-  width: 8px;
-  height: 8px;
+.sticky-player-container {
+  width: 100%;
+  max-width: 1400px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
 }
 
-.turntable-tonearm {
-  position: absolute;
-  top: -3px;
-  right: -3px;
-  width: 16px;
-  height: 32px;
-  transform-origin: 10px 6px;
-  transform: rotate(-15deg);
-  transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
-  pointer-events: none;
-  z-index: 5;
+/* 1. TOCADISCOS DE VINILO BRUTALISTA */
+.sticky-turntable-box {
+  position: relative;
+  width: 58px;
+  height: 58px;
+  flex-shrink: 0;
 }
 
-.turntable-tonearm.playing {
-  transform: rotate(15deg);
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.sticky-play-btn {
-  width: 42px;
-  height: 42px;
+.turntable-vinyl-disc {
+  position: relative;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
-  background-color: var(--color-neon);
-  border: none;
+  background: radial-gradient(circle, #0d0d0d 32%, #222 34%, #121212 38%, #252525 40%, #121212 45%, #252525 47%, #121212 52%, #252525 54%, #121212 60%, #252525 63%, #121212 68%, #000 82%);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.8), inset 0 0 10px rgba(0, 0, 0, 0.95), 0 0 8px rgba(0, 255, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(0, 255, 0, 0.35);
+  transition: transform 0.3s ease;
+}
+
+.turntable-vinyl-disc.playing {
+  animation: vinylSpin 3.5s linear infinite;
+}
+
+@keyframes vinylSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.turntable-album-art {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  border: 1.5px solid #000;
+  z-index: 2;
+  background: #111;
+}
+
+.turntable-center-hole {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background-color: #000;
+  border-radius: 50%;
+  z-index: 3;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.turntable-arm-svg {
+  position: absolute;
+  top: -8px;
+  right: -5px;
+  width: 32px;
+  height: 64px;
+  transform-origin: 24px 12px;
+  transform: rotate(-28deg);
+  transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+  z-index: 10;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
+}
+
+.turntable-arm-svg.playing {
+  transform: rotate(0deg);
+}
+
+/* 2. BOTÓN PLAY/PAUSE CIRCULAR NEÓN */
+.sticky-play-btn {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--color-neon);
+  border: 2px solid #000;
   color: var(--color-black);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-  margin-right: 20px;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+  flex-shrink: 0;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
 }
 
 .sticky-play-btn:hover {
   transform: scale(1.08);
-  box-shadow: 0 0 12px var(--color-neon);
+  box-shadow: 0 0 18px var(--color-neon);
 }
 
 .sticky-play-btn svg {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
 }
 
 .sticky-play-btn .icon-play {
   margin-left: 2px;
 }
 
-.sticky-metadata {
-  flex-grow: 1;
+/* 3. METADATA ESTILO OVERLAY 24/7 */
+.sticky-song-info {
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  flex-grow: 1;
   overflow: hidden;
-  margin-right: 20px;
+  min-width: 0;
 }
 
-.meta-title {
+.sticky-badge-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-family: var(--font-display);
-  font-size: 0.85rem;
-  font-weight: bold;
-  letter-spacing: 1px;
-  color: var(--color-white);
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: var(--color-neon);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 2px;
 }
 
-.meta-ticker-wrap {
+.badge-dot {
+  width: 7px;
+  height: 7px;
+  background-color: var(--color-neon);
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 8px var(--color-neon);
+  animation: pulseDot 1.5s infinite alternate;
+}
+
+@keyframes pulseDot {
+  0% { opacity: 0.4; transform: scale(0.8); }
+  100% { opacity: 1; transform: scale(1.2); }
+}
+
+.badge-tag-quality {
+  background: rgba(0, 255, 0, 0.15);
+  border: 1px solid rgba(0, 255, 0, 0.4);
+  color: var(--color-neon);
+  padding: 1px 6px;
+  border-radius: 2px;
+  font-size: 0.58rem;
+  letter-spacing: 0.8px;
+}
+
+.sticky-song-title-wrap {
   width: 100%;
   overflow: hidden;
   white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-.meta-ticker {
-  display: inline-block;
-  font-size: 0.7rem;
-  color: var(--color-gray-text);
-  letter-spacing: 1px;
-  animation: ticker 15s linear infinite;
-  padding-left: 100%;
+.sticky-song-title {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--color-white);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  line-height: 1.2;
 }
 
-@keyframes ticker {
-  0% { transform: translate3d(0, 0, 0); }
-  100% { transform: translate3d(-100%, 0, 0); }
+.sticky-song-artist-wrap {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
+.sticky-song-artist {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* 4. EQUALIZADOR ANIMADO */
+.sticky-eq-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 22px;
+  padding: 0 10px;
+  flex-shrink: 0;
+}
+
+.sticky-eq-bar {
+  width: 3.5px;
+  background: var(--color-neon);
+  border-radius: 1px;
+  height: 4px;
+  transition: height 0.2s ease;
+  box-shadow: 0 0 6px var(--color-neon);
+}
+
+.sticky-eq-container.playing .sticky-eq-bar:nth-child(1) {
+  animation: eqBounce 0.8s ease infinite alternate;
+}
+.sticky-eq-container.playing .sticky-eq-bar:nth-child(2) {
+  animation: eqBounce 1.1s ease infinite alternate 0.2s;
+}
+.sticky-eq-container.playing .sticky-eq-bar:nth-child(3) {
+  animation: eqBounce 0.7s ease infinite alternate 0.4s;
+}
+.sticky-eq-container.playing .sticky-eq-bar:nth-child(4) {
+  animation: eqBounce 1.3s ease infinite alternate 0.1s;
+}
+
+@keyframes eqBounce {
+  0% { height: 4px; }
+  100% { height: 20px; }
+}
+
+/* 5. CONTROL DE VOLUMEN CON SLIDER NEÓN */
 .sticky-volume {
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-width: 120px;
+  gap: 12px;
+  min-width: 130px;
+  flex-shrink: 0;
 }
 
 .sticky-volume-btn {
@@ -1341,11 +1489,17 @@ a {
   cursor: pointer;
   display: flex;
   align-items: center;
+  padding: 4px;
+  transition: color var(--transition-fast);
+}
+
+.sticky-volume-btn:hover {
+  color: var(--color-neon);
 }
 
 .sticky-volume-btn svg {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
 }
 
 .slider-container {
@@ -1355,27 +1509,30 @@ a {
 
 .sticky-volume-slider {
   -webkit-appearance: none;
-  width: 80px;
-  height: 4px;
-  background: var(--color-gray-border);
+  width: 90px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(0, 255, 0, 0.2);
   outline: none;
+  border-radius: 2px;
 }
 
 .sticky-volume-slider::-webkit-slider-runnable-track {
   width: 100%;
-  height: 4px;
+  height: 5px;
   cursor: pointer;
-  background: var(--color-gray-border);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .sticky-volume-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   background: var(--color-neon);
   cursor: pointer;
-  margin-top: -3px;
+  margin-top: -3.5px;
+  box-shadow: 0 0 8px var(--color-neon);
 }
 
 /* BRUTALIST ADVERTISING BANNER */
