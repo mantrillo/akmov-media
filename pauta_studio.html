@@ -1825,20 +1825,20 @@
         ` : '';
 
         return `
-          <tr style="page-break-inside: avoid; border-bottom: 1.5px solid #e2e8f0;">
-            <td style="width: 145px; vertical-align: top; padding: 12px 10px; background: #f8fafc; border-right: 1.5px solid #e2e8f0;">
-              <div style="font-family:'Oswald', sans-serif; font-size:11px; font-weight:700; color:#ffffff; background:#0f172a; display:inline-block; padding:2px 8px; border-radius:2px; letter-spacing:1px; margin-bottom:6px;">
+          <tr class="pdf-block-row" style="page-break-inside: avoid; break-inside: avoid; border-bottom: 1.5px solid #e2e8f0;">
+            <td style="width: 140px; vertical-align: top; padding: 10px 8px; background: #f8fafc; border-right: 1.5px solid #e2e8f0;">
+              <div style="font-family:'Oswald', sans-serif; font-size:10.5px; font-weight:700; color:#ffffff; background:#0f172a; display:inline-block; padding:2px 7px; border-radius:2px; letter-spacing:1px; margin-bottom:4px;">
                 BLOQUE #${(i + 1).toString().padStart(2, '0')}
               </div>
-              <div style="font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:700; color:#0f172a;">
+              <div style="font-family:'JetBrains Mono', monospace; font-size:12px; font-weight:700; color:#0f172a;">
                 ${b.timeStart} → ${b.timeEnd}
               </div>
-              <div style="font-family:'JetBrains Mono', monospace; font-size:11px; color:#64748b; margin-top:2px;">
+              <div style="font-family:'JetBrains Mono', monospace; font-size:10.5px; color:#64748b; margin-top:2px;">
                 Duración: ${b.duration} min
               </div>
             </td>
-            <td style="vertical-align: top; padding: 12px 16px;">
-              <div style="font-family:'Oswald', sans-serif; font-size:15px; font-weight:700; text-transform:uppercase; color:#0f172a; letter-spacing:0.5px; margin-bottom:8px;">
+            <td style="vertical-align: top; padding: 10px 14px;">
+              <div style="font-family:'Oswald', sans-serif; font-size:14px; font-weight:700; text-transform:uppercase; color:#0f172a; letter-spacing:0.5px; margin-bottom:6px;">
                 ${b.name}
               </div>
               <div>
@@ -1874,119 +1874,121 @@
         </div>
 
         <!-- PRINTABLE SHEET CONTAINER (LETTER 8.5 x 11 in) -->
-        <div id="pauta-pdf-print-area" style="width: 800px; max-width: 100%; background: #ffffff; color: #111111; font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif; padding: 26px 30px; box-sizing: border-box; font-size: 13px; line-height: 1.45; border-radius: 4px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); margin-bottom: 40px;">
-          
-          <!-- HEADER BRANDING -->
-          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #00cc55; padding-bottom:12px; margin-bottom:16px;">
-            <div style="display:flex; align-items:center; gap:10px;">
-              <div style="width:38px; height:38px; background:#050505; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#00ff66; font-family:'Oswald', sans-serif; font-weight:700; font-size:20px;">
-                AK
+        <div style="padding-bottom: 40px; display:flex; justify-content:center; width:100%;">
+          <div id="pauta-pdf-print-area" style="width: 770px; max-width: 100%; background: #ffffff; color: #111111; font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif; padding: 22px 24px; box-sizing: border-box; font-size: 12.5px; line-height: 1.4; border-radius: 4px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); margin: 0;">
+            
+            <!-- HEADER BRANDING -->
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #00cc55; padding-bottom:10px; margin-bottom:12px;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div style="width:36px; height:36px; background:#050505; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#00ff66; font-family:'Oswald', sans-serif; font-weight:700; font-size:19px;">
+                  AK
+                </div>
+                <div>
+                  <h1 style="font-family:'Oswald', sans-serif; font-size:20px; font-weight:700; letter-spacing:1.5px; margin:0; text-transform:uppercase; color:#050505; line-height:1;">
+                    AKMOV <span style="color:#009944;">MEDIA</span>
+                  </h1>
+                  <div style="font-family:'JetBrains Mono', monospace; font-size:9.5px; color:#64748b; letter-spacing:1.5px; font-weight:600; text-transform:uppercase; margin-top:2px;">
+                    PAUTA DE TRANSMISIÓN & PRODUCCIÓN DE ESTUDIO
+                  </div>
+                </div>
               </div>
-              <div>
-                <h1 style="font-family:'Oswald', sans-serif; font-size:22px; font-weight:700; letter-spacing:1.5px; margin:0; text-transform:uppercase; color:#050505; line-height:1;">
-                  AKMOV <span style="color:#009944;">MEDIA</span>
-                </h1>
-                <div style="font-family:'JetBrains Mono', monospace; font-size:10px; color:#64748b; letter-spacing:1.5px; font-weight:600; text-transform:uppercase; margin-top:3px;">
-                  PAUTA DE TRANSMISIÓN & PRODUCCIÓN DE ESTUDIO
+              <div style="text-align:right;">
+                <div style="font-family:'JetBrains Mono', monospace; font-size:9px; color:#475569; text-transform:uppercase; font-weight:600;">
+                  EMISIÓN & ESTUDIO
+                </div>
+                <div style="font-family:'JetBrains Mono', monospace; font-size:10.5px; color:#0f172a; font-weight:700; margin-top:2px;">
+                  ${dateStr.toUpperCase()}
+                </div>
+                <div style="font-family:'JetBrains Mono', monospace; font-size:9px; color:#00883a; font-weight:700;">
+                  HORA: ${timeStr} // LIVE PROD
                 </div>
               </div>
             </div>
-            <div style="text-align:right;">
-              <div style="font-family:'JetBrains Mono', monospace; font-size:9.5px; color:#475569; text-transform:uppercase; font-weight:600;">
-                EMISIÓN & ESTUDIO
-              </div>
-              <div style="font-family:'JetBrains Mono', monospace; font-size:11px; color:#0f172a; font-weight:700; margin-top:2px;">
-                ${dateStr.toUpperCase()}
-              </div>
-              <div style="font-family:'JetBrains Mono', monospace; font-size:9.5px; color:#00883a; font-weight:700;">
-                HORA: ${timeStr} // LIVE PROD
-              </div>
-            </div>
-          </div>
 
-          <!-- METADATA BOX -->
-          <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:4px; padding:12px 16px; margin-bottom:16px;">
-            <div style="display:grid; grid-template-columns: 2fr 1.5fr 1fr; gap:10px 18px;">
-              <div>
-                <div style="font-family:'JetBrains Mono', monospace; font-size:9px; color:#64748b; text-transform:uppercase; letter-spacing:1px; font-weight:700;">
-                  PROGRAMA / SHOW
+            <!-- METADATA BOX -->
+            <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:4px; padding:10px 14px; margin-bottom:14px;">
+              <div style="display:grid; grid-template-columns: 2fr 1.5fr 1fr; gap:8px 16px;">
+                <div>
+                  <div style="font-family:'JetBrains Mono', monospace; font-size:8.5px; color:#64748b; text-transform:uppercase; letter-spacing:1px; font-weight:700;">
+                    PROGRAMA / SHOW
+                  </div>
+                  <div style="font-family:'Oswald', sans-serif; font-size:15px; font-weight:700; color:#0f172a; text-transform:uppercase; margin-top:1px;">
+                    ${currentPauta.title || 'Sin Título'}
+                  </div>
                 </div>
-                <div style="font-family:'Oswald', sans-serif; font-size:17px; font-weight:700; color:#0f172a; text-transform:uppercase; margin-top:1px;">
-                  ${currentPauta.title || 'Sin Título'}
+                <div>
+                  <div style="font-family:'JetBrains Mono', monospace; font-size:8.5px; color:#64748b; text-transform:uppercase; letter-spacing:1px; font-weight:700;">
+                    CONDUCCIÓN / HOST
+                  </div>
+                  <div style="font-size:12.5px; font-weight:700; color:#0f172a; margin-top:2px;">
+                    ${currentPauta.host || 'Por definir'}
+                  </div>
                 </div>
-              </div>
-              <div>
-                <div style="font-family:'JetBrains Mono', monospace; font-size:9px; color:#64748b; text-transform:uppercase; letter-spacing:1px; font-weight:700;">
-                  CONDUCCIÓN / HOST
+                <div>
+                  <div style="font-family:'JetBrains Mono', monospace; font-size:8.5px; color:#64748b; text-transform:uppercase; letter-spacing:1px; font-weight:700;">
+                    DURACIÓN TOTAL
+                  </div>
+                  <div style="font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:700; color:#00883a; margin-top:1px;">
+                    ${currentPauta.durationTotal || 45} MINUTOS
+                  </div>
                 </div>
-                <div style="font-size:13.5px; font-weight:700; color:#0f172a; margin-top:2px;">
-                  ${currentPauta.host || 'Por definir'}
+                <div>
+                  <div style="font-family:'JetBrains Mono', monospace; font-size:8.5px; color:#64748b; text-transform:uppercase; letter-spacing:1px; font-weight:700;">
+                    ESTILO & TONO
+                  </div>
+                  <div style="font-size:11.5px; color:#334155; margin-top:2px;">
+                    ${currentPauta.style || 'Dinámico / En vivo'}
+                  </div>
                 </div>
-              </div>
-              <div>
-                <div style="font-family:'JetBrains Mono', monospace; font-size:9px; color:#64748b; text-transform:uppercase; letter-spacing:1px; font-weight:700;">
-                  DURACIÓN TOTAL
+                <div>
+                  <div style="font-family:'JetBrains Mono', monospace; font-size:8.5px; color:#64748b; text-transform:uppercase; letter-spacing:1px; font-weight:700;">
+                    FORMATO
+                  </div>
+                  <div style="font-size:11.5px; color:#334155; margin-top:2px;">
+                    ${currentPauta.format || 'Transmisión Online'}
+                  </div>
                 </div>
-                <div style="font-family:'JetBrains Mono', monospace; font-size:14px; font-weight:700; color:#00883a; margin-top:1px;">
-                  ${currentPauta.durationTotal || 45} MINUTOS
-                </div>
-              </div>
-              <div>
-                <div style="font-family:'JetBrains Mono', monospace; font-size:9px; color:#64748b; text-transform:uppercase; letter-spacing:1px; font-weight:700;">
-                  ESTILO & TONO
-                </div>
-                <div style="font-size:12px; color:#334155; margin-top:2px;">
-                  ${currentPauta.style || 'Dinámico / En vivo'}
-                </div>
-              </div>
-              <div>
-                <div style="font-family:'JetBrains Mono', monospace; font-size:9px; color:#64748b; text-transform:uppercase; letter-spacing:1px; font-weight:700;">
-                  FORMATO
-                </div>
-                <div style="font-size:12px; color:#334155; margin-top:2px;">
-                  ${currentPauta.format || 'Transmisión Online'}
-                </div>
-              </div>
-              <div>
-                <div style="font-family:'JetBrains Mono', monospace; font-size:9px; color:#64748b; text-transform:uppercase; letter-spacing:1px; font-weight:700;">
-                  TOTAL BLOQUES
-                </div>
-                <div style="font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:700; color:#0f172a; margin-top:1px;">
-                  ${currentPauta.blocks.length} BLOQUES
+                <div>
+                  <div style="font-family:'JetBrains Mono', monospace; font-size:8.5px; color:#64748b; text-transform:uppercase; letter-spacing:1px; font-weight:700;">
+                    TOTAL BLOQUES
+                  </div>
+                  <div style="font-family:'JetBrains Mono', monospace; font-size:12px; font-weight:700; color:#0f172a; margin-top:1px;">
+                    ${currentPauta.blocks.length} BLOQUES
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- ESCALETA TABLE -->
-          <div style="margin-bottom:16px;">
-            <table style="width:100%; border-collapse:collapse; background:#ffffff; border:1.5px solid #cbd5e1;">
-              <thead>
-                <tr style="background:#0f172a; color:#ffffff;">
-                  <th style="font-family:'Oswald', sans-serif; font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:8px 10px; text-align:left; width:145px; border-right:1px solid #334155;">
-                    TIEMPO / BLOQUE
-                  </th>
-                  <th style="font-family:'Oswald', sans-serif; font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:8px 16px; text-align:left;">
-                    ESCALETA DE CONTENIDO & NOTAS TÉCNICAS
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                ${blocksHtml}
-              </tbody>
-            </table>
-          </div>
-
-          <!-- FOOTER -->
-          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1.5px solid #e2e8f0; padding-top:10px; font-family:'JetBrains Mono', monospace; font-size:9.5px; color:#64748b;">
-            <div>
-              <strong>AKMOV MEDIA</strong> — Centro de Producción Audiovisual & Streaming (akmovmedia.com)
+            <!-- ESCALETA TABLE -->
+            <div style="margin-bottom:12px;">
+              <table style="width:100%; border-collapse:collapse; background:#ffffff; border:1.5px solid #cbd5e1;">
+                <thead>
+                  <tr style="background:#0f172a; color:#ffffff;">
+                    <th style="font-family:'Oswald', sans-serif; font-size:10.5px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:7px 10px; text-align:left; width:140px; border-right:1px solid #334155;">
+                      TIEMPO / BLOQUE
+                    </th>
+                    <th style="font-family:'Oswald', sans-serif; font-size:10.5px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:7px 14px; text-align:left;">
+                      ESCALETA DE CONTENIDO & NOTAS TÉCNICAS
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${blocksHtml}
+                </tbody>
+              </table>
             </div>
-            <div>
-              DOCUMENTO TAMAÑO CARTA (8.5 × 11 in)
-            </div>
-          </div>
 
+            <!-- FOOTER -->
+            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1.5px solid #e2e8f0; padding-top:8px; font-family:'JetBrains Mono', monospace; font-size:9px; color:#64748b;">
+              <div>
+                <strong>AKMOV MEDIA</strong> — Centro de Producción Audiovisual & Streaming (akmovmedia.com)
+              </div>
+              <div>
+                DOCUMENTO TAMAÑO CARTA (8.5 × 11 in)
+              </div>
+            </div>
+
+          </div>
         </div>
       `;
 
@@ -2006,7 +2008,7 @@
 
       if (typeof html2pdf !== 'undefined') {
         const opt = {
-          margin: [8, 8, 8, 8],
+          margin: [6, 6, 6, 6],
           filename: filename || 'Pauta_Transmision.pdf',
           image: { type: 'jpeg', quality: 0.98 },
           html2canvas: {
@@ -2022,7 +2024,7 @@
             format: 'letter',
             orientation: 'portrait'
           },
-          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+          pagebreak: { mode: ['css', 'legacy'], avoid: ['tr', '.pdf-block-row'] }
         };
 
         html2pdf().set(opt).from(sheet).toPdf().get('pdf').then((pdf) => {
