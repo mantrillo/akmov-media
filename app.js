@@ -650,38 +650,68 @@ document.addEventListener('DOMContentLoaded', () => {
   function applyTickerConfig(config) {
     if (!config) return;
 
-    // Toggle on/off
+    // Toggle on/off global
     if (config.enabled === false) {
       mainAdBanner.classList.add('hidden');
       return;
-    } else {
-      mainAdBanner.classList.remove('hidden');
     }
 
-    // Colors
-    const bg = config.bgColor || '#00FF00';
-    const text = config.textColor || '#000000';
-    mainAdBanner.style.backgroundColor = bg;
-    mainAdBanner.style.color = text;
-
-    // Badge
+    // Badge global
     adBannerBadge.textContent = (config.badgeText || 'PUBLICIDAD').toUpperCase();
-    adBannerBadge.style.backgroundColor = '#000000';
-    adBannerBadge.style.color = bg;
 
-    // Speed
+    // Speed global
     const speedVal = speedMap[config.speed] || (typeof config.speed === 'string' && config.speed.endsWith('s') ? config.speed : '22s');
     mainAdBanner.style.setProperty('--ad-speed', speedVal);
 
-    // Message & Interactive CTA Link
-    const msg = config.message || '★ ESPACIO DISPONIBLE PARA PUBLICIDAD • POTENCIA TU MARCA EN AKMOV MEDIA ★';
-    const ctaText = config.ctaText || 'CONTÁCTANOS AQUÍ';
-    const ctaUrl = config.ctaUrl || 'https://akmovmedia.com';
+    // Items de anuncios
+    let items = [];
+    if (Array.isArray(config.items) && config.items.length > 0) {
+      items = config.items.filter(item => item.active !== false);
+    } else if (config.message) {
+      items = [{
+        message: config.message,
+        ctaText: config.ctaText || 'CONTÁCTANOS AQUÍ',
+        ctaUrl: config.ctaUrl || 'https://akmovmedia.com',
+        bgColor: config.bgColor || '#00FF00',
+        textColor: config.textColor || '#000000'
+      }];
+    }
 
-    const singleItemHtml = `<span>${msg} &nbsp;<a href="${ctaUrl}" target="_blank" rel="noopener noreferrer" class="ad-ticker-cta" style="border-color:${text};">${ctaText}</a></span>`;
+    if (items.length === 0) {
+      mainAdBanner.classList.add('hidden');
+      return;
+    }
 
-    // Render loop duplicate for seamless continuous animation
-    adTickerContent.innerHTML = singleItemHtml + singleItemHtml + singleItemHtml;
+    mainAdBanner.classList.remove('hidden');
+
+    // Usar el color del primer anuncio o default para la barra
+    const firstAd = items[0];
+    mainAdBanner.style.backgroundColor = firstAd.bgColor || '#00FF00';
+    mainAdBanner.style.color = firstAd.textColor || '#000000';
+    adBannerBadge.style.backgroundColor = '#000000';
+    adBannerBadge.style.color = firstAd.bgColor || '#00FF00';
+
+    // Construir bloque de anuncios concatenados
+    let combinedHtml = '';
+    items.forEach(ad => {
+      const msg = ad.message || '★ PUBLICIDAD DISPONIBLE ★';
+      const cta = ad.ctaText || 'VER MÁS';
+      const url = ad.ctaUrl || 'https://akmovmedia.com';
+      const adBg = ad.bgColor || '#00FF00';
+      const adText = ad.textColor || '#000000';
+
+      combinedHtml += `
+        <span class="ad-ticker-item" style="background-color:${adBg}; color:${adText}; padding: 2px 14px; margin-right: 1.5rem; border-radius: 2px;">
+          <span>${msg}</span>
+          <a href="${url}" target="_blank" rel="noopener noreferrer" class="ad-ticker-cta" style="border-color:${adText}; color:${adText};">
+            ${cta}
+          </a>
+        </span>
+      `;
+    });
+
+    // Multiplicar por 3 o 4 para garantizar que el scroll infinito nunca quede vacío
+    adTickerContent.innerHTML = combinedHtml + combinedHtml + combinedHtml + combinedHtml;
   }
 
   // 1. Carga inicial desde la API o Fallback LocalStorage

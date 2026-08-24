@@ -1152,16 +1152,22 @@ document.getElementById('newUserForm')?.addEventListener('submit', async (e) => 
   }
 });
 
-// ─── PUBLICIDAD / TICKER MANAGEMENT ──────────────────────────
+// ─── PUBLICIDAD / TICKER MULTI-ANUNCIO MANAGEMENT ────────────
 let currentAdTicker = {
   enabled: true,
   badgeText: "PUBLICIDAD",
-  message: "★ ESPACIO DISPONIBLE PARA PUBLICIDAD • POTENCIA TU MARCA EN AKMOV MEDIA ★",
-  ctaText: "CONTÁCTANOS AQUÍ",
-  ctaUrl: "https://akmovmedia.com",
-  bgColor: "#00FF00",
-  textColor: "#000000",
-  speed: "medium"
+  speed: "medium",
+  items: [
+    {
+      id: "ad-1",
+      message: "★ ESPACIO DISPONIBLE PARA PUBLICIDAD • POTENCIA TU MARCA EN AKMOV MEDIA ★",
+      ctaText: "CONTÁCTANOS AQUÍ",
+      ctaUrl: "https://akmovmedia.com",
+      bgColor: "#00FF00",
+      textColor: "#000000",
+      active: true
+    }
+  ]
 };
 
 async function loadAdTicker() {
@@ -1177,151 +1183,279 @@ async function loadAdTicker() {
       try { currentAdTicker = JSON.parse(local); } catch(err){}
     }
   }
-  populateAdTickerForm();
+  
+  if (!Array.isArray(currentAdTicker.items)) {
+    currentAdTicker.items = [];
+  }
+  
+  renderAdTickerGlobalUI();
+  renderAdItemsTable();
+  updateRotationPreview();
 }
 
-function populateAdTickerForm() {
-  const adEnabled = document.getElementById('adEnabled');
-  const adBadgeText = document.getElementById('adBadgeText');
-  const adSpeed = document.getElementById('adSpeed');
-  const adMessage = document.getElementById('adMessage');
-  const adCtaText = document.getElementById('adCtaText');
-  const adCtaUrl = document.getElementById('adCtaUrl');
-  const adBgColor = document.getElementById('adBgColor');
-  const adBgColorHex = document.getElementById('adBgColorHex');
-  const adTextColor = document.getElementById('adTextColor');
-  const adTextColorHex = document.getElementById('adTextColorHex');
-
-  if (adEnabled) adEnabled.checked = !!currentAdTicker.enabled;
-  if (adBadgeText) adBadgeText.value = currentAdTicker.badgeText || 'PUBLICIDAD';
-  if (adSpeed) adSpeed.value = currentAdTicker.speed || 'medium';
-  if (adMessage) adMessage.value = currentAdTicker.message || '';
-  if (adCtaText) adCtaText.value = currentAdTicker.ctaText || 'CONTÁCTANOS AQUÍ';
-  if (adCtaUrl) adCtaUrl.value = currentAdTicker.ctaUrl || 'https://akmovmedia.com';
-  if (adBgColor) adBgColor.value = currentAdTicker.bgColor || '#00FF00';
-  if (adBgColorHex) adBgColorHex.value = currentAdTicker.bgColor || '#00FF00';
-  if (adTextColor) adTextColor.value = currentAdTicker.textColor || '#000000';
-  if (adTextColorHex) adTextColorHex.value = currentAdTicker.textColor || '#000000';
-
-  updateAdPreview();
-  updateAdEnabledToggleUI();
-}
-
-function updateAdEnabledToggleUI() {
-  const adEnabled = document.getElementById('adEnabled');
-  const adEnabledSlider = document.getElementById('adEnabledSlider');
+function renderAdTickerGlobalUI() {
+  const globalEnabled = document.getElementById('adGlobalEnabled');
+  const globalEnabledSlider = document.getElementById('adGlobalEnabledSlider');
   const liveStatusBadge = document.getElementById('adTickerLiveStatus');
   const liveStatusText = document.getElementById('adTickerLiveStatusText');
+  const globalBadgeText = document.getElementById('adGlobalBadgeText');
+  const globalSpeed = document.getElementById('adGlobalSpeed');
+  const countDisplay = document.getElementById('adCountDisplay');
 
-  if (adEnabled && adEnabledSlider) {
-    if (adEnabled.checked) {
-      adEnabledSlider.style.backgroundColor = 'var(--neon)';
+  if (globalEnabled) globalEnabled.checked = currentAdTicker.enabled !== false;
+  if (globalBadgeText) globalBadgeText.value = currentAdTicker.badgeText || 'PUBLICIDAD';
+  if (globalSpeed) globalSpeed.value = currentAdTicker.speed || 'medium';
+  if (countDisplay) countDisplay.textContent = currentAdTicker.items.length;
+
+  if (globalEnabled && globalEnabledSlider) {
+    if (globalEnabled.checked) {
+      globalEnabledSlider.style.backgroundColor = 'var(--neon)';
       if (liveStatusBadge) liveStatusBadge.className = 'autodj-badge running';
       if (liveStatusText) liveStatusText.textContent = 'EN VIVO (ACTIVA)';
     } else {
-      adEnabledSlider.style.backgroundColor = '#444';
+      globalEnabledSlider.style.backgroundColor = '#444';
       if (liveStatusBadge) liveStatusBadge.className = 'autodj-badge stopped';
       if (liveStatusText) liveStatusText.textContent = 'DESACTIVADA';
     }
   }
 }
 
-function updateAdPreview() {
-  const adBadgeText = document.getElementById('adBadgeText')?.value || 'PUBLICIDAD';
-  const adMessage = document.getElementById('adMessage')?.value || '';
-  const adCtaText = document.getElementById('adCtaText')?.value || 'CONTÁCTANOS';
-  const adBgColor = document.getElementById('adBgColor')?.value || '#00FF00';
-  const adTextColor = document.getElementById('adTextColor')?.value || '#000000';
+function renderAdItemsTable() {
+  const tbody = document.getElementById('adItemsTableBody');
+  const countDisplay = document.getElementById('adCountDisplay');
+  if (!tbody) return;
+  
+  if (countDisplay) countDisplay.textContent = currentAdTicker.items.length;
+  tbody.innerHTML = '';
 
-  const previewBox = document.getElementById('adPreviewBox');
-  const previewBadge = document.getElementById('adPreviewBadge');
-  const previewText = document.getElementById('adPreviewText');
+  if (currentAdTicker.items.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 0.85rem;">
+          No hay anuncios registrados. Haz clic en <strong>+ NUEVO ANUNCIO</strong> para agregar el primero.
+        </td>
+      </tr>
+    `;
+    return;
+  }
 
-  if (previewBox) {
-    previewBox.style.backgroundColor = adBgColor;
-    previewBox.style.color = adTextColor;
-  }
-  if (previewBadge) {
-    previewBadge.textContent = adBadgeText;
-    previewBadge.style.backgroundColor = '#000';
-    previewBadge.style.color = adBgColor;
-  }
-  if (previewText) {
-    previewText.innerHTML = `${adMessage} &nbsp;—&nbsp; <span style="text-decoration: underline;">${adCtaText}</span>`;
-  }
+  currentAdTicker.items.forEach((ad, index) => {
+    const tr = document.createElement('tr');
+    tr.style.borderBottom = '1px solid var(--gray-border)';
+    
+    tr.innerHTML = `
+      <td style="padding: 12px 10px;">
+        <label style="position: relative; display: inline-block; width: 38px; height: 20px; cursor: pointer;">
+          <input type="checkbox" ${ad.active !== false ? 'checked' : ''} onchange="toggleAdItem('${ad.id}')" style="opacity: 0; width: 0; height: 0;">
+          <span style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: ${ad.active !== false ? 'var(--neon)' : '#444'}; border-radius: 20px; transition: .3s;"></span>
+        </label>
+      </td>
+      <td style="padding: 12px 10px; max-width: 320px;">
+        <div style="font-weight: 700; color: #fff; font-size: 0.85rem; word-break: break-word;">${ad.message}</div>
+      </td>
+      <td style="padding: 12px 10px;">
+        <a href="${ad.ctaUrl}" target="_blank" rel="noopener noreferrer" style="color: var(--neon); text-decoration: underline; font-weight: 700; font-size: 0.78rem; display: inline-block; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+          ${ad.ctaText || 'LINK'} ↗
+        </a>
+      </td>
+      <td style="padding: 12px 10px;">
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span style="display: inline-block; width: 18px; height: 18px; background: ${ad.bgColor}; border: 1px solid #fff; border-radius: 2px;" title="Fondo: ${ad.bgColor}"></span>
+          <span style="display: inline-block; width: 18px; height: 18px; background: ${ad.textColor}; border: 1px solid #fff; border-radius: 2px;" title="Texto: ${ad.textColor}"></span>
+        </div>
+      </td>
+      <td style="padding: 12px 10px; text-align: right; white-space: nowrap;">
+        <button onclick="openEditAdModal('${ad.id}')" class="action-btn" style="padding: 5px 10px; font-size: 0.72rem; display: inline-flex; width: auto; background: var(--bg-card); border: 1px solid var(--neon); color: var(--neon); cursor: pointer; margin-right: 6px;">
+          ✏️ EDITAR
+        </button>
+        <button onclick="deleteAdItem('${ad.id}')" class="action-btn btn-stop" style="padding: 5px 10px; font-size: 0.72rem; display: inline-flex; width: auto; background: var(--red); color: #fff; cursor: pointer; border: none;">
+          🗑️ ELIMINAR
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
 
-// Eventos reactivos en el formulario para vista previa inmediata
-document.addEventListener('input', (e) => {
-  if (e.target.id === 'adBgColor') {
-    const hex = document.getElementById('adBgColorHex');
-    if (hex) hex.value = e.target.value;
-    updateAdPreview();
-  } else if (e.target.id === 'adBgColorHex') {
-    const picker = document.getElementById('adBgColor');
-    if (picker && /^#[0-9A-F]{6}$/i.test(e.target.value)) picker.value = e.target.value;
-    updateAdPreview();
-  } else if (e.target.id === 'adTextColor') {
-    const hex = document.getElementById('adTextColorHex');
-    if (hex) hex.value = e.target.value;
-    updateAdPreview();
-  } else if (e.target.id === 'adTextColorHex') {
-    const picker = document.getElementById('adTextColor');
-    if (picker && /^#[0-9A-F]{6}$/i.test(e.target.value)) picker.value = e.target.value;
-    updateAdPreview();
-  } else if (['adBadgeText', 'adMessage', 'adCtaText'].includes(e.target.id)) {
-    updateAdPreview();
-  } else if (e.target.id === 'adEnabled') {
-    updateAdEnabledToggleUI();
-  }
-});
-
-window.saveAdTicker = async function() {
-  const saveHint = document.getElementById('adTickerSaveHint');
-  if (saveHint) {
-    saveHint.textContent = 'Guardando...';
-    saveHint.className = 'save-hint active';
+function updateRotationPreview() {
+  const badgeTag = document.getElementById('adPreviewBadgeTag');
+  const scrollText = document.getElementById('adPreviewScrollText');
+  if (badgeTag) badgeTag.textContent = currentAdTicker.badgeText || 'PUBLICIDAD';
+  
+  if (!scrollText) return;
+  
+  const activeItems = currentAdTicker.items.filter(i => i.active !== false);
+  if (activeItems.length === 0) {
+    scrollText.innerHTML = '<span style="color: #666;">(Sin anuncios activos para mostrar)</span>';
+    return;
   }
 
-  const payload = {
-    enabled: document.getElementById('adEnabled')?.checked ?? true,
-    badgeText: document.getElementById('adBadgeText')?.value.trim() || 'PUBLICIDAD',
-    speed: document.getElementById('adSpeed')?.value || 'medium',
-    message: document.getElementById('adMessage')?.value.trim() || '',
-    ctaText: document.getElementById('adCtaText')?.value.trim() || 'CONTÁCTANOS AQUÍ',
-    ctaUrl: document.getElementById('adCtaUrl')?.value.trim() || 'https://akmovmedia.com',
-    bgColor: document.getElementById('adBgColor')?.value || '#00FF00',
-    textColor: document.getElementById('adTextColor')?.value || '#000000'
-  };
+  let html = '';
+  activeItems.forEach(item => {
+    html += `
+      <span style="background-color: ${item.bgColor}; color: ${item.textColor}; padding: 3px 12px; margin-right: 18px; border-radius: 2px; display: inline-flex; align-items: center; gap: 8px;">
+        <span>${item.message}</span>
+        <span style="text-decoration: underline; font-weight: 800;">${item.ctaText}</span>
+      </span>
+    `;
+  });
+  scrollText.innerHTML = html;
+}
 
-  currentAdTicker = payload;
-  localStorage.setItem('akmov_ad_ticker', JSON.stringify(payload));
+window.openCreateAdModal = function() {
+  const modal = document.getElementById('adEditModal');
+  const title = document.getElementById('adModalTitle');
+  const form = document.getElementById('adModalForm');
+  if (!modal || !form) return;
 
+  title.textContent = 'NUEVO ANUNCIO PUBLICITARIO';
+  form.reset();
+  document.getElementById('modalAdId').value = '';
+  document.getElementById('modalAdBgColor').value = '#00FF00';
+  document.getElementById('modalAdBgColorHex').value = '#00FF00';
+  document.getElementById('modalAdTextColor').value = '#000000';
+  document.getElementById('modalAdTextColorHex').value = '#000000';
+  document.getElementById('modalAdActive').checked = true;
+
+  modal.classList.remove('hidden');
+};
+
+window.openEditAdModal = function(id) {
+  const ad = currentAdTicker.items.find(i => i.id === id);
+  if (!ad) return;
+
+  const modal = document.getElementById('adEditModal');
+  const title = document.getElementById('adModalTitle');
+  if (!modal) return;
+
+  title.textContent = 'EDITAR ANUNCIO PUBLICITARIO';
+  document.getElementById('modalAdId').value = ad.id;
+  document.getElementById('modalAdMessage').value = ad.message || '';
+  document.getElementById('modalAdCtaText').value = ad.ctaText || '';
+  document.getElementById('modalAdCtaUrl').value = ad.ctaUrl || '';
+  document.getElementById('modalAdBgColor').value = ad.bgColor || '#00FF00';
+  document.getElementById('modalAdBgColorHex').value = ad.bgColor || '#00FF00';
+  document.getElementById('modalAdTextColor').value = ad.textColor || '#000000';
+  document.getElementById('modalAdTextColorHex').value = ad.textColor || '#000000';
+  document.getElementById('modalAdActive').checked = ad.active !== false;
+
+  modal.classList.remove('hidden');
+};
+
+window.closeAdModal = function() {
+  const modal = document.getElementById('adEditModal');
+  if (modal) modal.classList.add('hidden');
+};
+
+window.submitAdModalForm = async function() {
+  const id = document.getElementById('modalAdId').value;
+  const message = document.getElementById('modalAdMessage').value.trim();
+  const ctaText = document.getElementById('modalAdCtaText').value.trim();
+  const ctaUrl = document.getElementById('modalAdCtaUrl').value.trim();
+  const bgColor = document.getElementById('modalAdBgColor').value;
+  const textColor = document.getElementById('modalAdTextColor').value;
+  const active = document.getElementById('modalAdActive').checked;
+
+  if (!message || !ctaText) {
+    alert('Por favor completa el mensaje y texto del botón.');
+    return;
+  }
+
+  if (id) {
+    // Editar existente
+    const idx = currentAdTicker.items.findIndex(i => i.id === id);
+    if (idx >= 0) {
+      currentAdTicker.items[idx] = {
+        ...currentAdTicker.items[idx],
+        message,
+        ctaText,
+        ctaUrl,
+        bgColor,
+        textColor,
+        active
+      };
+    }
+  } else {
+    // Crear nuevo
+    const newAd = {
+      id: 'ad-' + Date.now(),
+      message,
+      ctaText,
+      ctaUrl,
+      bgColor,
+      textColor,
+      active
+    };
+    currentAdTicker.items.unshift(newAd);
+  }
+
+  closeAdModal();
+  renderAdItemsTable();
+  updateRotationPreview();
+  await persistAdTickerConfig('Anuncio guardado y actualizado con éxito.');
+};
+
+window.deleteAdItem = async function(id) {
+  if (!confirm('¿Estás seguro de que deseas eliminar este anuncio?')) return;
+  currentAdTicker.items = currentAdTicker.items.filter(i => i.id !== id);
+  renderAdItemsTable();
+  updateRotationPreview();
+  await persistAdTickerConfig('Anuncio eliminado.');
+};
+
+window.toggleAdItem = async function(id) {
+  const ad = currentAdTicker.items.find(i => i.id === id);
+  if (ad) {
+    ad.active = !ad.active;
+    renderAdItemsTable();
+    updateRotationPreview();
+    await persistAdTickerConfig(ad.active ? 'Anuncio activado.' : 'Anuncio pausado.');
+  }
+};
+
+window.saveAdTickerGlobalSettings = async function() {
+  currentAdTicker.enabled = document.getElementById('adGlobalEnabled')?.checked ?? true;
+  currentAdTicker.badgeText = document.getElementById('adGlobalBadgeText')?.value.trim() || 'PUBLICIDAD';
+  currentAdTicker.speed = document.getElementById('adGlobalSpeed')?.value || 'medium';
+
+  renderAdTickerGlobalUI();
+  updateRotationPreview();
+  await persistAdTickerConfig('Ajustes generales de marquesina guardados.');
+};
+
+async function persistAdTickerConfig(successMsg) {
+  localStorage.setItem('akmov_ad_ticker', JSON.stringify(currentAdTicker));
   try {
     const res = await fetch(CONFIG.API_BASE + '/api/ad-ticker', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(currentAdTicker)
     });
     const data = await res.json();
     if (data.success) {
-      if (saveHint) {
-        saveHint.textContent = '✓ Guardado y actualizado en vivo';
-        setTimeout(() => { saveHint.textContent = ''; }, 3000);
-      }
-      toast('Marquesina publicitaria actualizada con éxito.', 'success');
-    } else {
-      if (saveHint) saveHint.textContent = 'Error al guardar en API';
+      toast(successMsg || 'Marquesina actualizada.', 'success');
     }
   } catch (err) {
-    console.warn("Fallo API remota, guardado localmente:", err);
-    if (saveHint) {
-      saveHint.textContent = '✓ Guardado en caché local';
-      setTimeout(() => { saveHint.textContent = ''; }, 3000);
-    }
     toast('Guardado en caché local (API offline).', 'success');
   }
-};
+}
+
+// Sincronizar selectores de color del modal
+document.addEventListener('input', (e) => {
+  if (e.target.id === 'modalAdBgColor') {
+    const hex = document.getElementById('modalAdBgColorHex');
+    if (hex) hex.value = e.target.value;
+  } else if (e.target.id === 'modalAdBgColorHex') {
+    const picker = document.getElementById('modalAdBgColor');
+    if (picker && /^#[0-9A-F]{6}$/i.test(e.target.value)) picker.value = e.target.value;
+  } else if (e.target.id === 'modalAdTextColor') {
+    const hex = document.getElementById('modalAdTextColorHex');
+    if (hex) hex.value = e.target.value;
+  } else if (e.target.id === 'modalAdTextColorHex') {
+    const picker = document.getElementById('modalAdTextColor');
+    if (picker && /^#[0-9A-F]{6}$/i.test(e.target.value)) picker.value = e.target.value;
+  }
+});
 
 // ─── INIT PANEL ──────────────────────────────────────────────
 async function initPanel() {
