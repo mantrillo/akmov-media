@@ -501,18 +501,25 @@ function renderSchedule() {
     return;
   }
 
-  // Sort by start time
-  const sorted = [...scheduleData].sort((a, b) => a.start.localeCompare(b.start));
+  // Sort by date (if any) then start time
+  const sorted = [...scheduleData].sort((a, b) => {
+    const dtA = (a.date || '0000-00-00') + ' ' + a.start;
+    const dtB = (b.date || '0000-00-00') + ' ' + b.start;
+    return dtA.localeCompare(dtB);
+  });
 
   sorted.forEach((slot, i) => {
     const el = document.createElement('div');
     el.className = 'schedule-slot';
     el.innerHTML = `
-      <span class="slot-time">${slot.start} → ${slot.end}</span>
+      <div style="display:flex; flex-direction:column; gap:2px;">
+        ${slot.date ? `<span style="font-size:0.72rem; color:var(--neon); font-family:monospace; font-weight:bold;">[ ${slot.date} ]</span>` : `<span style="font-size:0.72rem; color:var(--text-muted); font-family:monospace;">[ DIARIO ]</span>`}
+        <span class="slot-time">${slot.start} → ${slot.end}</span>
+      </div>
       <span class="slot-tag ${slot.type}">${typeLabel(slot.type)}</span>
       <div class="slot-info">
         <div class="slot-title">${slot.title}${slot.host ? ` <span style="font-size:0.8em;color:var(--text-muted);font-weight:normal;">(Locutor: ${slot.host})</span>` : ''}</div>
-        <div class="slot-desc">${slot.desc}</div>
+        <div class="slot-desc">${slot.desc || ''}</div>
       </div>
       <button class="slot-delete" data-index="${scheduleData.indexOf(slot)}" title="Eliminar">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
@@ -560,6 +567,7 @@ slotModal.addEventListener('click', (e) => {
 });
 
 confirmSlot.addEventListener('click', () => {
+  const date  = document.getElementById('slotDate').value;
   const start = document.getElementById('slotStart').value;
   const end   = document.getElementById('slotEnd').value;
   const title = document.getElementById('slotTitle').value.trim().toUpperCase();
@@ -572,7 +580,7 @@ confirmSlot.addEventListener('click', () => {
     return;
   }
 
-  scheduleData.push({ start, end, title, host, desc, type });
+  scheduleData.push({ date: date || '', start, end, title, host, desc, type });
   renderSchedule();
   saveHint.textContent = '⚠ Cambios sin guardar';
   slotModal.classList.add('hidden');
@@ -581,6 +589,7 @@ confirmSlot.addEventListener('click', () => {
 });
 
 function clearModal() {
+  document.getElementById('slotDate').value  = '';
   document.getElementById('slotStart').value = '';
   document.getElementById('slotEnd').value   = '';
   document.getElementById('slotTitle').value = '';
