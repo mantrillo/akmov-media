@@ -559,9 +559,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!container) return;
 
   const typeLabels = {
-    live:    '<span class="schedule-tag">EN VIVO</span>',
+    live:    '<span class="schedule-tag" style="background:var(--red);color:#fff;font-weight:bold;animation:pulse-live 1.5s infinite;">🔴 EN VIVO</span>',
     next:    '<span class="schedule-tag next">Siguiente</span>',
-    autodj:  '<span class="schedule-tag autodj">AutoDJ</span>',
+    autodj:  '<span class="schedule-tag autodj">AutoDJ 24/7</span>',
     repeat:  '<span class="schedule-tag">Repetición</span>',
   };
 
@@ -578,15 +578,38 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderPublicSchedule(slots) {
-    const sorted = [...slots].sort((a, b) => a.start.localeCompare(b.start));
+    // Ordenar slots: primero por fecha (si tiene) o por hora
+    const sorted = [...slots].sort((a, b) => {
+      const dtA = (a.date || '0000-00-00') + ' ' + a.start;
+      const dtB = (b.date || '0000-00-00') + ' ' + b.start;
+      return dtA.localeCompare(dtB);
+    });
+
+    const todayStr = new Date().toISOString().split('T')[0];
+
     container.innerHTML = sorted.map(slot => {
-      const isCurrent = isCurrentSlot(slot.start, slot.end);
+      const isToday = !slot.date || slot.date === todayStr;
+      const isCurrent = isToday && isCurrentSlot(slot.start, slot.end);
+      
+      let dateBadge = '';
+      if (slot.date) {
+        if (slot.date === todayStr) {
+          dateBadge = `<span style="font-size:0.75rem; color:var(--color-neon); font-weight:800; display:block; margin-bottom:2px;">[ HOY ]</span>`;
+        } else {
+          dateBadge = `<span style="font-size:0.75rem; color:#aaa; font-weight:bold; display:block; margin-bottom:2px;">[ ${slot.date} ]</span>`;
+        }
+      }
+
       return `
         <div class="schedule-item${isCurrent ? ' current' : ''}">
-          <div class="schedule-time">${slot.start} - ${slot.end}</div>
+          <div class="schedule-time">
+            ${dateBadge}
+            ${slot.start} - ${slot.end}
+          </div>
           <div class="schedule-details">
             ${typeLabels[slot.type] || ''}
             <h3>${slot.title}</h3>
+            ${slot.host ? `<p style="font-size:0.8rem; color:var(--color-neon); margin:2px 0;">🎙️ ${slot.host}</p>` : ''}
             ${slot.desc ? `<p>${slot.desc}</p>` : ''}
           </div>
         </div>`;
@@ -606,30 +629,48 @@ document.addEventListener('DOMContentLoaded', () => {
   try {
     const res  = await fetch(AKMOV_API_BASE + '/schedule');
     const data = await res.json();
-    if (data && Array.isArray(data.schedule) && data.schedule.length > 0) {
-      // Fusionar grilla predefinida con programas personalizados (ej. EN VIVO)
-      let merged = [...defaultSlots];
-      
-      data.schedule.forEach(slot => {
-        // Buscar si hay algún bloque por defecto que coincida exactamente en el horario
-        const duplicate = merged.find(m => m.start === slot.start && m.end === slot.end);
-        if (!duplicate) {
-          merged.push(slot);
-        } else {
-          // Si coincide el horario, el programa personalizado reemplaza al por defecto
-          const idx = merged.indexOf(duplicate);
-          merged[idx] = slot;
-        }
-      });
+    let merged = [...defaultSlots];
+
+    if (data) {
+      if (Array.isArray(data.schedule) && data.schedule.length > 0) {
+        data.schedule.forEach(slot => {
+          const duplicate = merged.find(m => !m.date && m.start === slot.start && m.end === slot.end);
+          if (!duplicate) {
+            merged.push(slot);
+          } else {
+            const idx = merged.indexOf(duplicate);
+            merged[idx] = slot;
+          }
+        });
+      }
+
+      // Añadir eventos en vivo programados (hoy y futuros)
+      const todayStr = new Date().toISOString().split('T')[0];
+      const liveEvents = data.liveEvents || JSON.parse(localStorage.getItem('akmov_live_events') || '[]');
+      if (Array.isArray(liveEvents)) {
+        liveEvents.filter(ev => ev.date >= todayStr).forEach(ev => {
+          merged.push(ev);
+        });
+      }
 
       renderPublicSchedule(merged);
       return;
     }
   } catch (err) {
-    console.warn("No se pudo cargar la programación desde la API, usando grilla estática.", err);
+    console.warn("No se pudo cargar la programación desde la API, verificando cache local.", err);
   }
 
-  renderPublicSchedule(defaultSlots);
+  // Fallback con eventos locales si los hay
+  const todayStr = new Date().toISOString().split('T')[0];
+  let localMerged = [...defaultSlots];
+  try {
+    const localEvents = JSON.parse(localStorage.getItem('akmov_live_events') || '[]');
+    if (Array.isArray(localEvents)) {
+      localEvents.filter(ev => ev.date >= todayStr).forEach(ev => localMerged.push(ev));
+    }
+  } catch(e) {}
+
+  renderPublicSchedule(localMerged);
 })();
 
 // ==========================================

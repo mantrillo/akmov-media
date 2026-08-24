@@ -92,12 +92,13 @@ const logoutBtn       = document.getElementById('logoutBtn');
 function applyUserPermissions() {
   const email = sessionStorage.getItem('akmov_user_email') || CONFIG.ADMIN_EMAIL;
   const role = sessionStorage.getItem('akmov_user_role') || 'superadmin';
-  let allowedTabs = ['stream-control', 'ad-ticker', 'pauta', 'vod-config', 'users'];
+  let allowedTabs = ['stream-control', 'live-events', 'ad-ticker', 'pauta', 'vod-config', 'users'];
   try {
     const raw = sessionStorage.getItem('akmov_user_tabs');
     if (raw) {
       allowedTabs = JSON.parse(raw);
       if (role === 'superadmin' || email.toLowerCase() === CONFIG.ADMIN_EMAIL.toLowerCase()) {
+        if (!allowedTabs.includes('live-events')) allowedTabs.push('live-events');
         if (!allowedTabs.includes('ad-ticker')) allowedTabs.push('ad-ticker');
         sessionStorage.setItem('akmov_user_tabs', JSON.stringify(allowedTabs));
       }
@@ -1477,6 +1478,203 @@ document.addEventListener('input', (e) => {
   }
 });
 
+// ─── LIVE EVENTS CALENDAR MANAGEMENT ─────────────────────────
+let liveEventsData = [];
+
+async function loadLiveEvents() {
+  try {
+    const res = await fetch(CONFIG.API_BASE + '/schedule');
+    if (res.ok) {
+      const data = await res.json();
+      if (data && Array.isArray(data.liveEvents)) {
+        liveEventsData = data.liveEvents;
+      }
+    }
+  } catch (e) {
+    console.warn("No se pudo conectar a /schedule, usando fallback local:", e);
+    const local = localStorage.getItem('akmov_live_events');
+    if (local) {
+      try { liveEventsData = JSON.parse(local); } catch(err){}
+    }
+  }
+  renderLiveEventsTable();
+}
+
+function renderLiveEventsTable() {
+  const tbody = document.getElementById('liveEventsTableBody');
+  const countBadge = document.getElementById('liveEventsCount');
+  if (!tbody) return;
+
+  if (countBadge) countBadge.textContent = liveEventsData.length;
+  tbody.innerHTML = '';
+
+  if (liveEventsData.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 0.85rem;">
+          No hay eventos en vivo programados. Haz clic en <strong>+ PROGRAMAR EVENTO EN VIVO</strong>.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  // Ordenar por fecha y hora
+  const sorted = [...liveEventsData].sort((a, b) => {
+    const dtA = (a.date || '') + ' ' + (a.start || '');
+    const dtB = (b.date || '') + ' ' + (b.start || '');
+    return dtA.localeCompare(dtB);
+  });
+
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  sorted.forEach(event => {
+    const tr = document.createElement('tr');
+    tr.style.borderBottom = '1px solid var(--gray-border)';
+
+    let statusHtml = '<span class="schedule-tag" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid #555;">PROGRAMADO</span>';
+    if (event.date === todayStr) {
+      statusHtml = '<span class="schedule-tag" style="background: var(--red); color: #fff; font-weight: bold; animation: pulse-live 1.5s infinite;">¡HOY EN VIVO!</span>';
+    } else if (event.date < todayStr) {
+      statusHtml = '<span class="schedule-tag" style="background: transparent; color: #666; border: 1px solid #333;">FINALIZADO</span>';
+    }
+
+    tr.innerHTML = `
+      <td style="padding: 12px 10px; font-family: monospace; font-weight: bold; color: var(--neon);">
+        ${event.date || '—'}
+      </td>
+      <td style="padding: 12px 10px; font-weight: 700; color: #fff;">
+        ${event.start} → ${event.end}
+      </td>
+      <td style="padding: 12px 10px;">
+        <div style="font-weight: 800; color: #fff; font-size: 0.88rem;">${event.title}</div>
+        ${event.desc ? `<div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">${event.desc}</div>` : ''}
+      </td>
+      <td style="padding: 12px 10px; color: var(--text-muted); font-size: 0.82rem;">
+        ${event.host ? `🎙️ ${event.host}` : '—'}
+      </td>
+      <td style="padding: 12px 10px;">
+        ${statusHtml}
+      </td>
+      <td style="padding: 12px 10px; text-align: right; white-space: nowrap;">
+        <button onclick="openEditLiveEventModal('${event.id}')" class="action-btn" style="padding: 5px 10px; font-size: 0.72rem; display: inline-flex; width: auto; background: var(--bg-card); border: 1px solid var(--neon); color: var(--neon); cursor: pointer; margin-right: 6px;">
+          ✏️ EDITAR
+        </button>
+        <button onclick="deleteLiveEvent('${event.id}')" class="action-btn btn-stop" style="padding: 5px 10px; font-size: 0.72rem; display: inline-flex; width: auto; background: var(--red); color: #fff; cursor: pointer; border: none;">
+          🗑️ ELIMINAR
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+window.openCreateLiveEventModal = function() {
+  const modal = document.getElementById('liveEventModal');
+  const title = document.getElementById('liveEventModalTitle');
+  const form = document.getElementById('liveEventForm');
+  if (!modal || !form) return;
+
+  title.textContent = 'PROGRAMAR EVENTO EN VIVO';
+  form.reset();
+  document.getElementById('modalEventId').value = '';
+  document.getElementById('modalEventDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('modalEventStart').value = '20:00';
+  document.getElementById('modalEventEnd').value = '22:00';
+
+  modal.classList.remove('hidden');
+};
+
+window.openEditLiveEventModal = function(id) {
+  const ev = liveEventsData.find(i => i.id === id);
+  if (!ev) return;
+
+  const modal = document.getElementById('liveEventModal');
+  const title = document.getElementById('liveEventModalTitle');
+  if (!modal) return;
+
+  title.textContent = 'EDITAR EVENTO EN VIVO';
+  document.getElementById('modalEventId').value = ev.id;
+  document.getElementById('modalEventDate').value = ev.date || '';
+  document.getElementById('modalEventStart').value = ev.start || '';
+  document.getElementById('modalEventEnd').value = ev.end || '';
+  document.getElementById('modalEventTitle').value = ev.title || '';
+  document.getElementById('modalEventHost').value = ev.host || '';
+  document.getElementById('modalEventDesc').value = ev.desc || '';
+
+  modal.classList.remove('hidden');
+};
+
+window.closeLiveEventModal = function() {
+  const modal = document.getElementById('liveEventModal');
+  if (modal) modal.classList.add('hidden');
+};
+
+window.submitLiveEventForm = async function() {
+  const id = document.getElementById('modalEventId').value;
+  const date = document.getElementById('modalEventDate').value;
+  const start = document.getElementById('modalEventStart').value;
+  const end = document.getElementById('modalEventEnd').value;
+  const title = document.getElementById('modalEventTitle').value.trim().toUpperCase();
+  const host = document.getElementById('modalEventHost').value.trim();
+  const desc = document.getElementById('modalEventDesc').value.trim();
+
+  if (!date || !start || !end || !title) {
+    alert('Por favor completa la fecha, hora inicio, hora fin y título.');
+    return;
+  }
+
+  if (id) {
+    const idx = liveEventsData.findIndex(i => i.id === id);
+    if (idx >= 0) {
+      liveEventsData[idx] = { id, date, start, end, title, host, desc, type: 'live' };
+    }
+  } else {
+    liveEventsData.push({
+      id: 'event-' + Date.now(),
+      date,
+      start,
+      end,
+      title,
+      host,
+      desc,
+      type: 'live'
+    });
+  }
+
+  closeLiveEventModal();
+  renderLiveEventsTable();
+  await persistLiveEventsSchedule('Evento en vivo guardado con éxito.');
+};
+
+window.deleteLiveEvent = async function(id) {
+  if (!confirm('¿Deseas eliminar este evento programado?')) return;
+  liveEventsData = liveEventsData.filter(i => i.id !== id);
+  renderLiveEventsTable();
+  await persistLiveEventsSchedule('Evento eliminado.');
+};
+
+window.persistLiveEventsSchedule = async function(customMsg) {
+  localStorage.setItem('akmov_live_events', JSON.stringify(liveEventsData));
+
+  try {
+    const res = await fetch(CONFIG.API_BASE + '/schedule', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        schedule: scheduleData,
+        liveEvents: liveEventsData
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast(customMsg || 'Calendario de eventos publicado en la web.', 'success');
+    }
+  } catch (err) {
+    toast('Guardado en caché local (API offline).', 'success');
+  }
+};
+
 // ─── INIT PANEL ──────────────────────────────────────────────
 async function initPanel() {
   const allowedTabs = JSON.parse(sessionStorage.getItem('akmov_user_tabs') || '["pauta"]');
@@ -1487,6 +1685,10 @@ async function initPanel() {
     startPolling();
   } else {
     stopPolling();
+  }
+
+  if (allowedTabs.includes('live-events')) {
+    await loadLiveEvents();
   }
 
   if (allowedTabs.includes('ad-ticker')) {
