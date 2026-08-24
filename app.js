@@ -703,7 +703,7 @@ document.addEventListener('DOMContentLoaded', () => {
       combinedHtml += `
         <span class="ad-ticker-item" style="background-color:${adBg}; color:${adText}; padding: 2px 14px; margin-right: 1.5rem; border-radius: 2px;">
           <span>${msg}</span>
-          <a href="${url}" target="_blank" rel="noopener noreferrer" class="ad-ticker-cta" style="border-color:${adText}; color:${adText};">
+          <a href="${url}" target="_blank" rel="noopener noreferrer" class="ad-ticker-cta" data-ad-id="${ad.id || ''}" style="border-color:${adText}; color:${adText};">
             ${cta}
           </a>
         </span>
@@ -713,6 +713,37 @@ document.addEventListener('DOMContentLoaded', () => {
     // Multiplicar por 3 o 4 para garantizar que el scroll infinito nunca quede vacío
     adTickerContent.innerHTML = combinedHtml + combinedHtml + combinedHtml + combinedHtml;
   }
+
+  // Delegación de evento de click para registrar métricas por anuncio
+  adTickerContent.addEventListener('click', (e) => {
+    const ctaLink = e.target.closest('.ad-ticker-cta');
+    if (!ctaLink) return;
+    const adId = ctaLink.getAttribute('data-ad-id');
+    if (!adId) return;
+
+    // Incrementar en memoria y cache local
+    let cached = localStorage.getItem('akmov_ad_ticker_cache') || localStorage.getItem('akmov_ad_ticker');
+    if (cached) {
+      try {
+        const config = JSON.parse(cached);
+        if (Array.isArray(config.items)) {
+          const item = config.items.find(i => i.id === adId);
+          if (item) {
+            item.clicks = (item.clicks || 0) + 1;
+            localStorage.setItem('akmov_ad_ticker_cache', JSON.stringify(config));
+            localStorage.setItem('akmov_ad_ticker', JSON.stringify(config));
+            
+            // Notificar al backend si está disponible
+            fetch(AKMOV_API_BASE + '/api/ad-ticker', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(config)
+            }).catch(() => {});
+          }
+        }
+      } catch (err) {}
+    }
+  });
 
   // 1. Carga inicial desde la API o Fallback LocalStorage
   async function fetchAdTicker() {
@@ -728,7 +759,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.warn('No se pudo conectar a /api/ad-ticker, usando cache local:', e);
     }
 
-    const cached = localStorage.getItem('akmov_ad_ticker_cache');
+    const cached = localStorage.getItem('akmov_ad_ticker_cache') || localStorage.getItem('akmov_ad_ticker');
     if (cached) {
       try { applyTickerConfig(JSON.parse(cached)); } catch(err){}
     }

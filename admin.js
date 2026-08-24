@@ -1243,6 +1243,8 @@ function renderAdItemsTable() {
     const tr = document.createElement('tr');
     tr.style.borderBottom = '1px solid var(--gray-border)';
     
+    const clickCount = ad.clicks || 0;
+
     tr.innerHTML = `
       <td style="padding: 12px 10px;">
         <label style="position: relative; display: inline-block; width: 38px; height: 20px; cursor: pointer;">
@@ -1250,13 +1252,19 @@ function renderAdItemsTable() {
           <span style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: ${ad.active !== false ? 'var(--neon)' : '#444'}; border-radius: 20px; transition: .3s;"></span>
         </label>
       </td>
-      <td style="padding: 12px 10px; max-width: 320px;">
+      <td style="padding: 12px 10px; max-width: 300px;">
         <div style="font-weight: 700; color: #fff; font-size: 0.85rem; word-break: break-word;">${ad.message}</div>
       </td>
       <td style="padding: 12px 10px;">
-        <a href="${ad.ctaUrl}" target="_blank" rel="noopener noreferrer" style="color: var(--neon); text-decoration: underline; font-weight: 700; font-size: 0.78rem; display: inline-block; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+        <a href="${ad.ctaUrl}" target="_blank" rel="noopener noreferrer" style="color: var(--neon); text-decoration: underline; font-weight: 700; font-size: 0.78rem; display: inline-block; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
           ${ad.ctaText || 'LINK'} ↗
         </a>
+      </td>
+      <td style="padding: 12px 10px; text-align: center;">
+        <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(0,255,0,0.1); border: 1px solid rgba(0,255,0,0.3); padding: 3px 8px; border-radius: 4px;">
+          <span style="font-size: 0.85rem; font-weight: 800; color: var(--neon); font-family: monospace;">${clickCount}</span>
+          ${clickCount > 0 ? `<button onclick="resetAdClicks('${ad.id}')" title="Reiniciar contador a 0" style="background: none; border: none; color: #888; cursor: pointer; font-size: 0.65rem; padding: 0 2px;">↺</button>` : ''}
+        </div>
       </td>
       <td style="padding: 12px 10px;">
         <div style="display: flex; align-items: center; gap: 6px;">
@@ -1362,7 +1370,7 @@ window.submitAdModalForm = async function() {
   }
 
   if (id) {
-    // Editar existente
+    // Editar existente (preservar clicks existentes)
     const idx = currentAdTicker.items.findIndex(i => i.id === id);
     if (idx >= 0) {
       currentAdTicker.items[idx] = {
@@ -1372,7 +1380,8 @@ window.submitAdModalForm = async function() {
         ctaUrl,
         bgColor,
         textColor,
-        active
+        active,
+        clicks: currentAdTicker.items[idx].clicks || 0
       };
     }
   } else {
@@ -1384,7 +1393,8 @@ window.submitAdModalForm = async function() {
       ctaUrl,
       bgColor,
       textColor,
-      active
+      active,
+      clicks: 0
     };
     currentAdTicker.items.unshift(newAd);
   }
@@ -1393,6 +1403,16 @@ window.submitAdModalForm = async function() {
   renderAdItemsTable();
   updateRotationPreview();
   await persistAdTickerConfig('Anuncio guardado y actualizado con éxito.');
+};
+
+window.resetAdClicks = async function(id) {
+  const ad = currentAdTicker.items.find(i => i.id === id);
+  if (ad) {
+    if (!confirm(`¿Deseas reiniciar a 0 el contador de clicks del anuncio "${ad.ctaText}"?`)) return;
+    ad.clicks = 0;
+    renderAdItemsTable();
+    await persistAdTickerConfig('Contador de clicks reiniciado a 0.');
+  }
 };
 
 window.deleteAdItem = async function(id) {
