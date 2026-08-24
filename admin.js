@@ -214,7 +214,7 @@ loginForm.addEventListener('submit', async (e) => {
   let authenticated = false;
   let userEmail = enteredEmail;
   let userRole = 'superadmin';
-  let userTabs = ['stream-control', 'overlays', 'overlays-vertical', 'pauta', 'vod-config', 'users'];
+  let userTabs = ['stream-control', 'live-events', 'ad-ticker', 'pauta', 'vod-config', 'users'];
   let errorMsg = 'Verifica tus credenciales';
 
   if (supabaseClient) {
@@ -233,7 +233,7 @@ loginForm.addEventListener('submit', async (e) => {
         const cached = regUsers.find(u => u.email.toLowerCase() === userEmail.toLowerCase());
 
         userRole = meta.role || (cached ? cached.role : (userEmail.toLowerCase() === CONFIG.ADMIN_EMAIL.toLowerCase() ? 'superadmin' : 'locutor'));
-        userTabs = meta.allowed_tabs || (cached ? cached.allowed_tabs : (userRole === 'superadmin' ? ['stream-control', 'overlays', 'overlays-vertical', 'pauta', 'vod-config', 'users'] : ['pauta']));
+        userTabs = meta.allowed_tabs || (cached ? cached.allowed_tabs : (userRole === 'superadmin' ? ['stream-control', 'live-events', 'ad-ticker', 'pauta', 'vod-config', 'users'] : ['pauta']));
         console.log(`Autenticado con Supabase Auth (${userEmail}) - Rol: ${userRole}`);
       } else if (error) {
         console.warn("Fallo de Supabase Auth, intentando fallback local:", error.message);
@@ -250,7 +250,7 @@ loginForm.addEventListener('submit', async (e) => {
       authenticated = true;
       userEmail = CONFIG.ADMIN_EMAIL;
       userRole = 'superadmin';
-      userTabs = ['stream-control', 'overlays', 'overlays-vertical', 'pauta', 'vod-config', 'users'];
+      userTabs = ['stream-control', 'live-events', 'ad-ticker', 'pauta', 'vod-config', 'users'];
       console.log("Autenticado con fallback local");
     }
   }
