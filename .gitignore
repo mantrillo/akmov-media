@@ -6,5 +6,7 @@ overlay-esperando-locutor.html
 overlay-fondo-247.html
 overlay-radio-tv-news.html
 obs_automation.py
+admin-api.js
+ad_ticker.json
 *.tmp
 .tempmediaStorage/
