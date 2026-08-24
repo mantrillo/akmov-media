@@ -92,14 +92,13 @@ const logoutBtn       = document.getElementById('logoutBtn');
 function applyUserPermissions() {
   const email = sessionStorage.getItem('akmov_user_email') || CONFIG.ADMIN_EMAIL;
   const role = sessionStorage.getItem('akmov_user_role') || 'superadmin';
-  let allowedTabs = ['stream-control', 'overlays', 'overlays-vertical', 'pauta', 'vod-config', 'users'];
+  let allowedTabs = ['stream-control', 'ad-ticker', 'pauta', 'vod-config', 'users'];
   try {
     const raw = sessionStorage.getItem('akmov_user_tabs');
     if (raw) {
       allowedTabs = JSON.parse(raw);
-      // Auto-actualizar sesiones existentes y superadmins para incluir overlays-vertical
-      if ((role === 'superadmin' || email.toLowerCase() === CONFIG.ADMIN_EMAIL.toLowerCase() || allowedTabs.includes('overlays')) && !allowedTabs.includes('overlays-vertical')) {
-        allowedTabs.push('overlays-vertical');
+      if (role === 'superadmin' || email.toLowerCase() === CONFIG.ADMIN_EMAIL.toLowerCase()) {
+        if (!allowedTabs.includes('ad-ticker')) allowedTabs.push('ad-ticker');
         sessionStorage.setItem('akmov_user_tabs', JSON.stringify(allowedTabs));
       }
     }
@@ -1153,6 +1152,177 @@ document.getElementById('newUserForm')?.addEventListener('submit', async (e) => 
   }
 });
 
+// ─── PUBLICIDAD / TICKER MANAGEMENT ──────────────────────────
+let currentAdTicker = {
+  enabled: true,
+  badgeText: "PUBLICIDAD",
+  message: "★ ESPACIO DISPONIBLE PARA PUBLICIDAD • POTENCIA TU MARCA EN AKMOV MEDIA ★",
+  ctaText: "CONTÁCTANOS AQUÍ",
+  ctaUrl: "https://akmovmedia.com",
+  bgColor: "#00FF00",
+  textColor: "#000000",
+  speed: "medium"
+};
+
+async function loadAdTicker() {
+  try {
+    const res = await fetch(CONFIG.API_BASE + '/api/ad-ticker');
+    if (res.ok) {
+      currentAdTicker = await res.json();
+    }
+  } catch (e) {
+    console.warn("No se pudo conectar a /api/ad-ticker, usando fallback local:", e);
+    const local = localStorage.getItem('akmov_ad_ticker');
+    if (local) {
+      try { currentAdTicker = JSON.parse(local); } catch(err){}
+    }
+  }
+  populateAdTickerForm();
+}
+
+function populateAdTickerForm() {
+  const adEnabled = document.getElementById('adEnabled');
+  const adBadgeText = document.getElementById('adBadgeText');
+  const adSpeed = document.getElementById('adSpeed');
+  const adMessage = document.getElementById('adMessage');
+  const adCtaText = document.getElementById('adCtaText');
+  const adCtaUrl = document.getElementById('adCtaUrl');
+  const adBgColor = document.getElementById('adBgColor');
+  const adBgColorHex = document.getElementById('adBgColorHex');
+  const adTextColor = document.getElementById('adTextColor');
+  const adTextColorHex = document.getElementById('adTextColorHex');
+
+  if (adEnabled) adEnabled.checked = !!currentAdTicker.enabled;
+  if (adBadgeText) adBadgeText.value = currentAdTicker.badgeText || 'PUBLICIDAD';
+  if (adSpeed) adSpeed.value = currentAdTicker.speed || 'medium';
+  if (adMessage) adMessage.value = currentAdTicker.message || '';
+  if (adCtaText) adCtaText.value = currentAdTicker.ctaText || 'CONTÁCTANOS AQUÍ';
+  if (adCtaUrl) adCtaUrl.value = currentAdTicker.ctaUrl || 'https://akmovmedia.com';
+  if (adBgColor) adBgColor.value = currentAdTicker.bgColor || '#00FF00';
+  if (adBgColorHex) adBgColorHex.value = currentAdTicker.bgColor || '#00FF00';
+  if (adTextColor) adTextColor.value = currentAdTicker.textColor || '#000000';
+  if (adTextColorHex) adTextColorHex.value = currentAdTicker.textColor || '#000000';
+
+  updateAdPreview();
+  updateAdEnabledToggleUI();
+}
+
+function updateAdEnabledToggleUI() {
+  const adEnabled = document.getElementById('adEnabled');
+  const adEnabledSlider = document.getElementById('adEnabledSlider');
+  const liveStatusBadge = document.getElementById('adTickerLiveStatus');
+  const liveStatusText = document.getElementById('adTickerLiveStatusText');
+
+  if (adEnabled && adEnabledSlider) {
+    if (adEnabled.checked) {
+      adEnabledSlider.style.backgroundColor = 'var(--neon)';
+      if (liveStatusBadge) liveStatusBadge.className = 'autodj-badge running';
+      if (liveStatusText) liveStatusText.textContent = 'EN VIVO (ACTIVA)';
+    } else {
+      adEnabledSlider.style.backgroundColor = '#444';
+      if (liveStatusBadge) liveStatusBadge.className = 'autodj-badge stopped';
+      if (liveStatusText) liveStatusText.textContent = 'DESACTIVADA';
+    }
+  }
+}
+
+function updateAdPreview() {
+  const adBadgeText = document.getElementById('adBadgeText')?.value || 'PUBLICIDAD';
+  const adMessage = document.getElementById('adMessage')?.value || '';
+  const adCtaText = document.getElementById('adCtaText')?.value || 'CONTÁCTANOS';
+  const adBgColor = document.getElementById('adBgColor')?.value || '#00FF00';
+  const adTextColor = document.getElementById('adTextColor')?.value || '#000000';
+
+  const previewBox = document.getElementById('adPreviewBox');
+  const previewBadge = document.getElementById('adPreviewBadge');
+  const previewText = document.getElementById('adPreviewText');
+
+  if (previewBox) {
+    previewBox.style.backgroundColor = adBgColor;
+    previewBox.style.color = adTextColor;
+  }
+  if (previewBadge) {
+    previewBadge.textContent = adBadgeText;
+    previewBadge.style.backgroundColor = '#000';
+    previewBadge.style.color = adBgColor;
+  }
+  if (previewText) {
+    previewText.innerHTML = `${adMessage} &nbsp;—&nbsp; <span style="text-decoration: underline;">${adCtaText}</span>`;
+  }
+}
+
+// Eventos reactivos en el formulario para vista previa inmediata
+document.addEventListener('input', (e) => {
+  if (e.target.id === 'adBgColor') {
+    const hex = document.getElementById('adBgColorHex');
+    if (hex) hex.value = e.target.value;
+    updateAdPreview();
+  } else if (e.target.id === 'adBgColorHex') {
+    const picker = document.getElementById('adBgColor');
+    if (picker && /^#[0-9A-F]{6}$/i.test(e.target.value)) picker.value = e.target.value;
+    updateAdPreview();
+  } else if (e.target.id === 'adTextColor') {
+    const hex = document.getElementById('adTextColorHex');
+    if (hex) hex.value = e.target.value;
+    updateAdPreview();
+  } else if (e.target.id === 'adTextColorHex') {
+    const picker = document.getElementById('adTextColor');
+    if (picker && /^#[0-9A-F]{6}$/i.test(e.target.value)) picker.value = e.target.value;
+    updateAdPreview();
+  } else if (['adBadgeText', 'adMessage', 'adCtaText'].includes(e.target.id)) {
+    updateAdPreview();
+  } else if (e.target.id === 'adEnabled') {
+    updateAdEnabledToggleUI();
+  }
+});
+
+window.saveAdTicker = async function() {
+  const saveHint = document.getElementById('adTickerSaveHint');
+  if (saveHint) {
+    saveHint.textContent = 'Guardando...';
+    saveHint.className = 'save-hint active';
+  }
+
+  const payload = {
+    enabled: document.getElementById('adEnabled')?.checked ?? true,
+    badgeText: document.getElementById('adBadgeText')?.value.trim() || 'PUBLICIDAD',
+    speed: document.getElementById('adSpeed')?.value || 'medium',
+    message: document.getElementById('adMessage')?.value.trim() || '',
+    ctaText: document.getElementById('adCtaText')?.value.trim() || 'CONTÁCTANOS AQUÍ',
+    ctaUrl: document.getElementById('adCtaUrl')?.value.trim() || 'https://akmovmedia.com',
+    bgColor: document.getElementById('adBgColor')?.value || '#00FF00',
+    textColor: document.getElementById('adTextColor')?.value || '#000000'
+  };
+
+  currentAdTicker = payload;
+  localStorage.setItem('akmov_ad_ticker', JSON.stringify(payload));
+
+  try {
+    const res = await fetch(CONFIG.API_BASE + '/api/ad-ticker', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.success) {
+      if (saveHint) {
+        saveHint.textContent = '✓ Guardado y actualizado en vivo';
+        setTimeout(() => { saveHint.textContent = ''; }, 3000);
+      }
+      toast('Marquesina publicitaria actualizada con éxito.', 'success');
+    } else {
+      if (saveHint) saveHint.textContent = 'Error al guardar en API';
+    }
+  } catch (err) {
+    console.warn("Fallo API remota, guardado localmente:", err);
+    if (saveHint) {
+      saveHint.textContent = '✓ Guardado en caché local';
+      setTimeout(() => { saveHint.textContent = ''; }, 3000);
+    }
+    toast('Guardado en caché local (API offline).', 'success');
+  }
+};
+
 // ─── INIT PANEL ──────────────────────────────────────────────
 async function initPanel() {
   const allowedTabs = JSON.parse(sessionStorage.getItem('akmov_user_tabs') || '["pauta"]');
@@ -1163,6 +1333,10 @@ async function initPanel() {
     startPolling();
   } else {
     stopPolling();
+  }
+
+  if (allowedTabs.includes('ad-ticker')) {
+    await loadAdTicker();
   }
 
   if (allowedTabs.includes('vod-config')) {

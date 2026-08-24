@@ -631,6 +631,96 @@ document.addEventListener('DOMContentLoaded', () => {
 
   renderPublicSchedule(defaultSlots);
 })();
+
+// ==========================================
+// 4.5. PUBLICIDAD / TICKER SCROLL DINÁMICO
+// ==========================================
+(function initDynamicAdTicker() {
+  const mainAdBanner = document.getElementById('mainAdBanner');
+  const adBannerBadge = document.getElementById('adBannerBadge');
+  const adTickerContent = document.getElementById('adTickerContent');
+  if (!mainAdBanner || !adBannerBadge || !adTickerContent) return;
+
+  const speedMap = {
+    slow: '35s',
+    medium: '22s',
+    fast: '14s'
+  };
+
+  function applyTickerConfig(config) {
+    if (!config) return;
+
+    // Toggle on/off
+    if (config.enabled === false) {
+      mainAdBanner.classList.add('hidden');
+      return;
+    } else {
+      mainAdBanner.classList.remove('hidden');
+    }
+
+    // Colors
+    const bg = config.bgColor || '#00FF00';
+    const text = config.textColor || '#000000';
+    mainAdBanner.style.backgroundColor = bg;
+    mainAdBanner.style.color = text;
+
+    // Badge
+    adBannerBadge.textContent = (config.badgeText || 'PUBLICIDAD').toUpperCase();
+    adBannerBadge.style.backgroundColor = '#000000';
+    adBannerBadge.style.color = bg;
+
+    // Speed
+    const speedVal = speedMap[config.speed] || (typeof config.speed === 'string' && config.speed.endsWith('s') ? config.speed : '22s');
+    mainAdBanner.style.setProperty('--ad-speed', speedVal);
+
+    // Message & Interactive CTA Link
+    const msg = config.message || '★ ESPACIO DISPONIBLE PARA PUBLICIDAD • POTENCIA TU MARCA EN AKMOV MEDIA ★';
+    const ctaText = config.ctaText || 'CONTÁCTANOS AQUÍ';
+    const ctaUrl = config.ctaUrl || 'https://akmovmedia.com';
+
+    const singleItemHtml = `<span>${msg} &nbsp;<a href="${ctaUrl}" target="_blank" rel="noopener noreferrer" class="ad-ticker-cta" style="border-color:${text};">${ctaText}</a></span>`;
+
+    // Render loop duplicate for seamless continuous animation
+    adTickerContent.innerHTML = singleItemHtml + singleItemHtml + singleItemHtml;
+  }
+
+  // 1. Carga inicial desde la API o Fallback LocalStorage
+  async function fetchAdTicker() {
+    try {
+      const res = await fetch(AKMOV_API_BASE + '/api/ad-ticker');
+      if (res.ok) {
+        const config = await res.json();
+        applyTickerConfig(config);
+        localStorage.setItem('akmov_ad_ticker_cache', JSON.stringify(config));
+        return;
+      }
+    } catch (e) {
+      console.warn('No se pudo conectar a /api/ad-ticker, usando cache local:', e);
+    }
+
+    const cached = localStorage.getItem('akmov_ad_ticker_cache');
+    if (cached) {
+      try { applyTickerConfig(JSON.parse(cached)); } catch(err){}
+    }
+  }
+
+  fetchAdTicker();
+
+  // 2. Suscribirse a SSE para actualizaciones en vivo instantáneas sin recargar
+  try {
+    const sse = new EventSource(AKMOV_API_BASE + '/alerts/stream');
+    sse.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data && data.dataType === 'AD_TICKER_UPDATE') {
+          applyTickerConfig(data);
+        }
+      } catch (err) {}
+    };
+  } catch (e) {
+    console.warn("SSE no disponible para marquesina:", e);
+  }
+})();
   // ==========================================
   // 3. NAVIGATION INTERACTION (Smooth Scroll & Active Link)
   // ==========================================

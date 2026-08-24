@@ -751,6 +751,75 @@ async function getRecentVideosFromChannel(handle, maxCount = 3) {
   }
 }
 
+// ─── PUBLICIDAD / TICKER PERSISTENCE ──────────────────────────
+const AD_TICKER_FILE = path.join(__dirname, 'ad_ticker.json');
+
+const DEFAULT_AD_TICKER = {
+  enabled: true,
+  badgeText: "PUBLICIDAD",
+  message: "★ ESPACIO DISPONIBLE PARA PUBLICIDAD • POTENCIA TU MARCA EN AKMOV MEDIA ★",
+  ctaText: "CONTÁCTANOS AQUÍ",
+  ctaUrl: "https://akmovmedia.com",
+  bgColor: "#00FF00",
+  textColor: "#000000",
+  speed: "medium" // slow: 35s, medium: 22s, fast: 14s
+};
+
+function getAdTickerConfig() {
+  try {
+    if (!fs.existsSync(AD_TICKER_FILE)) {
+      fs.writeFileSync(AD_TICKER_FILE, JSON.stringify(DEFAULT_AD_TICKER, null, 2), 'utf8');
+      return DEFAULT_AD_TICKER;
+    }
+    const data = JSON.parse(fs.readFileSync(AD_TICKER_FILE, 'utf8'));
+    return { ...DEFAULT_AD_TICKER, ...data };
+  } catch (e) {
+    console.error('Error leyendo ad_ticker.json:', e);
+    return DEFAULT_AD_TICKER;
+  }
+}
+
+function saveAdTickerConfig(config) {
+  try {
+    fs.writeFileSync(AD_TICKER_FILE, JSON.stringify(config, null, 2), 'utf8');
+    return true;
+  } catch (e) {
+    console.error('Error guardando ad_ticker.json:', e);
+    return false;
+  }
+}
+
+app.get('/api/ad-ticker', (req, res) => {
+  res.json(getAdTickerConfig());
+});
+
+app.post('/api/ad-ticker', (req, res) => {
+  const config = req.body;
+  if (!config || typeof config !== 'object') {
+    return res.status(400).json({ success: false, error: 'Configuración inválida' });
+  }
+  const current = getAdTickerConfig();
+  const updated = {
+    ...current,
+    ...config
+  };
+  const ok = saveAdTickerConfig(updated);
+  if (ok) {
+    // Broadcast via SSE if clients listen
+    const tickerPayload = JSON.stringify({
+      dataType: 'AD_TICKER_UPDATE',
+      ...updated
+    });
+    alertClients.forEach(client => {
+      client.write(`data: ${tickerPayload}\n\n`);
+    });
+    console.log('[Ad Ticker] Configuración actualizada y guardada');
+    res.json({ success: true, config: updated });
+  } else {
+    res.status(500).json({ success: false, error: 'No se pudo guardar la configuración del ticker' });
+  }
+});
+
 app.get('/api/youtube/channels', (req, res) => {
   res.json(getYoutubeChannels());
 });

@@ -82,6 +82,7 @@
     <!-- NAVIGATION TABS -->
     <div class="admin-tabs" id="adminTabsNav">
       <button class="tab-btn active" data-tab="stream-control">CONTROL DE EMISIÓN</button>
+      <button class="tab-btn" data-tab="ad-ticker">PUBLICIDAD / TICKER</button>
       <button class="tab-btn" data-tab="pauta">PAUTA & ESTUDIO</button>
       <button class="tab-btn" data-tab="vod-config">YOUTUBE VOD</button>
       <button class="tab-btn" data-tab="users">USUARIOS & ROLES</button>
@@ -288,6 +289,124 @@
     <div class="toast-wrap" id="toastWrap"></div>
 
     </div> <!-- Close TAB: STREAM CONTROL -->
+
+    <!-- TAB: PUBLICIDAD / TICKER -->
+    <div class="tab-content" id="tab-ad-ticker">
+      <main class="admin-main">
+        <div class="admin-col" style="grid-column: 1 / -1; max-width: 900px; margin: 0 auto; width: 100%;">
+          
+          <div class="admin-card">
+            <div class="card-header">
+              <div class="card-title-group">
+                <svg class="card-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z"/></svg>
+                <h2 class="card-title">CONFIGURACIÓN DE PUBLICIDAD / TICKER SCROLL</h2>
+              </div>
+              <div class="autodj-badge" id="adTickerLiveStatus">
+                <span class="badge-dot"></span>
+                <span id="adTickerLiveStatusText">EN VIVO</span>
+              </div>
+            </div>
+
+            <p class="obs-note" style="margin: 15px 0;">
+              Controla en tiempo real la marquesina publicitaria superior de <b>AKMOVMEDIA.COM</b>. Los cambios se reflejan inmediatamente en la web y admiten soporte total para emojis (🔥, 📍, 🚀, ★, 🍕, etc.).
+            </p>
+
+            <form id="formAdTicker" onsubmit="event.preventDefault(); saveAdTicker();">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                
+                <!-- Toggle Estado (ON/OFF) -->
+                <div class="field-group" style="grid-column: 1 / -1; background: rgba(255,255,255,0.03); padding: 12px 16px; border: 1px solid var(--gray-border); border-radius: 4px; display: flex; align-items: center; justify-content: space-between;">
+                  <div>
+                    <strong style="color: #fff; display: block; font-size: 0.9rem;">ESTADO DE LA MARQUESINA</strong>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">Activar o desactivar la barra publicitaria en el portal público</span>
+                  </div>
+                  <label style="position: relative; display: inline-block; width: 50px; height: 26px;">
+                    <input type="checkbox" id="adEnabled" checked style="opacity: 0; width: 0; height: 0;">
+                    <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .3s; border-radius: 26px; border: 1px solid var(--gray-border);" id="adEnabledSlider"></span>
+                  </label>
+                </div>
+
+                <!-- Badge / Etiqueta fija -->
+                <div class="field-group">
+                  <label class="field-label">ETIQUETA LATERAL (BADGE)</label>
+                  <input type="text" id="adBadgeText" class="field-input" placeholder="PUBLICIDAD" value="PUBLICIDAD" required>
+                </div>
+
+                <!-- Velocidad de Scroll -->
+                <div class="field-group">
+                  <label class="field-label">VELOCIDAD DE DESPLAZAMIENTO</label>
+                  <select id="adSpeed" class="field-input" style="cursor: pointer;">
+                    <option value="slow">Lento (35s) — Ideal para textos largos</option>
+                    <option value="medium" selected>Medio (22s) — Recomendado</option>
+                    <option value="fast">Rápido (14s) — Dinámico</option>
+                  </select>
+                </div>
+
+                <!-- Mensaje del Anuncio -->
+                <div class="field-group" style="grid-column: 1 / -1;">
+                  <label class="field-label">MENSAJE DEL ANUNCIO (SOPORTA EMOJIS 🔥📍)</label>
+                  <textarea id="adMessage" class="field-input" rows="2" placeholder="★ ESPACIO DISPONIBLE PARA PUBLICIDAD • POTENCIA TU MARCA EN AKMOV MEDIA ★" required style="resize: vertical; font-family: inherit;"></textarea>
+                </div>
+
+                <!-- CTA Texto -->
+                <div class="field-group">
+                  <label class="field-label">TEXTO DEL BOTÓN / ENLACE (CTA)</label>
+                  <input type="text" id="adCtaText" class="field-input" placeholder="HAZ CLIC AQUÍ / CÓMO LLEGAR" value="CONTÁCTANOS AQUÍ" required>
+                </div>
+
+                <!-- CTA URL -->
+                <div class="field-group">
+                  <label class="field-label">URL DE DESTINO (GOOGLE MAPS, INSTAGRAM, WEB)</label>
+                  <input type="url" id="adCtaUrl" class="field-input" placeholder="https://instagram.com/tumarca o https://maps.app.goo.gl/..." value="https://akmovmedia.com" required>
+                </div>
+
+                <!-- Selector Color de Fondo -->
+                <div class="field-group">
+                  <label class="field-label">COLOR DE FONDO DE LA BARRA</label>
+                  <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="color" id="adBgColor" value="#00FF00" style="width: 44px; height: 38px; border: 1px solid var(--gray-border); background: transparent; cursor: pointer; padding: 2px;">
+                    <input type="text" id="adBgColorHex" class="field-input" value="#00FF00" style="flex: 1; font-family: monospace;">
+                  </div>
+                </div>
+
+                <!-- Selector Color de Texto -->
+                <div class="field-group">
+                  <label class="field-label">COLOR DEL TEXTO Y ENLACE</label>
+                  <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="color" id="adTextColor" value="#000000" style="width: 44px; height: 38px; border: 1px solid var(--gray-border); background: transparent; cursor: pointer; padding: 2px;">
+                    <input type="text" id="adTextColorHex" class="field-input" value="#000000" style="flex: 1; font-family: monospace;">
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Vista Previa en Vivo -->
+              <div style="margin-top: 10px; margin-bottom: 20px;">
+                <label class="field-label">VISTA PREVIA EN TIEMPO REAL</label>
+                <div id="adPreviewBox" style="background-color: #00FF00; color: #000000; display: flex; align-items: center; font-family: 'Oswald', sans-serif; font-size: 0.9rem; font-weight: 700; border: 2px solid #000; height: 42px; overflow: hidden; text-transform: uppercase;">
+                  <div id="adPreviewBadge" style="background-color: #000; color: #00FF00; padding: 0 15px; height: 100%; display: flex; align-items: center; font-weight: 700; letter-spacing: 1px; border-right: 2px solid #000; font-size: 0.8rem; white-space: nowrap;">
+                    PUBLICIDAD
+                  </div>
+                  <div style="padding: 0 15px; overflow: hidden; white-space: nowrap; flex: 1;" id="adPreviewText">
+                    ★ ESPACIO DISPONIBLE PARA PUBLICIDAD • POTENCIA TU MARCA EN AKMOV MEDIA ★ &nbsp;—&nbsp; <span style="text-decoration: underline;">CONTÁCTANOS AQUÍ</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="schedule-footer" style="padding-top: 15px; border-top: 1px solid var(--gray-border);">
+                <button type="submit" class="save-btn" id="btnSaveAdTicker" style="width: 100%;">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+                  GUARDAR CONFIGURACIÓN Y ACTUALIZAR EN VIVO
+                </button>
+                <span class="save-hint" id="adTickerSaveHint"></span>
+              </div>
+            </form>
+
+          </div>
+
+        </div>
+      </main>
+    </div>
 
     <!-- TAB: PAUTA -->
     <div class="tab-content" id="tab-pauta">
