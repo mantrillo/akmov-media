@@ -161,9 +161,9 @@ document.addEventListener('DOMContentLoaded', () => {
     isVideoPlaying = !isVideoPlaying;
     
     if (isVideoPlaying) {
-      // Avoid dual audio overlap: pause audio bar if playing
+      // Si la barra de audio inferior está sonando, pausarla inmediatamente
       if (isAudioPlaying) {
-        toggleAudioPlayback();
+        pauseAudioPlayback();
       }
 
       initVideoStream();
@@ -375,17 +375,70 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function toggleAudioPlayback() {
-    isAudioPlaying = !isAudioPlaying;
+  function pauseVideoPlayback() {
+    if (!isVideoPlaying) return;
+    isVideoPlaying = false;
+    if (liveVideo) liveVideo.pause();
+    
+    if (mainVideoPlayer) {
+      mainVideoPlayer.classList.remove('live-active');
+      mainVideoPlayer.classList.remove('user-active');
+      if (controlsTimeout) clearTimeout(controlsTimeout);
+    }
+    if (playerCover) {
+      playerCover.classList.remove('hidden');
+      setTimeout(() => playerCover.style.opacity = '1', 50);
+    }
+    
+    if (videoPlayPauseBtn) {
+      const iconPlayVideo = videoPlayPauseBtn.querySelector('.icon-play');
+      const iconPauseVideo = videoPlayPauseBtn.querySelector('.icon-pause');
+      if (iconPlayVideo) iconPlayVideo.classList.remove('hidden');
+      if (iconPauseVideo) iconPauseVideo.classList.add('hidden');
+    }
+  }
+
+  function pauseAudioPlayback() {
+    if (!isAudioPlaying) return;
+    isAudioPlaying = false;
+    if (liveAudioStream) liveAudioStream.pause();
+
+    const audioSongTitle = document.getElementById('audioSongTitle');
+    if (audioSongTitle) audioSongTitle.textContent = "AKMOV MEDIA";
+    if (audioTrackName) audioTrackName.textContent = "Transmisión Online • Señal de Audio";
+
+    if (iconPlayAudio) iconPlayAudio.classList.remove('hidden');
+    if (iconPauseAudio) iconPauseAudio.classList.add('hidden');
+    if (audioPlayPauseBtn) audioPlayPauseBtn.style.boxShadow = "none";
+
+    if (footerListenBtn) {
+      const footerPlayIcon = footerListenBtn.querySelector('svg');
+      if (footerPlayIcon) footerPlayIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+      footerListenBtn.style.borderColor = "var(--color-gray-border)";
+    }
 
     const vinylPlatter = document.getElementById('vinylPlatter');
     const turntableTonearm = document.getElementById('turntableTonearm');
     const playerEqBars = document.getElementById('playerEqBars');
+    if (vinylPlatter) vinylPlatter.classList.remove('playing');
+    if (turntableTonearm) turntableTonearm.classList.remove('playing');
+    if (playerEqBars) playerEqBars.classList.remove('playing');
 
+    const albumArtEl = document.getElementById('audioAlbumArt');
+    if (albumArtEl) {
+      albumArtEl.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='38' height='38' viewBox='0 0 24 24' fill='%2300ff00'><path d='M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z'/></svg>";
+    }
+  }
+
+  function toggleAudioPlayback() {
     if (isAudioPlaying) {
-      // Avoid dual audio overlap: pause video player if playing
+      pauseAudioPlayback();
+    } else {
+      isAudioPlaying = true;
+
+      // Si el video principal está sonando, pausarlo
       if (isVideoPlaying) {
-        toggleVideoPlayback();
+        pauseVideoPlayback();
       }
 
       initAudioStream();
@@ -402,41 +455,16 @@ document.addEventListener('DOMContentLoaded', () => {
       iconPauseAudio.classList.remove('hidden');
       audioPlayPauseBtn.style.boxShadow = "0 0 18px var(--color-neon)";
       
-      // Update giant button in footer as well
       const footerPlayIcon = footerListenBtn.querySelector('svg');
-      footerPlayIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+      if (footerPlayIcon) footerPlayIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
       footerListenBtn.style.borderColor = "var(--color-neon)";
 
-      // Turntable and EQ animation active
+      const vinylPlatter = document.getElementById('vinylPlatter');
+      const turntableTonearm = document.getElementById('turntableTonearm');
+      const playerEqBars = document.getElementById('playerEqBars');
       if (vinylPlatter) vinylPlatter.classList.add('playing');
       if (turntableTonearm) turntableTonearm.classList.add('playing');
       if (playerEqBars) playerEqBars.classList.add('playing');
-    } else {
-      liveAudioStream.pause();
-      
-      const audioSongTitle = document.getElementById('audioSongTitle');
-      if (audioSongTitle) audioSongTitle.textContent = "AKMOV MEDIA";
-      audioTrackName.textContent = "Transmisión Online • Señal de Audio";
-      
-      iconPlayAudio.classList.remove('hidden');
-      iconPauseAudio.classList.add('hidden');
-      audioPlayPauseBtn.style.boxShadow = "none";
-
-      // Reset giant button in footer
-      const footerPlayIcon = footerListenBtn.querySelector('svg');
-      footerPlayIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
-      footerListenBtn.style.borderColor = "var(--color-gray-border)";
-
-      // Turntable and EQ animation inactive
-      if (vinylPlatter) vinylPlatter.classList.remove('playing');
-      if (turntableTonearm) turntableTonearm.classList.remove('playing');
-      if (playerEqBars) playerEqBars.classList.remove('playing');
-
-      // Reset album art
-      const albumArtEl = document.getElementById('audioAlbumArt');
-      if (albumArtEl) {
-        albumArtEl.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='38' height='38' viewBox='0 0 24 24' fill='%2300ff00'><path d='M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z'/></svg>";
-      }
     }
   }
 
