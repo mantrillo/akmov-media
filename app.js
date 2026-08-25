@@ -320,32 +320,67 @@ document.addEventListener('DOMContentLoaded', () => {
   const embedPlayerContainer = document.getElementById('embedPlayerContainer');
   const webPlayerControls = document.getElementById('webPlayerControls');
   let currentStreamSource = 'web';
+  let twitchPlayerInstance = null;
 
-  const STREAM_EMBEDS = {
-    kick: () => {
-      return `<iframe 
+  function getTwitchParents() {
+    const parents = new Set(['akmovmedia.com', 'www.akmovmedia.com', 'localhost', '127.0.0.1']);
+    if (window.location.hostname) {
+      parents.add(window.location.hostname);
+    }
+    return Array.from(parents);
+  }
+
+  function mountTwitchPlayer() {
+    if (!embedPlayerContainer) return;
+    embedPlayerContainer.innerHTML = '<div id="twitchPlayerBox" style="width:100%;height:100%;"></div>';
+    
+    const parents = getTwitchParents();
+
+    if (window.Twitch && window.Twitch.Player) {
+      try {
+        twitchPlayerInstance = new Twitch.Player("twitchPlayerBox", {
+          width: "100%",
+          height: "100%",
+          channel: "akmovmedia",
+          parent: parents,
+          autoplay: true,
+          muted: false
+        });
+        return;
+      } catch (err) {
+        console.warn("[Twitch Embed SDK] Fallback a iframe directo:", err);
+      }
+    }
+
+    // Fallback: Si no está cargado el SDK interactivo
+    const parentQuery = parents.map(p => `parent=${encodeURIComponent(p)}`).join('&');
+    embedPlayerContainer.innerHTML = `
+      <iframe
+        src="https://player.twitch.tv/?channel=akmovmedia&${parentQuery}&autoplay=true&muted=false"
+        height="100%"
+        width="100%"
+        allowfullscreen="true"
+        scrolling="no"
+        frameborder="0"
+        allow="autoplay; fullscreen; encrypted-media">
+      </iframe>
+    `;
+  }
+
+  function mountKickPlayer() {
+    if (!embedPlayerContainer) return;
+    embedPlayerContainer.innerHTML = `
+      <iframe 
         src="https://player.kick.com/akmovmedia?autoplay=true&muted=false" 
         height="100%" 
         width="100%" 
         frameborder="0" 
         scrolling="no" 
         allowfullscreen="true"
-        allow="autoplay; fullscreen">
-      </iframe>`;
-    },
-    twitch: () => {
-      const hostname = window.location.hostname || 'akmovmedia.com';
-      return `<iframe 
-        src="https://player.twitch.tv/?channel=akmovmedia&parent=${hostname}&parent=akmovmedia.com&parent=localhost&autoplay=true&muted=false" 
-        height="100%" 
-        width="100%" 
-        frameborder="0" 
-        scrolling="no" 
-        allowfullscreen="true"
-        allow="autoplay; fullscreen">
-      </iframe>`;
-    }
-  };
+        allow="autoplay; fullscreen; encrypted-media">
+      </iframe>
+    `;
+  }
 
   function switchStreamSource(source) {
     if (currentStreamSource === source) return;
@@ -361,6 +396,11 @@ document.addEventListener('DOMContentLoaded', () => {
           tab.classList.remove('active');
         }
       });
+    }
+
+    // Limpiar instancia previa de Twitch si existía
+    if (twitchPlayerInstance) {
+      twitchPlayerInstance = null;
     }
 
     if (source === 'web') {
@@ -400,10 +440,13 @@ document.addEventListener('DOMContentLoaded', () => {
         playerCover.classList.add('hidden');
       }
 
-      // Inyectar reproductor incrustado correspondiente
-      if (embedPlayerContainer && STREAM_EMBEDS[source]) {
-        embedPlayerContainer.innerHTML = STREAM_EMBEDS[source]();
+      if (embedPlayerContainer) {
         embedPlayerContainer.classList.remove('hidden');
+        if (source === 'kick') {
+          mountKickPlayer();
+        } else if (source === 'twitch') {
+          mountTwitchPlayer();
+        }
       }
     }
   }
