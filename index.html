@@ -157,9 +157,39 @@
           </div>
 
           <div class="live-player-layout">
+            <!-- Selector lateral de señal / reproductor -->
+            <div class="stream-source-selector" id="streamSourceSelector" aria-label="Seleccionar reproductor">
+              <button class="source-tab active" data-source="web" title="Reproductor Web Oficial (HLS)">
+                <svg class="source-icon" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                </svg>
+                <span class="source-label">WEB</span>
+              </button>
+              <button class="source-tab" data-source="kick" title="Stream en Kick">
+                <svg class="source-icon kick-icon" viewBox="0 0 24 24" fill="currentColor">
+                  <rect x="3" y="3" width="4" height="18" />
+                  <rect x="7" y="10" width="4" height="4" />
+                  <rect x="11" y="6" width="4" height="4" />
+                  <rect x="15" y="3" width="5" height="4" />
+                  <rect x="11" y="14" width="4" height="4" />
+                  <rect x="15" y="17" width="5" height="4" />
+                </svg>
+                <span class="source-label">KICK</span>
+              </button>
+              <button class="source-tab" data-source="twitch" title="Stream en Twitch">
+                <svg class="source-icon twitch-icon" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/>
+                </svg>
+                <span class="source-label">TWITCH</span>
+              </button>
+            </div>
+
             <div class="live-player" id="mainVideoPlayer">
-              <!-- Real Live Video Element -->
+              <!-- Real Live Video Element (Web HLS) -->
               <video id="liveVideo" class="live-video-element" playsinline></video>
+
+              <!-- Embedded Player Container (Kick / Twitch) -->
+              <div class="embed-player-container hidden" id="embedPlayerContainer"></div>
 
               <!-- Cover Overlay (Play Prompt) -->
               <div class="player-cover" id="playerCover">
@@ -169,9 +199,8 @@
                 <span>CLICK PARA TRANSMISIÓN EN VIVO</span>
               </div>
 
-
               <!-- Media Control Bar -->
-              <div class="player-controls">
+              <div class="player-controls" id="webPlayerControls">
                 <div class="controls-left">
                   <button class="control-btn" id="videoPlayPauseBtn" aria-label="Reproducir/Pausar">
                     <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor">

@@ -342,44 +342,134 @@ a {
   box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
 }
 
-/* Layout del Reproductor de Video + Chat Lateral */
+/* Layout del Reproductor de Video + Selector + Chat Lateral */
 .live-player-layout {
   display: flex;
   flex-direction: row;
   width: 100%;
   min-height: 480px;
   background-color: #050505;
-}
-
-.live-player {
   position: relative;
-  flex: 1;
-  min-width: 0;
-  aspect-ratio: 16 / 9;
-  background-color: #050505;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-.live-chat-sidebar {
-  width: 360px;
-  min-width: 320px;
-  max-width: 400px;
-  height: auto;
-  min-height: 480px;
-  background: #0d1117;
-  border-left: 1px solid rgba(0, 255, 0, 0.2);
+/* Selector lateral izquierdo de plataformas */
+.stream-source-selector {
   display: flex;
   flex-direction: column;
+  background: #09090b;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 6px;
+  gap: 6px;
+  z-index: 15;
+  justify-content: flex-start;
+  align-items: center;
+  width: 58px;
+  min-width: 58px;
+  user-select: none;
+}
+
+.source-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #888;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 4px 2px;
   position: relative;
-  overflow: hidden;
+}
+
+.source-tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.source-tab .source-icon {
+  width: 18px;
+  height: 18px;
+  margin-bottom: 2px;
+  transition: transform 0.2s ease;
+}
+
+.source-tab .source-label {
+  font-family: 'JetBrains Mono', monospace, sans-serif;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  line-height: 1;
+}
+
+/* Estado activo para cada plataforma */
+.source-tab.active {
+  background: rgba(0, 255, 0, 0.12);
+  border-color: var(--color-neon);
+  color: var(--color-neon);
+  box-shadow: 0 0 12px rgba(0, 255, 0, 0.25);
+}
+
+.source-tab[data-source="kick"].active {
+  background: rgba(83, 252, 24, 0.14);
+  border-color: #53fc18;
+  color: #53fc18;
+  box-shadow: 0 0 12px rgba(83, 252, 24, 0.3);
+}
+
+.source-tab[data-source="twitch"].active {
+  background: rgba(145, 70, 255, 0.15);
+  border-color: #9146ff;
+  color: #a970ff;
+  box-shadow: 0 0 12px rgba(145, 70, 255, 0.35);
+}
+
+/* Contenedor embebido de Kick / Twitch */
+.embed-player-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  z-index: 5;
+}
+
+.embed-player-container iframe {
+  width: 100% !important;
+  height: 100% !important;
+  border: none !important;
+  display: block;
 }
 
 @media (max-width: 900px) {
   .live-player-layout {
     flex-direction: column;
+  }
+  .stream-source-selector {
+    flex-direction: row;
+    width: 100%;
+    min-width: 100%;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    justify-content: center;
+    padding: 6px 12px;
+  }
+  .source-tab {
+    flex-direction: row;
+    width: auto;
+    height: 34px;
+    padding: 6px 14px;
+    gap: 6px;
+  }
+  .source-tab .source-icon {
+    margin-bottom: 0;
   }
   .live-chat-sidebar {
     width: 100%;
@@ -388,11 +478,6 @@ a {
     border-left: none;
     border-top: 1px solid rgba(0, 255, 0, 0.2);
   }
-}
-  overflow: hidden; /* Crop status bar area at the bottom */
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .live-video-element {

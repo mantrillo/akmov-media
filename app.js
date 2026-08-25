@@ -313,6 +313,111 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // ==========================================
+  // 1.1 STREAM PLATFORM SELECTOR (WEB / KICK / TWITCH)
+  // ==========================================
+  const streamSourceSelector = document.getElementById('streamSourceSelector');
+  const embedPlayerContainer = document.getElementById('embedPlayerContainer');
+  const webPlayerControls = document.getElementById('webPlayerControls');
+  let currentStreamSource = 'web';
+
+  const STREAM_EMBEDS = {
+    kick: () => {
+      return `<iframe 
+        src="https://player.kick.com/akmovmedia?autoplay=true&muted=false" 
+        height="100%" 
+        width="100%" 
+        frameborder="0" 
+        scrolling="no" 
+        allowfullscreen="true"
+        allow="autoplay; fullscreen">
+      </iframe>`;
+    },
+    twitch: () => {
+      const hostname = window.location.hostname || 'akmovmedia.com';
+      return `<iframe 
+        src="https://player.twitch.tv/?channel=akmovmedia&parent=${hostname}&parent=akmovmedia.com&parent=localhost&autoplay=true&muted=false" 
+        height="100%" 
+        width="100%" 
+        frameborder="0" 
+        scrolling="no" 
+        allowfullscreen="true"
+        allow="autoplay; fullscreen">
+      </iframe>`;
+    }
+  };
+
+  function switchStreamSource(source) {
+    if (currentStreamSource === source) return;
+    currentStreamSource = source;
+
+    // Actualizar estados visuales de los tabs
+    if (streamSourceSelector) {
+      const tabs = streamSourceSelector.querySelectorAll('.source-tab');
+      tabs.forEach(tab => {
+        if (tab.dataset.source === source) {
+          tab.classList.add('active');
+        } else {
+          tab.classList.remove('active');
+        }
+      });
+    }
+
+    if (source === 'web') {
+      // Ocultar reproductor embebido
+      if (embedPlayerContainer) {
+        embedPlayerContainer.innerHTML = '';
+        embedPlayerContainer.classList.add('hidden');
+      }
+      if (liveVideo) {
+        liveVideo.style.display = 'block';
+      }
+      if (webPlayerControls) {
+        webPlayerControls.style.display = '';
+      }
+      if (playerCover) {
+        playerCover.classList.add('hidden');
+        playerCover.style.opacity = '0';
+      }
+      // Reanudar señal web HLS
+      if (!isVideoPlaying) {
+        toggleVideoPlayback();
+      } else {
+        if (liveVideo && liveVideo.paused) {
+          liveVideo.play().catch(e => console.warn("No se pudo reproducir video web:", e));
+        }
+      }
+    } else {
+      // Pausar y silenciar video HLS nativo para que no interfiera el audio
+      if (liveVideo) {
+        liveVideo.pause();
+        liveVideo.style.display = 'none';
+      }
+      if (webPlayerControls) {
+        webPlayerControls.style.display = 'none';
+      }
+      if (playerCover) {
+        playerCover.classList.add('hidden');
+      }
+
+      // Inyectar reproductor incrustado correspondiente
+      if (embedPlayerContainer && STREAM_EMBEDS[source]) {
+        embedPlayerContainer.innerHTML = STREAM_EMBEDS[source]();
+        embedPlayerContainer.classList.remove('hidden');
+      }
+    }
+  }
+
+  if (streamSourceSelector) {
+    const tabs = streamSourceSelector.querySelectorAll('.source-tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const source = tab.dataset.source;
+        if (source) switchStreamSource(source);
+      });
+    });
+  }
+
   // Dynamic Timecode (Simulating Broadcast Clock)
   function updateTimecode() {
     if (!liveTimecode) return;
