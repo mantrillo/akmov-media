@@ -324,42 +324,30 @@ a {
   }
 }
 
-/* HERO SECTION - 16:9 VIDEO CONTAINER */
+/* HERO SECTION - 16:9 VIDEO CONTAINER + EXTERNAL SELECTOR */
 .player-container {
   width: 100%;
 }
 
-.monitor-wrapper {
-  background-color: var(--color-black);
-  border: 1px solid var(--color-neon);
-  box-shadow: 0 0 20px rgba(0, 255, 0, 0.15);
-  position: relative;
-  overflow: hidden;
-  transition: box-shadow 0.3s ease;
-}
-
-.monitor-wrapper:hover {
-  box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
-}
-
-/* Layout del Reproductor de Video + Selector + Chat Lateral */
-.live-player-layout {
+.player-stage-wrap {
   display: flex;
   flex-direction: row;
+  align-items: stretch;
+  gap: 8px;
   width: 100%;
-  min-height: 480px;
-  background-color: #050505;
   position: relative;
 }
 
-/* Selector lateral izquierdo de plataformas */
+/* Selector lateral izquierdo de plataformas - Fuera de la caja del reproductor */
 .stream-source-selector {
   display: flex;
   flex-direction: column;
   background: #09090b;
-  border-right: 1px solid rgba(0, 255, 0, 0.2);
-  padding: 8px 6px;
-  gap: 8px;
+  border: 1px solid rgba(0, 255, 0, 0.25);
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(0, 255, 0, 0.08);
+  padding: 6px;
+  gap: 6px;
   z-index: 15;
   justify-content: stretch;
   align-items: stretch;
@@ -375,7 +363,7 @@ a {
   justify-content: center;
   flex: 1;
   width: 100%;
-  border-radius: 8px;
+  border-radius: 6px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: #888;
@@ -428,6 +416,57 @@ a {
   box-shadow: 0 0 15px rgba(145, 70, 255, 0.4);
 }
 
+.monitor-wrapper {
+  flex: 1;
+  min-width: 0;
+  background-color: var(--color-black);
+  border: 1px solid var(--color-neon);
+  box-shadow: 0 0 20px rgba(0, 255, 0, 0.15);
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.3s ease;
+}
+
+.monitor-wrapper:hover {
+  box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
+}
+
+/* Layout del Reproductor de Video + Chat Lateral */
+.live-player-layout {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  min-height: 480px;
+  background-color: #050505;
+  position: relative;
+}
+
+.live-player {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  aspect-ratio: 16 / 9;
+  background-color: #050505;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.live-chat-sidebar {
+  width: 360px;
+  min-width: 320px;
+  max-width: 400px;
+  height: auto;
+  min-height: 480px;
+  background: #0d1117;
+  border-left: 1px solid rgba(0, 255, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
 /* Contenedor embebido de Kick / Twitch */
 .embed-player-container {
   position: absolute;
@@ -447,7 +486,7 @@ a {
 }
 
 @media (max-width: 900px) {
-  .live-player-layout {
+  .player-stage-wrap {
     flex-direction: column;
   }
   .stream-source-selector {
@@ -455,20 +494,23 @@ a {
     width: 100%;
     min-width: 100%;
     height: auto;
-    border-right: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     justify-content: center;
     padding: 6px 12px;
   }
   .source-tab {
     flex-direction: row;
     width: auto;
-    height: 34px;
-    padding: 6px 14px;
-    gap: 6px;
+    height: 38px;
+    padding: 6px 16px;
+    gap: 8px;
   }
   .source-tab .source-icon {
+    width: 18px;
+    height: 18px;
     margin-bottom: 0;
+  }
+  .live-player-layout {
+    flex-direction: column;
   }
   .live-chat-sidebar {
     width: 100%;
