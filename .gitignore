@@ -10,3 +10,5 @@ admin-api.js
 ad_ticker.json
 *.tmp
 .tempmediaStorage/
+overlay-*/
+publicaciones/

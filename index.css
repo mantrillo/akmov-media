@@ -357,14 +357,14 @@ a {
   display: flex;
   flex-direction: column;
   background: #09090b;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 6px;
-  gap: 6px;
+  border-right: 1px solid rgba(0, 255, 0, 0.2);
+  padding: 8px 6px;
+  gap: 8px;
   z-index: 15;
-  justify-content: flex-start;
-  align-items: center;
-  width: 58px;
-  min-width: 58px;
+  justify-content: stretch;
+  align-items: stretch;
+  width: 68px;
+  min-width: 68px;
   user-select: none;
 }
 
@@ -373,15 +373,15 @@ a {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 46px;
-  height: 46px;
+  flex: 1;
+  width: 100%;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: #888;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 4px 2px;
+  padding: 10px 4px;
   position: relative;
 }
 
@@ -389,44 +389,43 @@ a {
   background: rgba(255, 255, 255, 0.08);
   color: #fff;
   border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-1px);
 }
 
 .source-tab .source-icon {
-  width: 18px;
-  height: 18px;
-  margin-bottom: 2px;
+  width: 24px;
+  height: 24px;
+  margin-bottom: 6px;
   transition: transform 0.2s ease;
 }
 
 .source-tab .source-label {
   font-family: 'JetBrains Mono', monospace, sans-serif;
-  font-size: 0.58rem;
+  font-size: 0.65rem;
   font-weight: 700;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
   line-height: 1;
 }
 
 /* Estado activo para cada plataforma */
 .source-tab.active {
-  background: rgba(0, 255, 0, 0.12);
+  background: rgba(0, 255, 0, 0.15);
   border-color: var(--color-neon);
   color: var(--color-neon);
-  box-shadow: 0 0 12px rgba(0, 255, 0, 0.25);
+  box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
 }
 
 .source-tab[data-source="kick"].active {
-  background: rgba(83, 252, 24, 0.14);
+  background: rgba(83, 252, 24, 0.16);
   border-color: #53fc18;
   color: #53fc18;
-  box-shadow: 0 0 12px rgba(83, 252, 24, 0.3);
+  box-shadow: 0 0 15px rgba(83, 252, 24, 0.35);
 }
 
 .source-tab[data-source="twitch"].active {
-  background: rgba(145, 70, 255, 0.15);
+  background: rgba(145, 70, 255, 0.18);
   border-color: #9146ff;
   color: #a970ff;
-  box-shadow: 0 0 12px rgba(145, 70, 255, 0.35);
+  box-shadow: 0 0 15px rgba(145, 70, 255, 0.4);
 }
 
 /* Contenedor embebido de Kick / Twitch */
