@@ -519,7 +519,7 @@ function renderSchedule() {
       <span class="slot-tag ${slot.type}">${typeLabel(slot.type)}</span>
       <div class="slot-info">
         <div class="slot-title">${slot.title}${slot.host ? ` <span style="font-size:0.8em;color:var(--text-muted);font-weight:normal;">(Locutor: ${slot.host})</span>` : ''}</div>
-        <div class="slot-desc">${slot.desc || ''}</div>
+        <div class="slot-desc">${slot.desc || ''}${slot.file ? ` <span style="font-family:monospace;color:var(--text-muted);">[${slot.file}]</span>` : ''}</div>
       </div>
       <button class="slot-delete" data-index="${scheduleData.indexOf(slot)}" title="Eliminar">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
@@ -530,7 +530,13 @@ function renderSchedule() {
 }
 
 function typeLabel(type) {
-  return { live: 'EN VIVO', next: 'SIGUIENTE', autodj: 'AUTODJ', repeat: 'REPETICIÓN' }[type] || type;
+  return { live: 'EN VIVO', next: 'SIGUIENTE', autodj: 'AUTODJ', repeat: 'REPETICIÓN', programa: 'PROGRAMA' }[type] || type;
+}
+
+function toggleSlotFileField(type) {
+  const group = document.getElementById('slotFileGroup');
+  if (!group) return;
+  group.classList.toggle('hidden', type !== 'programa');
 }
 
 scheduleList.addEventListener('click', (e) => {
@@ -574,13 +580,20 @@ confirmSlot.addEventListener('click', () => {
   const host  = document.getElementById('slotHost').value.trim();
   const desc  = document.getElementById('slotDesc').value.trim();
   const type  = document.getElementById('slotType').value;
+  const file  = document.getElementById('slotFile').value.trim();
 
   if (!start || !end || !title) {
     toast('Completa al menos: hora inicio, hora fin y título.', 'error');
     return;
   }
+  if (type === 'programa' && !file) {
+    toast('Para tipo PROGRAMA indica el nombre exacto del archivo.', 'error');
+    return;
+  }
 
-  scheduleData.push({ date: date || '', start, end, title, host, desc, type });
+  const slot = { date: date || '', start, end, title, host, desc, type };
+  if (type === 'programa') slot.file = file;
+  scheduleData.push(slot);
   renderSchedule();
   saveHint.textContent = '⚠ Cambios sin guardar';
   slotModal.classList.add('hidden');
@@ -596,6 +609,8 @@ function clearModal() {
   document.getElementById('slotHost').value  = '';
   document.getElementById('slotDesc').value  = '';
   document.getElementById('slotType').value  = 'live';
+  document.getElementById('slotFile').value  = '';
+  toggleSlotFileField('live');
 }
 
 // ─── TOAST ───────────────────────────────────────────────────

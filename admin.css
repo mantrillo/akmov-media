@@ -674,6 +674,7 @@ select.field-input option { background: var(--bg-card2); }
 .slot-tag.next { background: var(--text); color: var(--black); }
 .slot-tag.autodj { background: #6c63ff; color: #fff; }
 .slot-tag.repeat { background: var(--border-hover); color: var(--text-dim); }
+.slot-tag.programa { background: #ff9f1c; color: var(--black); }
 
 .slot-info { flex: 1; min-width: 0; }
 

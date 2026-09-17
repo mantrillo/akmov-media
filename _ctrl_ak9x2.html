@@ -754,12 +754,17 @@
         </div>
         <div class="field-group">
           <label class="field-label">TIPO</label>
-          <select id="slotType" class="field-input">
+          <select id="slotType" class="field-input" onchange="toggleSlotFileField(this.value)">
             <option value="live">EN VIVO</option>
             <option value="next">SIGUIENTE</option>
             <option value="autodj">AUTODJ</option>
             <option value="repeat">REPETICIÓN</option>
+            <option value="programa">PROGRAMA (documental / podcast)</option>
           </select>
+        </div>
+        <div class="field-group hidden" id="slotFileGroup">
+          <label class="field-label">ARCHIVO (nombre exacto dentro de la carpeta "Programas" del notebook)</label>
+          <input type="text" id="slotFile" class="field-input" placeholder="Ej: podcast_cap01.mp4">
         </div>
       </div>
       <div class="modal-actions">
