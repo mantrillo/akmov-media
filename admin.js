@@ -487,9 +487,11 @@ async function saveSchedule() {
   localStorage.setItem('akmov_schedule', JSON.stringify(scheduleData));
   try {
     await apiCall('/schedule', 'POST', { schedule: scheduleData });
-  } catch {
+    return true;
+  } catch (err) {
     // Si la API no responde, al menos quedó en localStorage
-    console.warn('No se pudo guardar en el servidor. Solo guardado en localStorage.');
+    console.warn('No se pudo guardar en el servidor. Solo guardado en localStorage.', err);
+    return false;
   }
 }
 
@@ -551,10 +553,15 @@ scheduleList.addEventListener('click', (e) => {
 
 saveScheduleBtn.addEventListener('click', async () => {
   saveScheduleBtn.disabled = true;
-  await saveSchedule();
-  saveHint.textContent = '✓ Guardado en servidor';
-  toast('Programación guardada y publicada en la web.', 'success');
-  setTimeout(() => { saveHint.textContent = ''; }, 3000);
+  const ok = await saveSchedule();
+  if (ok) {
+    saveHint.textContent = '✓ Guardado en servidor';
+    toast('Programación guardada y publicada en la web.', 'success');
+  } else {
+    saveHint.textContent = '✗ Error: no se guardó en el servidor (revisa la conexión con la API)';
+    toast('No se pudo guardar en el servidor. Los cambios NO quedaron publicados.', 'error');
+  }
+  setTimeout(() => { saveHint.textContent = ''; }, 5000);
   saveScheduleBtn.disabled = false;
 });
 
