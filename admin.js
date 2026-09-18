@@ -517,6 +517,7 @@ function renderSchedule() {
         <span class="slot-time">${slot.start} → ${slot.end}</span>
       </div>
       <span class="slot-tag ${slot.type}">${typeLabel(slot.type)}</span>
+      ${slot.repeat ? '<span class="slot-tag repeat-flag">🔁 REPETICIÓN</span>' : ''}
       <div class="slot-info">
         <div class="slot-title">${slot.title}${slot.host ? ` <span style="font-size:0.8em;color:var(--text-muted);font-weight:normal;">(Locutor: ${slot.host})</span>` : ''}</div>
         <div class="slot-desc">${slot.desc || ''}${slot.file ? ` <span style="font-family:monospace;color:var(--text-muted);">[${slot.file}]</span>` : ''}</div>
@@ -581,6 +582,7 @@ confirmSlot.addEventListener('click', () => {
   const desc  = document.getElementById('slotDesc').value.trim();
   const type  = document.getElementById('slotType').value;
   const file  = document.getElementById('slotFile').value.trim();
+  const isRepeat = document.getElementById('slotRepeat').checked;
 
   if (!start || !end || !title) {
     toast('Completa al menos: hora inicio, hora fin y título.', 'error');
@@ -593,6 +595,7 @@ confirmSlot.addEventListener('click', () => {
 
   const slot = { date: date || '', start, end, title, host, desc, type };
   if (type === 'programa') slot.file = file;
+  if (isRepeat) slot.repeat = true;
   scheduleData.push(slot);
   renderSchedule();
   saveHint.textContent = '⚠ Cambios sin guardar';
@@ -610,6 +613,7 @@ function clearModal() {
   document.getElementById('slotDesc').value  = '';
   document.getElementById('slotType').value  = 'live';
   document.getElementById('slotFile').value  = '';
+  document.getElementById('slotRepeat').checked = false;
   toggleSlotFileField('live');
 }
 
