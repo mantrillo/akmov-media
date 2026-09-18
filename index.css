@@ -1093,6 +1093,18 @@ a {
   background-color: var(--color-white);
 }
 
+.schedule-tag.programa {
+  background-color: #ff9f1c;
+  color: var(--color-black);
+}
+
+.schedule-tag.repeat-flag {
+  background-color: transparent;
+  color: var(--color-gray-text);
+  border: 1px solid var(--color-gray-text);
+  margin-left: 4px;
+}
+
 /* ON DEMAND GRID */
 .ondemand-grid {
   display: grid;

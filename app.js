@@ -679,11 +679,13 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!container) return;
 
   const typeLabels = {
-    live:    '<span class="schedule-tag" style="background:var(--red);color:#fff;font-weight:bold;animation:pulse-live 1.5s infinite;">🔴 EN VIVO</span>',
-    next:    '<span class="schedule-tag next">Siguiente</span>',
-    autodj:  '<span class="schedule-tag autodj">AutoDJ 24/7</span>',
-    repeat:  '<span class="schedule-tag">Repetición</span>',
+    live:     '<span class="schedule-tag" style="background:var(--red);color:#fff;font-weight:bold;animation:pulse-live 1.5s infinite;">🔴 EN VIVO</span>',
+    next:     '<span class="schedule-tag next">Siguiente</span>',
+    autodj:   '<span class="schedule-tag autodj">AutoDJ 24/7</span>',
+    repeat:   '<span class="schedule-tag">Repetición</span>',
+    programa: '<span class="schedule-tag programa">🎬 Programa</span>',
   };
+  const repeatTag = '<span class="schedule-tag repeat-flag">🔁 Repetición</span>';
 
   function isCurrentSlot(start, end) {
     const now  = new Date();
@@ -728,6 +730,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <div class="schedule-details">
             ${typeLabels[slot.type] || ''}
+            ${slot.repeat ? repeatTag : ''}
             <h3>${slot.title}</h3>
             ${slot.host ? `<p style="font-size:0.8rem; color:var(--color-neon); margin:2px 0;">🎙️ ${slot.host}</p>` : ''}
             ${slot.desc ? `<p>${slot.desc}</p>` : ''}
