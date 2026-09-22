@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  
+  <!-- Página de Inicio / Señal en Vivo -->
+  <url>
+    <loc>https://akmovmedia.com/</loc>
+    <lastmod>2026-09-21</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://akmovmedia.com/logo.png</image:loc>
+      <image:title>AKMOV MEDIA - Radio y Televisión Online Valle del Huasco</image:title>
+      <image:caption>Plataforma de streaming 24/7 de radio y TV en vivo para Vallenar, Freirina, Huasco y Alto del Carmen</image:caption>
+    </image:image>
+  </url>
+
+  <!-- Formulario de Postulación e Inscripción -->
+  <url>
+    <loc>https://akmovmedia.com/postula.html</loc>
+    <lastmod>2026-09-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- AutoDJ / Señal Continua -->
+  <url>
+    <loc>https://akmovmedia.com/autodj.html</loc>
+    <lastmod>2026-09-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Eliminación de Datos / Políticas -->
+  <url>
+    <loc>https://akmovmedia.com/eliminar-datos.html</loc>
+    <lastmod>2026-09-21</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+</urlset>

@@ -1,0 +1,30 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+Allow: /index.html
+Allow: /postula.html
+Allow: /autodj.html
+Allow: /eliminar-datos.html
+Allow: /index.css
+Allow: /app.js
+Allow: /logo.png
+Allow: /logo.svg
+Allow: /logonavbar.svg
+Allow: /banners/
+
+# Rutas y paneles de administración privados
+Disallow: /_ctrl_ak9x2.html
+Disallow: /admin.js
+Disallow: /admin.css
+Disallow: /admin-api.js
+Disallow: /config.js
+Disallow: /obs_automation.py
+Disallow: /obs_sync_helper.js
+Disallow: /pauta_studio.html
+Disallow: /akmov-overlay-suite-v2.5/
+Disallow: /akmov-podcast-suite-v3/
+Disallow: /local-overlay-studio/
+Disallow: /akmov-autodjweb/
+
+# Sitemap oficial
+Sitemap: https://akmovmedia.com/sitemap.xml
