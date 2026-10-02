@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;700&family=Oswald:wght@500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300FF00'><path d='M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9Z'/></svg>">
-  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="admin.css?v=2.2">
 </head>
 <body>
 
@@ -649,22 +649,46 @@
                 <input type="time" id="statsEnd" class="field-input" required>
               </div>
               <button type="submit" class="save-btn" id="statsSearchBtn">CONSULTAR</button>
+              <button type="button" class="add-btn" id="statsDemoBtn" style="height: 100%; justify-content: center;">VER CON DATOS DE PRUEBA</button>
             </form>
           </div>
 
-          <!-- Card: Resultados -->
+          <!-- Card: Resultados (también es el informe imprimible) -->
           <div class="admin-card hidden" id="statsResultCard">
-            <div class="card-header">
-              <div class="card-title-group">
-                <svg class="card-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"/></svg>
-                <h2 class="card-title" id="statsResultTitle">RESULTADOS</h2>
+            <div class="stats-report-head">
+              <div>
+                <div class="stats-report-brand">AKMOV MEDIA · INFORME DE AUDIENCIA</div>
+                <h2 class="stats-report-title" id="statsReportProgram">—</h2>
+                <div class="stats-report-range" id="statsResultTitle">—</div>
               </div>
-              <button class="add-btn" id="statsCsvBtn" type="button">EXPORTAR CSV</button>
+              <div class="stats-actions no-print">
+                <button class="add-btn" id="statsPdfBtn" type="button">PDF / IMPRIMIR</button>
+                <button class="add-btn" id="statsPngBtn" type="button">IMAGEN PNG</button>
+                <button class="add-btn" id="statsCsvBtn" type="button">CSV</button>
+              </div>
             </div>
 
+            <div class="stats-demo-flag hidden" id="statsDemoFlag">DATOS DE PRUEBA — NO SON CIFRAS REALES</div>
             <p class="obs-note hidden" id="statsEmptyMsg" style="margin: 0;"></p>
 
             <div id="statsResultBody">
+              <div class="stats-kpis" id="statsKpis"></div>
+
+              <div class="stats-charts">
+                <div class="stats-chart-box">
+                  <span class="status-key">ESPECTADORES POR MINUTO</span>
+                  <div class="stats-canvas-wrap">
+                    <canvas id="statsChart" role="img" aria-label="Espectadores por minuto en cada plataforma"></canvas>
+                  </div>
+                </div>
+                <div class="stats-chart-box">
+                  <span class="status-key">HORAS VISTAS POR PLATAFORMA</span>
+                  <div class="stats-canvas-wrap">
+                    <canvas id="statsShareChart" role="img" aria-label="Reparto de horas vistas por plataforma"></canvas>
+                  </div>
+                </div>
+              </div>
+
               <div class="user-table-wrap">
                 <table class="user-table">
                   <thead>
@@ -679,10 +703,6 @@
                   </thead>
                   <tbody id="statsTableBody"></tbody>
                 </table>
-              </div>
-
-              <div style="position: relative; height: 320px; margin-top: 22px;">
-                <canvas id="statsChart" role="img" aria-label="Espectadores por minuto en cada plataforma"></canvas>
               </div>
               <p class="obs-note" id="statsFootnote" style="margin: 14px 0 0 0;"></p>
             </div>
@@ -961,6 +981,7 @@
   <script src="config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <script src="admin.js?v=2.2"></script>
-  <script src="admin-stats.js?v=1.0"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="admin-stats.js?v=1.1"></script>
 </body>
 </html>
