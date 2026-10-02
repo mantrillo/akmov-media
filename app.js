@@ -1156,3 +1156,34 @@ window.__onGCastApiAvailable = function(isAvailable) {
 };
 
 
+
+// ─── LATIDO DE VISITANTE (estadísticas del panel) ─────────────
+// Avisa a la API cada minuto que esta pestaña sigue abierta. Usa un ID
+// aleatorio por sesión de navegador; no se guarda IP ni dato personal.
+(function () {
+  if (typeof AKMOV_API_BASE === 'undefined') return;
+  let sid;
+  try {
+    sid = sessionStorage.getItem('akmov_sid');
+    if (!sid) {
+      sid = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 12);
+      sessionStorage.setItem('akmov_sid', sid);
+    }
+  } catch (e) {
+    sid = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 12);
+  }
+
+  function beat() {
+    if (document.hidden) return;
+    fetch(AKMOV_API_BASE + '/api/stats/beat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sid }),
+      keepalive: true
+    }).catch(() => {});
+  }
+
+  beat();
+  setInterval(beat, 60000);
+  document.addEventListener('visibilitychange', beat);
+})();

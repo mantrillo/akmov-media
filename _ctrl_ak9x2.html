@@ -85,6 +85,7 @@
       <button class="tab-btn" data-tab="live-events">EVENTOS EN VIVO</button>
       <button class="tab-btn" data-tab="ad-ticker">PUBLICIDAD / TICKER</button>
       <button class="tab-btn" data-tab="pauta">PAUTA & ESTUDIO</button>
+      <button class="tab-btn" data-tab="stats">ESTADÍSTICAS</button>
       <button class="tab-btn" data-tab="vod-config">YOUTUBE VOD</button>
       <button class="tab-btn" data-tab="users">USUARIOS & ROLES</button>
     </div>
@@ -581,6 +582,116 @@
       <iframe src="" class="admin-iframe" id="pautaIframe" style="width: 100%; height: calc(100vh - 140px); border: none; background: #000;"></iframe>
     </div>
 
+    <!-- TAB: ESTADÍSTICAS DE STREAM -->
+    <div class="tab-content" id="tab-stats">
+      <main class="admin-main">
+        <div class="admin-col" style="grid-column: 1 / -1; max-width: 1100px; margin: 0 auto; width: 100%;">
+
+          <!-- Card: En este momento -->
+          <div class="admin-card" style="margin-bottom: 20px;">
+            <div class="card-header">
+              <div class="card-title-group">
+                <svg class="card-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                <h2 class="card-title">AUDIENCIA EN ESTE MOMENTO</h2>
+              </div>
+              <span class="status-key" id="statsNowUpdated" style="margin: 0;">—</span>
+            </div>
+            <div class="status-grid" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); margin-bottom: 0;">
+              <div class="status-item">
+                <span class="status-key">OWNCAST (WEB)</span>
+                <span class="status-val" id="statsNowOwncast">—</span>
+              </div>
+              <div class="status-item">
+                <span class="status-key">TWITCH</span>
+                <span class="status-val" id="statsNowTwitch">—</span>
+              </div>
+              <div class="status-item">
+                <span class="status-key">KICK</span>
+                <span class="status-val" id="statsNowKick">—</span>
+              </div>
+              <div class="status-item">
+                <span class="status-key">VISITANTES EN LA WEB</span>
+                <span class="status-val" id="statsNowWeb">—</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card: Buscador por programa -->
+          <div class="admin-card" style="margin-bottom: 20px;">
+            <div class="card-header">
+              <div class="card-title-group">
+                <svg class="card-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                <h2 class="card-title">BUSCAR ESTADÍSTICAS DE UN PROGRAMA</h2>
+              </div>
+            </div>
+
+            <p class="obs-note" style="margin: 0 0 15px 0;">
+              Elige un programa de la parrilla para rellenar el horario, o ingresa a mano la <b>fecha</b> y la <b>hora en que empezó y terminó</b>. Si la hora de término es menor que la de inicio, se asume que terminó al día siguiente.
+            </p>
+
+            <form id="statsForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; align-items: end;">
+              <div class="field-group" style="grid-column: 1 / -1;">
+                <label class="field-label" for="statsProgram">PROGRAMA (OPCIONAL)</label>
+                <select id="statsProgram" class="field-input" style="cursor: pointer;">
+                  <option value="">— Horario manual —</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="statsDate">FECHA</label>
+                <input type="date" id="statsDate" class="field-input" required style="cursor: pointer;">
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="statsStart">HORA DE INICIO</label>
+                <input type="time" id="statsStart" class="field-input" required>
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="statsEnd">HORA DE TÉRMINO</label>
+                <input type="time" id="statsEnd" class="field-input" required>
+              </div>
+              <button type="submit" class="save-btn" id="statsSearchBtn">CONSULTAR</button>
+            </form>
+          </div>
+
+          <!-- Card: Resultados -->
+          <div class="admin-card hidden" id="statsResultCard">
+            <div class="card-header">
+              <div class="card-title-group">
+                <svg class="card-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"/></svg>
+                <h2 class="card-title" id="statsResultTitle">RESULTADOS</h2>
+              </div>
+              <button class="add-btn" id="statsCsvBtn" type="button">EXPORTAR CSV</button>
+            </div>
+
+            <p class="obs-note hidden" id="statsEmptyMsg" style="margin: 0;"></p>
+
+            <div id="statsResultBody">
+              <div class="user-table-wrap">
+                <table class="user-table">
+                  <thead>
+                    <tr>
+                      <th>FUENTE</th>
+                      <th style="text-align: right;">PICO</th>
+                      <th style="text-align: right;">HORA DEL PICO</th>
+                      <th style="text-align: right;">PROMEDIO</th>
+                      <th style="text-align: right;">HORAS VISTAS</th>
+                      <th style="text-align: right;">TIEMPO EN VIVO</th>
+                    </tr>
+                  </thead>
+                  <tbody id="statsTableBody"></tbody>
+                </table>
+              </div>
+
+              <div style="position: relative; height: 320px; margin-top: 22px;">
+                <canvas id="statsChart" role="img" aria-label="Espectadores por minuto en cada plataforma"></canvas>
+              </div>
+              <p class="obs-note" id="statsFootnote" style="margin: 14px 0 0 0;"></p>
+            </div>
+          </div>
+
+        </div>
+      </main>
+    </div>
+
     <!-- TAB: YOUTUBE VOD -->
     <div class="tab-content" id="tab-vod-config">
       <main class="admin-main">
@@ -665,6 +776,10 @@
                   <label class="perm-checkbox-item">
                     <input type="checkbox" id="perm-pauta" checked>
                     <span>📜 Pauta & Estudio (Teleprompter)</span>
+                  </label>
+                  <label class="perm-checkbox-item">
+                    <input type="checkbox" id="perm-stats">
+                    <span>📊 Estadísticas de Stream</span>
                   </label>
                   <label class="perm-checkbox-item">
                     <input type="checkbox" id="perm-vod-config">
@@ -821,6 +936,10 @@
               <span>📜 Pauta & Estudio</span>
             </label>
             <label class="perm-checkbox-item">
+              <input type="checkbox" id="edit-perm-stats">
+              <span>📊 Estadísticas</span>
+            </label>
+            <label class="perm-checkbox-item">
               <input type="checkbox" id="edit-perm-vod-config">
               <span>📺 YouTube VOD</span>
             </label>
@@ -840,6 +959,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
-  <script src="admin.js?v=2.1"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="admin.js?v=2.2"></script>
+  <script src="admin-stats.js?v=1.0"></script>
 </body>
 </html>

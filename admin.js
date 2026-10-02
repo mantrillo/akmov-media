@@ -92,7 +92,7 @@ const logoutBtn       = document.getElementById('logoutBtn');
 function applyUserPermissions() {
   const email = sessionStorage.getItem('akmov_user_email') || CONFIG.ADMIN_EMAIL;
   const role = sessionStorage.getItem('akmov_user_role') || 'superadmin';
-  let allowedTabs = ['stream-control', 'live-events', 'ad-ticker', 'pauta', 'vod-config', 'users'];
+  let allowedTabs = ['stream-control', 'live-events', 'ad-ticker', 'stats', 'pauta', 'vod-config', 'users'];
   try {
     const raw = sessionStorage.getItem('akmov_user_tabs');
     if (raw) {
@@ -100,6 +100,7 @@ function applyUserPermissions() {
       if (role === 'superadmin' || email.toLowerCase() === CONFIG.ADMIN_EMAIL.toLowerCase()) {
         if (!allowedTabs.includes('live-events')) allowedTabs.push('live-events');
         if (!allowedTabs.includes('ad-ticker')) allowedTabs.push('ad-ticker');
+        if (!allowedTabs.includes('stats')) allowedTabs.push('stats');
         sessionStorage.setItem('akmov_user_tabs', JSON.stringify(allowedTabs));
       }
     }
@@ -214,7 +215,7 @@ loginForm.addEventListener('submit', async (e) => {
   let authenticated = false;
   let userEmail = enteredEmail;
   let userRole = 'superadmin';
-  let userTabs = ['stream-control', 'live-events', 'ad-ticker', 'pauta', 'vod-config', 'users'];
+  let userTabs = ['stream-control', 'live-events', 'ad-ticker', 'stats', 'pauta', 'vod-config', 'users'];
   let errorMsg = 'Verifica tus credenciales';
 
   if (supabaseClient) {
@@ -233,7 +234,7 @@ loginForm.addEventListener('submit', async (e) => {
         const cached = regUsers.find(u => u.email.toLowerCase() === userEmail.toLowerCase());
 
         userRole = meta.role || (cached ? cached.role : (userEmail.toLowerCase() === CONFIG.ADMIN_EMAIL.toLowerCase() ? 'superadmin' : 'locutor'));
-        userTabs = meta.allowed_tabs || (cached ? cached.allowed_tabs : (userRole === 'superadmin' ? ['stream-control', 'live-events', 'ad-ticker', 'pauta', 'vod-config', 'users'] : ['pauta']));
+        userTabs = meta.allowed_tabs || (cached ? cached.allowed_tabs : (userRole === 'superadmin' ? ['stream-control', 'live-events', 'ad-ticker', 'stats', 'pauta', 'vod-config', 'users'] : ['pauta']));
         console.log(`Autenticado con Supabase Auth (${userEmail}) - Rol: ${userRole}`);
       } else if (error) {
         console.warn("Fallo de Supabase Auth, intentando fallback local:", error.message);
@@ -250,7 +251,7 @@ loginForm.addEventListener('submit', async (e) => {
       authenticated = true;
       userEmail = CONFIG.ADMIN_EMAIL;
       userRole = 'superadmin';
-      userTabs = ['stream-control', 'live-events', 'ad-ticker', 'pauta', 'vod-config', 'users'];
+      userTabs = ['stream-control', 'live-events', 'ad-ticker', 'stats', 'pauta', 'vod-config', 'users'];
       console.log("Autenticado con fallback local");
     }
   }
@@ -890,6 +891,7 @@ window.renderUsersTable = async function() {
     'overlays': '🎨 Overlays',
     'overlays-vertical': '📱 Overlays 9:16',
     'pauta': '📜 Pauta',
+    'stats': '📊 Estadísticas',
     'vod-config': '📺 VOD',
     'users': '👥 Usuarios'
   };
@@ -953,6 +955,7 @@ window.openEditUserModal = function(email) {
   document.getElementById('edit-perm-overlays').checked = tabs.includes('overlays');
   document.getElementById('edit-perm-overlays-vertical').checked = tabs.includes('overlays-vertical');
   document.getElementById('edit-perm-pauta').checked = tabs.includes('pauta');
+  document.getElementById('edit-perm-stats').checked = tabs.includes('stats');
   document.getElementById('edit-perm-vod-config').checked = tabs.includes('vod-config');
   document.getElementById('edit-perm-users').checked = tabs.includes('users');
 
@@ -1014,6 +1017,7 @@ window.saveUserEdit = async function() {
   if (document.getElementById('edit-perm-overlays').checked) allowed_tabs.push('overlays');
   if (document.getElementById('edit-perm-overlays-vertical').checked) allowed_tabs.push('overlays-vertical');
   if (document.getElementById('edit-perm-pauta').checked) allowed_tabs.push('pauta');
+  if (document.getElementById('edit-perm-stats').checked) allowed_tabs.push('stats');
   if (document.getElementById('edit-perm-vod-config').checked) allowed_tabs.push('vod-config');
   if (document.getElementById('edit-perm-users').checked) allowed_tabs.push('users');
 
@@ -1103,6 +1107,7 @@ document.getElementById('newUserForm')?.addEventListener('submit', async (e) => 
   if (document.getElementById('perm-overlays').checked) allowed_tabs.push('overlays');
   if (document.getElementById('perm-overlays-vertical')?.checked) allowed_tabs.push('overlays-vertical');
   if (document.getElementById('perm-pauta').checked) allowed_tabs.push('pauta');
+  if (document.getElementById('perm-stats').checked) allowed_tabs.push('stats');
   if (document.getElementById('perm-vod-config').checked) allowed_tabs.push('vod-config');
   if (document.getElementById('perm-users').checked) allowed_tabs.push('users');
 

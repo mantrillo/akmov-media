@@ -12,3 +12,5 @@ ad_ticker.json
 .tempmediaStorage/
 overlay-*/
 publicaciones/
+.stats-data/
+servidor-owncast/
