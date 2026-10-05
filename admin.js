@@ -395,10 +395,9 @@ btnBypass.addEventListener('click', async () => {
 
   btnBypass.disabled = true;
   try {
-    const response = await fetch(CONFIG.API_BASE + '/owncast/restart', { method: 'POST' });
-    const data = await response.json().catch(() => ({}));
+    const { response, data } = await controlPost('/owncast/restart');
     if (response.ok && data.success) {
-      toast('Señal liberada. Ya puedes iniciar una nueva transmisión.', 'success');
+      toast(data.message || 'Señal liberada. Ya puedes iniciar una nueva transmisión.', 'success');
     } else {
       toast('Error al liberar señal: ' + (data.error || 'Código HTTP ' + response.status), 'error');
     }
@@ -408,6 +407,47 @@ btnBypass.addEventListener('click', async () => {
   }
   btnBypass.disabled = false;
 });
+
+const btnResume = document.getElementById('btnResume');
+btnResume.addEventListener('click', async () => {
+  btnResume.disabled = true;
+  try {
+    const { response, data } = await controlPost('/owncast/resume');
+    if (response.ok && data.success) {
+      toast(data.message || 'AutoDJ activado.', 'success');
+    } else {
+      toast('Error al activar AutoDJ: ' + (data.error || 'Código HTTP ' + response.status), 'error');
+    }
+    await fetchOwncastStatus();
+  } catch (err) {
+    toast('Error de conexión al activar AutoDJ: ' + err.message, 'error');
+  }
+  btnResume.disabled = false;
+});
+
+// POST a los endpoints de control. Si el servidor tiene CONTROL_REMOTO_TOKEN
+// responde 401: se pide el token una vez y se recuerda en este navegador.
+async function controlPost(path) {
+  const send = () => {
+    const token = localStorage.getItem('akmov_token') || '';
+    return fetch(CONFIG.API_BASE + path, {
+      method: 'POST',
+      headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+    });
+  };
+
+  let response = await send();
+  if (response.status === 401) {
+    const entered = prompt('Este control está protegido. Ingresa el token de control remoto:');
+    if (entered && entered.trim()) {
+      localStorage.setItem('akmov_token', entered.trim());
+      response = await send();
+      if (response.status === 401) localStorage.removeItem('akmov_token');
+    }
+  }
+  const data = await response.json().catch(() => ({}));
+  return { response, data };
+}
 
 btnOpenChat.addEventListener('click', () => {
   const domain = CONFIG.API_BASE.replace('api.', 'stream.').replace(':3001', ':8080');

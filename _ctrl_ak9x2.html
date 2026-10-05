@@ -135,18 +135,23 @@
           </div>
 
           <div class="autodj-actions" style="gap: 10px;">
-            <button class="action-btn btn-start" id="btnOpenChat" style="background: var(--bg-card); border: 1px solid var(--neon); color: var(--neon);">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
-              <span>ABRIR CHAT</span>
-            </button>
             <button class="action-btn btn-stop" id="btnBypass" style="background: var(--red); color: white; border: none;">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
               <span>LIBERAR SEÑAL (BYPASS)</span>
             </button>
+            <button class="action-btn btn-start" id="btnResume">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              <span>ACTIVAR AUTODJ</span>
+            </button>
+            <button class="action-btn btn-start" id="btnOpenChat" style="grid-column: 1 / -1; background: var(--bg-card); border: 1px solid var(--neon); color: var(--neon);">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
+              <span>ABRIR CHAT</span>
+            </button>
           </div>
 
           <p class="autodj-hint">
-            ⚡ <b>Liberar Señal (Bypass):</b> Fuerza la desconexión del emisor actual (ej. OBS de AutoDJ) para permitir que otro locutor se conecte inmediatamente.
+            ⚡ <b>Liberar Señal (Bypass):</b> Desconecta al AutoDJ y lo deja en espera 5 minutos para que un locutor se conecte.<br>
+            ▶ <b>Activar AutoDJ:</b> Cancela esa espera para que el AutoDJ retome la señal de inmediato cuando el locutor termine.
           </p>
         </div>
 
@@ -980,7 +985,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-  <script src="admin.js?v=2.2"></script>
+  <script src="admin.js?v=2.3"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="admin-stats.js?v=1.1"></script>
 </body>

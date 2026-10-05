@@ -38,6 +38,21 @@ app.use(cors());
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ limit: '20mb', extended: true }));
 
+// ─── CONTROL REMOTO EN VIVO (celular) — TOKEN OPCIONAL ─────────────────────
+// Si defines CONTROL_REMOTO_TOKEN en tu .env, /owncast/restart, /owncast/resume
+// y POST /schedule exigirán ese token (header "Authorization: Bearer <token>").
+// Si NO lo defines, quedan igual que antes (sin auth), para no romper el panel actual.
+const CONTROL_REMOTO_TOKEN = process.env.CONTROL_REMOTO_TOKEN || '';
+function requireControlToken(req, res, next) {
+  if (!CONTROL_REMOTO_TOKEN) return next(); // Auth desactivada si no hay token configurado
+  const auth = req.headers['authorization'] || '';
+  const token = auth.replace(/^Bearer\s+/i, '');
+  if (token !== CONTROL_REMOTO_TOKEN) {
+    return res.status(401).json({ success: false, error: 'Token de control remoto inválido' });
+  }
+  next();
+}
+
 // ─── INTEGRACIÓN OWNCAST CHAT (Multichat Bot Token) ─────────────────
 const OWNCAST_ADMIN_TOKEN = process.env.OWNCAST_ADMIN_TOKEN || 'tsVziIOHpU_CN_C43TOqr7HvmGGgKxG_yhjMzgFmS7U=';
 const OWNCAST_API_URL     = process.env.OWNCAST_API_URL     || 'http://localhost:8080';
@@ -657,7 +672,7 @@ function notifyDiscordSchedule(schedule) {
   tableMarkdown += "| :--- | :--- | :--- | :--- |\n";
   
   sorted.forEach(slot => {
-    const typeLabels = { live: 'EN VIVO 🔴', next: 'Siguiente 🟢', autodj: 'AutoDJ 📻', repeat: 'Repetición 🔁' };
+    const typeLabels = { live: 'EN VIVO 🔴', next: 'Siguiente 🟢', autodj: 'AutoDJ 📻', repeat: 'Repetición 🔁', programa: 'Programa 🎬' };
     const typeStr = typeLabels[slot.type] || slot.type.toUpperCase();
     const descStr = slot.desc ? slot.desc.replace(/\|/g, '\\|') : '—';
     const titleStr = slot.host ? `${slot.title} *(Locutor: ${slot.host})*` : slot.title;
@@ -696,7 +711,7 @@ app.post('/schedule', (req, res) => {
   });
 });
 
-app.post('/owncast/restart', (req, res) => {
+app.post('/owncast/restart', requireControlToken, (req, res) => {
   // Activar bypass temporal de 5 minutos
   bypassActiveUntil = Date.now() + 5 * 60 * 1000;
   restartPending = true;
@@ -719,6 +734,18 @@ app.post('/owncast/restart', (req, res) => {
   }, 45000);
 
   res.json({ success: true, message: 'Señal liberada (OBS se desconectará limpiamente en unos segundos).' });
+});
+
+app.post('/owncast/resume', requireControlToken, (req, res) => {
+  // Cancela el bypass inmediatamente en vez de esperar el timeout de 5 minutos,
+  // para que el AutoDJ retome el control apenas el locutor termine.
+  bypassActiveUntil = 0;
+  restartPending = false;
+  if (restartTimeout) {
+    clearTimeout(restartTimeout);
+    restartTimeout = null;
+  }
+  res.json({ success: true, message: 'AutoDJ retomará el control en los próximos segundos.' });
 });
 
 // ─── INSCRIPCIONES ENDPOINT (POST) ────────────────────────────
